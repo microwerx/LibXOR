@@ -1,0 +1,43 @@
+{
+    "compilerOptions": {
+        "module": "system",
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "outFile": "js/LibXOR.js",
+        "sourceMap": true
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "**/*.spec.ts"
+    ]
+}
+/*
+{
+    "compilerOptions": {
+        "declaration": true,
+        "module": "amd",
+        "noImplicitAny": true,
+        "removeComments": false,
+        "preserveConstEnums": true,
+        "outFile": "js/libxor.js",
+        // "compileOnSave": true,
+        "outDir": "js",
+        "rootDir": ".",
+        "sourceMap": true
+    },
+    "exclude": [
+        "node_modules",
+        "typings"
+    ],
+    "files": [
+        "XOR/Sprite.ts",
+        "XOR/Graphics.ts",
+        "XOR/LibXOR.ts",
+        "tests/test_xor.ts"
+    ]
+}
+*/
