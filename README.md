@@ -66,6 +66,8 @@ possible.
 
 ## Subsystems
 
+{% octicon clippy %}
+
 * GTE
   * Vector2
   * Vector3
