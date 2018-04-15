@@ -6,7 +6,7 @@ inspiration comes from old 8-bit consoles like the Commodore VIC-20, Atari
 main goal is to enable developers to make modern 2D games with but as simply as
 possible.
 
-# Example Usage
+## Example Usage
 
     <html>
     <head>
@@ -61,3 +61,26 @@ possible.
         </script>
     </body>
     </html>
+
+## Subsystems
+
+### Geometry Transformation Engine
+
+* Vector2
+* Vector3
+* Vector4
+* Matrix2
+* Matrix3
+* Matrix4
+
+### Graphics
+
+### Sound
+
+### Music
+
+### Input
+
+### Colors
+
+* Red <span style="color:#ff0000">####</span>
