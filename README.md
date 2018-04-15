@@ -64,23 +64,14 @@ possible.
 
 ## Subsystems
 
-### Geometry Transformation Engine
-
-* Vector2
-* Vector3
-* Vector4
-* Matrix2
-* Matrix3
-* Matrix4
-
-### Graphics
-
-### Sound
-
-### Music
-
-### Input
-
-### Colors
-
-* Red <span style="color:#ff0000">####</span>
+* GTE
+  * Vector2
+  * Vector3
+  * Vector4
+  * Matrix2
+  * Matrix3
+  * Matrix4
+* Graphics
+* Sound
+* Music
+* Input
