@@ -6,6 +6,14 @@ What will happen to this is creation of a 256x256 4 component texture map that g
 
 LibXOR is inspired by 6502 8-bit computers. The main idea is that we have a 64KiB memory space that is used by a number of peripherals. The main CPU interacts with these devices by use of memory mapped registers. The Microsoft 6502 BASIC language was often used and provided PEEK and POKE commands to change arbitrary memory values. For example, if you want to start a sound, you might POKE the volume and pitch values into memory. If you wanted to check the input system, you would PEEK those values.
 
+## Developer's quick guide
+
+* Install [Visual Studio Code](https://code.visualstudio.com/)
+* Install [Node.js](https://nodejs.org/)
+* Install Node packages (`npm install -g typescript eslint tslint lite-server concurrently`)
+* Run Visual Studio Code and clone repository
+* At the terminal run `npm start` to start the TypeScript compiler in watch mode and the HTTP server on port 3000
+
 ## Implemented Features
 
 * Memory System with PEEK and POKE
