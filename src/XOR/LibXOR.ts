@@ -1,7 +1,11 @@
-import * from './Graphics'
-import * from './Sprite'
+import { MemorySystem } from './MemorySystem'
+import { GraphicsSystem } from './GraphicsSystem'
 
-export class LibXOR
-{
-    public Graphics: XOR.Graphics
+export module LibXOR {
+    export class LibXORInstance {
+        public Memory = new MemorySystem();
+        public Graphics = new GraphicsSystem(this.Memory);
+        public Sound = new GraphicsSystem(this.Memory);
+        public Input = new GraphicsSystem(this.Memory);
+    }
 }
