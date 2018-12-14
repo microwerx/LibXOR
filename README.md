@@ -87,13 +87,13 @@ LibXOR is inspired by 6502 8-bit computers. The main idea is that we have a 64Ki
 
 ## TODOs
 
-[] Vector/Matrix Library
-[] Keyboard input with `InputSystem`
-[] Mouse input with `InputSystem`
-[] Gamepad input with `InputSystem`
-[] Tiled Graphics with `GraphicsSystem`
-[] Sprites with `GraphicsSystem`
-[] PSG sound generator with `SoundSystem`
+![] Vector/Matrix Library
+![] Keyboard input with `InputSystem`
+![] Mouse input with `InputSystem`
+![] Gamepad input with `InputSystem`
+![] Tiled Graphics with `GraphicsSystem`
+![] Sprites with `GraphicsSystem`
+![] PSG sound generator with `SoundSystem`
 
 ## FIXMEs
 

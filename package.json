@@ -1,0 +1,17 @@
+{
+    "name": "libxor",
+    "version": "0.1.0",
+    "description": "retro console library for TypeScript and JavaScript",
+    "main": "www/LibXOR.js",
+    "scripts": {
+        "tsc": "tsc",
+        "tsc:w": "tsc -w",
+        "lite": "lite-server --baseDir=\"www\"",
+        "start": "concurrently \"npm run tsc:w\" \"npm run lite\""
+    },
+    "dependencies": {
+        "concurrently": "latest",
+        "lite-server": "^2.4.0",
+        "typescript": "^3.0.0"
+    }
+}
