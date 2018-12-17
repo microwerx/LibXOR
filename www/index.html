@@ -1,70 +1,74 @@
+<!DOCTYPE html>
 <html>
+
 <head>
-<title>A Simple LibXOR Game</title>
+    <title>A Simple LibXOR Game</title>
 </head>
+
 <body>
-<h1>A Simple LibXOR Game</h1>
-<div id="game"></div>
-<script src="LibXOR.js"></script>
-<script>
-    let xor = new LibXOR("game");
-    
-    xor.Graphics.SetVideoMode(640, 360);
-    
-    xor.oninit = () {
-        let player = xor.Objects.get(0);
-        player.palette = 0;
-        player.bitmap = 255;
-        let bitmap = xor.Graphics.Sprites.get(255);
-        bitmap.setPixels(0,"00111100");
-        bitmap.setPixels(1,"00111100");
-        bitmap.setPixels(2,"00011000");
-        bitmap.setPixels(3,"00111100");
-        bitmap.setPixels(4,"00111100");
-        bitmap.setPixels(5,"00111100");
-        bitmap.setPixels(6,"00100100");
-        bitmap.setPixels(7,"01100110");
-        let music = xor.Sound.Patterns.get(0);
-        music.setSteps(0, "1000100010001000");
-        music.setNotes(0, "C000E000G000E000");
-        music.setOctaves(0, "3000300030003000");
-        music.instrument = 0;
-        let instrument = xor.Sound.Instruments.get(0);
-        instrument.pitch1.octave = 8;
-        instrument.pitch1.shape = 0; // shape goes from triangle to saw to square to pwm
-        instrument.filter1.cutoff = 440;
-        instrument.filter1.resonance = 5.0;
-        instrument.filter1.cv = "envelope1";
-        instrument.envelope1.attack = 0;
-        instrument.envelope1.decay = 1;
-        instrument.envelope1.sustain = 0.5;
-        instrument.envelope1.release = 0.5;
+    <h1>A Simple LibXOR Game</h1>
+    <div id="game"></div>
+    <script type="module" src="LibXOR.js"></script>
+    <script>
+        let xor = new LibXOR("game");
 
-        music.bpm = 100;
-    }
-    
-    xor.onupdate = () {
-        let velocity = vec3(0, 0, 0);
-        let player = xor.Graphics.Sprites.get(0);
-        
-        if (xor.Input.CheckKeys(["ArrowLeft", "A", "a"])) {
-            velocity.x -= 1;
+        xor.graphics.setVideoMode(640, 360);
+
+        xor.oninit = () => {
+            let player = xor.Objects.get(0);
+            player.palette = 0;
+            player.bitmap = 255;
+            let bitmap = xor.Graphics.Sprites.get(255);
+            bitmap.setPixels(0, "00111100");
+            bitmap.setPixels(1, "00111100");
+            bitmap.setPixels(2, "00011000");
+            bitmap.setPixels(3, "00111100");
+            bitmap.setPixels(4, "00111100");
+            bitmap.setPixels(5, "00111100");
+            bitmap.setPixels(6, "00100100");
+            bitmap.setPixels(7, "01100110");
+            let music = xor.Sound.Patterns.get(0);
+            music.setSteps(0, "1000100010001000");
+            music.setNotes(0, "C000E000G000E000");
+            music.setOctaves(0, "3000300030003000");
+            music.instrument = 0;
+            let instrument = xor.Sound.Instruments.get(0);
+            instrument.pitch1.octave = 8;
+            instrument.pitch1.shape = 0; // shape goes from triangle to saw to square to pwm
+            instrument.filter1.cutoff = 440;
+            instrument.filter1.resonance = 5.0;
+            instrument.filter1.cv = "envelope1";
+            instrument.envelope1.attack = 0;
+            instrument.envelope1.decay = 1;
+            instrument.envelope1.sustain = 0.5;
+            instrument.envelope1.release = 0.5;
+
+            music.bpm = 100;
         }
 
-        if (xor.Input.CheckKeys(["ArrowRight", "D", "d"])) {
-            velocity.x += 1;
-        }
+        xor.onupdate = () => {
+            let velocity = vec3(0, 0, 0);
+            let player = xor.Graphics.Sprites.get(0);
 
-        if (xor.Input.CheckKeys(["ArrowUp", "W", "w"])) {
-            velocity.y += 1;
-        }
+            if (xor.Input.CheckKeys(["ArrowLeft", "A", "a"])) {
+                velocity.x -= 1;
+            }
 
-        if (xor.Input.CheckKeys(["ArrowDown", "S", "s"])) {
-            velocity.y -= 1;
-        }
-        player.moveBy(velocity);
-    };
-    xor.Start();
-</script>
+            if (xor.Input.CheckKeys(["ArrowRight", "D", "d"])) {
+                velocity.x += 1;
+            }
+
+            if (xor.Input.CheckKeys(["ArrowUp", "W", "w"])) {
+                velocity.y += 1;
+            }
+
+            if (xor.Input.CheckKeys(["ArrowDown", "S", "s"])) {
+                velocity.y -= 1;
+            }
+            player.moveBy(velocity);
+        };
+        xor.Start();
+    </script>
 </body>
+
 </html>

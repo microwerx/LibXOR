@@ -1,11 +1,41 @@
 import { MemorySystem } from './MemorySystem'
 import { GraphicsSystem } from './GraphicsSystem'
+import { SoundSystem } from './SoundSystem';
+import { InputSystem } from './InputSystem';
 
-export module LibXOR {
-    export class LibXORInstance {
-        public Memory = new MemorySystem();
-        public Graphics = new GraphicsSystem(this.Memory);
-        public Sound = new GraphicsSystem(this.Memory);
-        public Input = new GraphicsSystem(this.Memory);
+export class LibXOR {
+    public memory = new MemorySystem(this);
+    public graphics = new GraphicsSystem(this);
+    public sound = new SoundSystem(this);
+    public input = new InputSystem(this);
+    public parentElement: HTMLElement;
+
+    public t1 = 0.0;
+    public t0 = 0.0;
+    public dt = 0.0;
+
+    public oninit = () => { };
+    public onupdate = (dt: number) => { };
+
+    constructor(public parentId: string) {
+        let n = document.getElementById(parentId);
+        if (!n) throw "Unable to initialize LibXOR due to bad parentId '" + parentId.toString() + "'";
+        this.parentElement = n;
+    }
+
+    start() {
+        this.oninit();
+        this.mainloop();
+    }
+
+    mainloop() {
+        window.requestAnimationFrame((t) => {
+            this.t0 = this.t1;
+            this.t1 = t;
+            this.dt = this.t1 - this.t0;
+
+            this.onupdate(this.dt);
+            this.graphics.render();
+        });
     }
 }

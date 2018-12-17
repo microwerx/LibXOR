@@ -1,10 +1,12 @@
 {
     "compilerOptions": {
-        "module": "system",
+        "module": "esnext",
         "noImplicitAny": true,
         "removeComments": true,
         "preserveConstEnums": true,
-        "outFile": "www/LibXOR.js",
+        "strict": true,
+        // "outDir": "www",
+        "outFile": "LibXOR.js",
         "sourceMap": true
     },
     "include": [

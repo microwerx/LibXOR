@@ -1,8 +1,9 @@
+import { LibXOR } from "./LibXOR";
 
 export class MemorySystem {
     private mem: Int32Array = new Int32Array(65536);
 
-    constructor() {
+    constructor(private xor: LibXOR) {
 
     }
 

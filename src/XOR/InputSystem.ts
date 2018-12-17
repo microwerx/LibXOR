@@ -1,7 +1,7 @@
-import { MemorySystem } from "./MemorySystem";
+import { LibXOR } from "./LibXOR";
 
 export class InputSystem {
-    constructor(private memory: MemorySystem) {
+    constructor(private xor: LibXOR) {
 
     }
 }

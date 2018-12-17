@@ -32,9 +32,9 @@ LibXOR is inspired by 6502 8-bit computers. The main idea is that we have a 64Ki
 <script>
     let xor = new LibXOR("game");
     
-    xor.Graphics.SetVideoMode(640, 360);
+    xor.graphics.setVideoMode(640, 360);
     
-    xor.oninit = () {
+    xor.oninit = () => {
         let player = xor.Objects.get(0);
         player.palette = 0;
         player.bitmap = 255;
@@ -68,26 +68,26 @@ LibXOR is inspired by 6502 8-bit computers. The main idea is that we have a 64Ki
     
     xor.onupdate = () {
         let velocity = vec3(0, 0, 0);
-        let player = xor.Graphics.Sprites.get(0);
+        let player = xor.objects.get(0);
         
-        if (xor.Input.CheckKeys(["ArrowLeft", "A", "a"])) {
+        if (xor.input.checkKeys(["ArrowLeft", "A", "a"])) {
             velocity.x -= 1;
         }
 
-        if (xor.Input.CheckKeys(["ArrowRight", "D", "d"])) {
+        if (xor.input.checkKeys(["ArrowRight", "D", "d"])) {
             velocity.x += 1;
         }
 
-        if (xor.Input.CheckKeys(["ArrowUp", "W", "w"])) {
+        if (xor.input.checkKeys(["ArrowUp", "W", "w"])) {
             velocity.y += 1;
         }
 
-        if (xor.Input.CheckKeys(["ArrowDown", "S", "s"])) {
+        if (xor.input.checkKeys(["ArrowDown", "S", "s"])) {
             velocity.y -= 1;
         }
         player.moveBy(velocity);
     };
-    xor.Start();
+    xor.start();
 </script>
 </body>
 </html>
