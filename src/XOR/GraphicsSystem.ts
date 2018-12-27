@@ -1,4 +1,4 @@
-import { LibXOR } from "./LibXOR";
+/// <reference path="LibXOR.ts" />
 
 function randomUint8() {
     return (Math.random() * 255.99) | 0;
@@ -8,7 +8,7 @@ function randomUint16() {
     return (Math.random() * 65535.99) | 0;
 }
 
-export class GraphicsSystem {
+class GraphicsSystem {
     gl: WebGLRenderingContext | null = null;
     private glcontextid = "GraphicsSystem" + randomUint8().toString();
 
@@ -21,7 +21,7 @@ export class GraphicsSystem {
             p.removeChild(p.firstChild);
         }
 
-        let canvas = new HTMLCanvasElement();
+        let canvas = document.createElement("canvas");
         canvas.id = this.glcontextid;
         canvas.width = width;
         canvas.height = height;

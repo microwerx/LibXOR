@@ -1,9 +1,9 @@
-import { MemorySystem } from './MemorySystem'
-import { GraphicsSystem } from './GraphicsSystem'
-import { SoundSystem } from './SoundSystem';
-import { InputSystem } from './InputSystem';
+/// <reference path="MemorySystem.ts" />
+/// <reference path="GraphicsSystem.ts" />
+/// <reference path="SoundSystem.ts" />
+/// <reference path="InputSystem.ts" />
 
-export class LibXOR {
+class LibXOR {
     public memory = new MemorySystem(this);
     public graphics = new GraphicsSystem(this);
     public sound = new SoundSystem(this);

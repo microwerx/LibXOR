@@ -1,6 +1,6 @@
-import { LibXOR } from "./LibXOR";
+/// <reference path="LibXOR.ts" />
 
-export class MemorySystem {
+class MemorySystem {
     private mem: Int32Array = new Int32Array(65536);
 
     constructor(private xor: LibXOR) {

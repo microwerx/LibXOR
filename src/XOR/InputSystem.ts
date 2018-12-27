@@ -1,6 +1,6 @@
-import { LibXOR } from "./LibXOR";
+/// <reference path="LibXOR.ts" />
 
-export class InputSystem {
+class InputSystem {
     constructor(private xor: LibXOR) {
 
     }

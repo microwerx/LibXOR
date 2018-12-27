@@ -1,12 +1,13 @@
 {
     "compilerOptions": {
+        "target": "es2017",
         "module": "esnext",
         "noImplicitAny": true,
         "removeComments": true,
         "preserveConstEnums": true,
         "strict": true,
-        // "outDir": "www",
-        "outFile": "LibXOR.js",
+        "outDir": "www/LibXOR",
+        "outFile": "./www/LibXOR.js",
         "sourceMap": true
     },
     "include": [
@@ -17,29 +18,3 @@
         "**/*.spec.ts"
     ]
 }
-/*
-{
-    "compilerOptions": {
-        "declaration": true,
-        "module": "amd",
-        "noImplicitAny": true,
-        "removeComments": false,
-        "preserveConstEnums": true,
-        "outFile": "js/libxor.js",
-        // "compileOnSave": true,
-        "outDir": "js",
-        "rootDir": ".",
-        "sourceMap": true
-    },
-    "exclude": [
-        "node_modules",
-        "typings"
-    ],
-    "files": [
-        "XOR/Sprite.ts",
-        "XOR/Graphics.ts",
-        "XOR/LibXOR.ts",
-        "tests/test_xor.ts"
-    ]
-}
-*/
