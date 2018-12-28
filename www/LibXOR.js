@@ -1,4 +1,64 @@
 "use strict";
+class Hatchetfish {
+    constructor(logElementId = "") {
+        this._logElementId = "";
+        this._logElement = null;
+        this._numLines = 0;
+        this.logElement = logElementId;
+    }
+    set logElement(id) {
+        let el = document.getElementById(id);
+        if (el instanceof HTMLDivElement) {
+            this._logElement = el;
+            this._logElementId = id;
+        }
+    }
+    clear() {
+        this._numLines = 0;
+        if (this._logElement) {
+            this._logElement.innerHTML = "";
+        }
+        let errorElement = document.getElementById("errors");
+        if (errorElement) {
+            errorElement.remove();
+        }
+    }
+    writeToLog(prefix, message, ...optionalParams) {
+        let text = prefix + ": " + message;
+        for (let op of optionalParams) {
+            if (op.toString) {
+                text += " " + op.toString();
+            }
+            else {
+                text += " <unknown>";
+            }
+        }
+        if (this._logElement) {
+            let newHTML = "<br/>" + text + this._logElement.innerHTML;
+            this._logElement.innerHTML = newHTML;
+        }
+    }
+    log(message, ...optionalParams) {
+        this.writeToLog("[LOG]", message, ...optionalParams);
+        console.log(message, ...optionalParams);
+    }
+    info(message, ...optionalParams) {
+        this.writeToLog("[INF]", message, ...optionalParams);
+        console.info(message, ...optionalParams);
+    }
+    error(message, ...optionalParams) {
+        this.writeToLog("[ERR]", message, ...optionalParams);
+        console.error(message, ...optionalParams);
+    }
+    warn(message, ...optionalParams) {
+        this.writeToLog("[WRN]", message, ...optionalParams);
+        console.warn(message, optionalParams);
+    }
+    debug(message, ...optionalParams) {
+        console.log(message, ...optionalParams);
+    }
+}
+var hflog = new Hatchetfish();
 class Vector3 {
     constructor(x = 0.0, y = 0.0, z = 0.0) {
         this.x = x;
@@ -977,32 +1037,464 @@ var GTE;
     }
     GTE.BoundingBox = BoundingBox;
 })(GTE || (GTE = {}));
-class MemorySystem {
+function randomUint8() {
+    return (Math.random() * 255.99) | 0;
+}
+function randomUint16() {
+    return (Math.random() * 65535.99) | 0;
+}
+class GraphicsSystem {
     constructor(xor) {
         this.xor = xor;
-        this.mem = new Int32Array(65536);
+        this.gl = null;
+        this.canvas = null;
+        this.glcontextid = "GraphicsSystem" + randomUint8().toString();
+        this.sprites = [];
+        this.tileLayers = [];
+        this.spriteImage = new Uint8Array(128 * 128 * 4);
+        this.layer1width = 0;
+        this.layer1height = 0;
+        this.layer2width = 0;
+        this.layer2height = 0;
+        this.layer3width = 0;
+        this.layer3height = 0;
+        this.layer4width = 0;
+        this.layer4height = 0;
+        this.worldMatrix = Matrix4.makeIdentity();
+        this.cameraMatrix = Matrix4.makeIdentity();
+        this.projectionMatrix = Matrix4.makeOrtho(0, 256, 0, 256, -100.0, 100.0);
+        this.MaxSprites = 128;
+        this.MaxTileLayers = 4;
+        this.SpriteSize = 16;
+        this.VICMemoryStart = 0x6000;
+        this.CharMatrixMemoryStart = 0x7000;
+        this.CharColorsMemoryStart = 0x8000;
+        this.CharBitmapMemoryStart = 0x9000;
+        this.SpriteInfoMemoryStart = 0xA000;
+        this.SpriteBitmapMemoryStart = 0xB000;
+        this.TileBitmapMemoryStart = 0xD000;
+        this.TileMatrixMemoryStart = 0xF000;
+        this.drawABO = null;
+        this.shaderProgram = null;
+        this.vertShader = null;
+        this.fragShader = null;
+        this.spriteTexture = null;
+        this.charTexture = null;
+        this.tileTexture = null;
+        this.drawList = [];
+        this.aPosition = -1;
+        this.aNormal = -1;
+        this.aTexcoord = -1;
+        this.aColor = -1;
+        this.aGeneric = -1;
+        this.uTexture0 = null;
+        this.uProjectionMatrix = null;
+        this.uCameraMatrix = null;
+        this.uWorldMatrix = null;
     }
-    PEEK(location) {
-        if (location < 0 || location > 65536) {
-            return 0;
+    init() {
+        this.sprites = [];
+        for (let i = 0; i < this.MaxSprites; i++) {
+            this.sprites.push(new GraphicsSprite());
         }
-        return this.mem[location];
+        this.tileLayers = [];
+        for (let i = 0; i < this.MaxTileLayers; i++) {
+            this.tileLayers.push(new GraphicsTileLayer());
+        }
     }
-    POKE(location, value) {
-        if (location < 0 || location > 65535) {
+    setVideoMode(width, height) {
+        let p = this.xor.parentElement;
+        while (p.firstChild) {
+            p.removeChild(p.firstChild);
+        }
+        let canvas = document.createElement("canvas");
+        canvas.id = this.glcontextid;
+        canvas.width = width;
+        canvas.height = height;
+        this.gl = canvas.getContext("webgl");
+        this.canvas = canvas;
+        p.appendChild(canvas);
+    }
+    readFromMemory() {
+        let mem = this.xor.memory;
+        let pos = this.VICMemoryStart;
+        this.layer1width = mem.PEEK(pos++);
+        this.layer1height = mem.PEEK(pos++);
+        this.layer2width = mem.PEEK(pos++);
+        this.layer2height = mem.PEEK(pos++);
+        this.layer3width = mem.PEEK(pos++);
+        this.layer3height = mem.PEEK(pos++);
+        this.layer4width = mem.PEEK(pos++);
+        this.layer4height = mem.PEEK(pos++);
+        for (let i = 0; i < this.MaxSprites; i++) {
+            this.sprites[i].readFromMemory(this.xor.memory, this.SpriteInfoMemoryStart + i * this.SpriteSize);
+        }
+        let pixels = this.spriteImage;
+        let offset = this.SpriteBitmapMemoryStart;
+        let p = 0;
+        for (let spr = 0; spr < 256; spr++) {
+            for (let j = 0; j < 8; j++) {
+                let pixel1 = mem.PEEK(offset++);
+                let pixel2 = mem.PEEK(offset++);
+                let pixel = (pixel1 & 0xFF) << 8 + (pixel2 & 0xFF);
+                for (let i = 0; i < 8; i++) {
+                    let r = (pixel & 3) * 85;
+                    pixels[p++] = r;
+                    pixels[p++] = r;
+                    pixels[p++] = r;
+                    pixels[p++] = 255;
+                    pixel >>= 2;
+                }
+            }
+        }
+    }
+    createBuffers() {
+        if (!this.gl)
             return;
+        let gl = this.gl;
+        let vertices = [];
+        this.drawList = [];
+        this.drawList.push(gl.TRIANGLES);
+        this.drawList.push(vertices.length / 16);
+        for (let i = 0; i < this.MaxSprites; i++) {
+            let spr = this.sprites[i];
+            let r = 1;
+            let g = 1;
+            let b = 1;
+            let a = spr.alpha;
+            let u1 = spr.fliph ? 1.0 : 0.0;
+            let u2 = spr.fliph ? 0.0 : 1.0;
+            let v1 = spr.flipv ? 1.0 : 0.0;
+            let v2 = spr.flipv ? 0.0 : 1.0;
+            let w = 0.0;
+            let scale = 1.0;
+            let x1 = spr.position.x;
+            let y1 = spr.position.y;
+            let x2 = spr.position.x + 8;
+            let y2 = spr.position.y + 8;
+            let z = 0.0;
+            let nx = 0.0;
+            let ny = 0.0;
+            let nz = 1.0;
+            let p1 = 0;
+            let p2 = 0;
+            let p3 = 0;
+            let ll = [scale * x1, scale * y1, z, nx, ny, nz, u1, v1, w, r, g, b, a, p1, p2, p3];
+            let lr = [scale * x2, scale * y1, z, nx, ny, nz, u2, v1, w, r, g, b, a, p1, p2, p3];
+            let ul = [scale * x1, scale * y2, z, nx, ny, nz, u1, v2, w, r, g, b, a, p1, p2, p3];
+            let ur = [scale * x2, scale * y2, z, nx, ny, nz, u2, v2, w, r, g, b, a, p1, p2, p3];
+            vertices.push(...ll);
+            vertices.push(...lr);
+            vertices.push(...ur);
+            vertices.push(...ur);
+            vertices.push(...ul);
+            vertices.push(...ll);
         }
-        this.mem[location] = value | 0;
+        this.drawList.push(this.MaxSprites * 6);
+        if (!this.drawABO) {
+            this.drawABO = gl.createBuffer();
+        }
+        if (this.drawABO) {
+            let data = new Float32Array(vertices);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.drawABO);
+            gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        }
+        if (!this.shaderProgram) {
+            let vshader = `#version 100
+            uniform mat4 WorldMatrix;
+            uniform mat4 ProjectionMatrix;
+            uniform mat4 CameraMatrix;
+
+            attribute vec3 aPosition;
+            attribute vec3 aNormal;
+            attribute vec3 aTexcoord;
+            attribute vec4 aColor;
+            attribute vec3 aGeneric;
+
+            varying vec3 vPosition;
+            varying vec3 vNormal;
+            varying vec3 vTexcoord;
+            varying vec4 vColor;
+            varying vec3 vGeneric;
+
+            mat3 getNormalMatrix(mat4 m) {
+                return mat3(
+                    m[0][0], m[0][1], m[0][2],
+                    m[1][0], m[1][1], m[1][2],
+                    m[2][0], m[2][1], m[2][2]);
+            }
+
+            void main() {
+                vPosition = (WorldMatrix * vec4(aPosition, 1.0)).xyz;
+                vNormal = getNormalMatrix(WorldMatrix) * aNormal;
+                vTexcoord = aTexcoord;
+                vColor = aColor;
+                gl_Position = ProjectionMatrix * CameraMatrix * WorldMatrix * vec4(aPosition, 1.0);
+            }
+            `;
+            let fshader = `#version 100
+            
+            precision highp float;
+
+            uniform sampler2D Texture0;
+            uniform sampler2D Palette;
+
+            varying vec3 vPosition;
+            varying vec3 vNormal;
+            varying vec3 vTexcoord;
+            varying vec4 vColor;
+            varying vec3 vGeneric;
+
+            vec3 getColor(int index) {
+                if (index == 0) return vec3(0.000, 0.000, 0.000); //Black
+                if (index == 1) return vec3(0.333, 0.333, 0.333); //Gray33
+                if (index == 2) return vec3(0.667, 0.667, 0.667); //Gray67
+                if (index == 3) return vec3(1.000, 1.000, 1.000); //White
+                if (index == 4) return vec3(1.000, 0.000, 0.000); //Red
+                if (index == 5) return vec3(0.894, 0.447, 0.000); //Orange
+                if (index == 6) return vec3(0.894, 0.894, 0.000); //Yellow
+                if (index == 7) return vec3(0.000, 1.000, 0.000); //Green
+                if (index == 8) return vec3(0.000, 0.707, 0.707); //Cyan
+                if (index == 9) return vec3(0.000, 0.447, 0.894); //Azure
+                if (index == 10) return vec3(0.000, 0.000, 1.000); //Blue
+                if (index == 11) return vec3(0.447, 0.000, 0.894); //Violet
+                if (index == 12) return vec3(0.894, 0.000, 0.447); //Rose
+                if (index == 13) return vec3(0.500, 0.250, 0.000); //Brown
+                if (index == 14) return vec3(0.830, 0.670, 0.220); //Gold
+                if (index == 15) return vec3(0.250, 0.500, 0.250); //ForestGreen
+                return vec3(0.0);
+            }
+                        
+            void main() {
+                gl_FragColor = vec4(vTexcoord.rg, 1.0, 1.0);
+            }
+            `;
+            let vs = gl.createShader(gl.VERTEX_SHADER);
+            if (vs) {
+                gl.shaderSource(vs, vshader);
+                gl.compileShader(vs);
+                let status = gl.getShaderParameter(vs, gl.COMPILE_STATUS);
+                let infoLog = gl.getShaderInfoLog(vs);
+                if (!status && infoLog) {
+                    hflog.error("LibXOR Vertex Shader did not compile");
+                    hflog.error(infoLog);
+                    gl.deleteShader(vs);
+                    vs = null;
+                }
+            }
+            let fs = gl.createShader(gl.FRAGMENT_SHADER);
+            if (fs) {
+                gl.shaderSource(fs, fshader);
+                gl.compileShader(fs);
+                let status = gl.getShaderParameter(fs, gl.COMPILE_STATUS);
+                let infoLog = gl.getShaderInfoLog(fs);
+                if (!status && infoLog) {
+                    hflog.error("LibXOR Fragment Shader did not compile");
+                    hflog.error(infoLog);
+                    gl.deleteShader(fs);
+                    fs = null;
+                }
+            }
+            let p = gl.createProgram();
+            if (p && fs && vs) {
+                gl.attachShader(p, vs);
+                gl.attachShader(p, fs);
+                gl.linkProgram(p);
+                let status = gl.getProgramParameter(p, gl.LINK_STATUS);
+                let infoLog = gl.getProgramInfoLog(p);
+                if (infoLog) {
+                    hflog.error("LibXOR Program did not link");
+                    hflog.error(infoLog);
+                    gl.deleteProgram(p);
+                    p = null;
+                }
+            }
+            if (p) {
+                this.shaderProgram = p;
+                this.vertShader = vs;
+                this.fragShader = fs;
+                this.aPosition = gl.getAttribLocation(p, "aPosition");
+                this.aNormal = gl.getAttribLocation(p, "aNormal");
+                this.aTexcoord = gl.getAttribLocation(p, "aTexcoord");
+                this.aColor = gl.getAttribLocation(p, "aColor");
+                this.aGeneric = gl.getAttribLocation(p, "aGeneric");
+                this.uTexture0 = gl.getUniformLocation(p, "Texture0");
+                this.uProjectionMatrix = gl.getUniformLocation(p, "ProjectionMatrix");
+                this.uCameraMatrix = gl.getUniformLocation(p, "CameraMatrix");
+                this.uWorldMatrix = gl.getUniformLocation(p, "WorldMatrix");
+            }
+            if (!this.spriteTexture) {
+                this.spriteTexture = gl.createTexture();
+            }
+            if (this.spriteTexture) {
+                gl.bindTexture(gl.TEXTURE_2D, this.spriteTexture);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 128, 128, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.spriteImage);
+                gl.generateMipmap(gl.TEXTURE_2D);
+            }
+            if (!this.charTexture) {
+            }
+            if (!this.tileTexture) {
+            }
+        }
+    }
+    enableVertexAttrib(gl, location, size, type, stride, offset) {
+        if (location < 0)
+            return;
+        gl.enableVertexAttribArray(location);
+        gl.vertexAttribPointer(location, size, type, false, stride, offset);
+    }
+    disableVertexAttrib(gl, location) {
+        if (location < 0)
+            return;
+        gl.disableVertexAttribArray(location);
+    }
+    render() {
+        if (!this.canvas || !this.gl)
+            return;
+        let gl = this.gl;
+        let xor = this.xor;
+        this.createBuffers();
+        let s = Math.sin(xor.t1);
+        gl.clearColor(0.3 * s, 0.1 * s, 0.2 * s, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        this.projectionMatrix = Matrix4.makeOrtho2D(0, this.canvas.width, this.canvas.height, 0);
+        gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.LEQUAL);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.drawABO);
+        this.enableVertexAttrib(gl, this.aPosition, 3, gl.FLOAT, 64, 0);
+        this.enableVertexAttrib(gl, this.aNormal, 3, gl.FLOAT, 64, 12);
+        this.enableVertexAttrib(gl, this.aTexcoord, 3, gl.FLOAT, 64, 24);
+        this.enableVertexAttrib(gl, this.aColor, 4, gl.FLOAT, 64, 36);
+        this.enableVertexAttrib(gl, this.aGeneric, 3, gl.FLOAT, 64, 52);
+        gl.useProgram(this.shaderProgram);
+        if (this.uTexture0)
+            gl.uniform1i(this.uTexture0, 0);
+        if (this.uWorldMatrix)
+            gl.uniformMatrix4fv(this.uWorldMatrix, false, this.worldMatrix.toColMajorArray());
+        if (this.uCameraMatrix)
+            gl.uniformMatrix4fv(this.uCameraMatrix, false, this.cameraMatrix.toColMajorArray());
+        if (this.uProjectionMatrix)
+            gl.uniformMatrix4fv(this.uProjectionMatrix, false, this.projectionMatrix.toColMajorArray());
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.spriteTexture);
+        gl.drawArrays(gl.TRIANGLES, 0, this.MaxSprites * 6);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.useProgram(null);
+        this.disableVertexAttrib(gl, this.aPosition);
+        this.disableVertexAttrib(gl, this.aNormal);
+        this.disableVertexAttrib(gl, this.aTexcoord);
+        this.disableVertexAttrib(gl, this.aColor);
+        this.disableVertexAttrib(gl, this.aGeneric);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
     }
 }
 class SoundSystem {
     constructor(xor) {
         this.xor = xor;
     }
+    init() {
+    }
 }
 class InputSystem {
     constructor(xor) {
         this.xor = xor;
+        this.keys = new Map();
+        this.codes = new Map();
+        this.modifiers = 0;
+    }
+    init() {
+        let self = this;
+        window.onkeydown = (e) => {
+            self.onkeydown(e);
+        };
+        window.onkeyup = (e) => {
+            self.onkeyup(e);
+        };
+    }
+    checkKeys(keys) {
+        for (let key of keys) {
+            if (this.codes.has(key)) {
+                if (this.codes.get(key) != 0.0) {
+                    return 1.0;
+                }
+            }
+            if (this.keys.has(key)) {
+                if (this.keys.get(key) != 0.0) {
+                    return 1.0;
+                }
+            }
+        }
+        return 0.0;
+    }
+    changeModifier(bit, state) {
+        bit = bit | 0;
+        if (bit > 8)
+            return;
+        if (state) {
+            this.modifiers |= bit;
+        }
+        else {
+            this.modifiers &= ~bit;
+        }
+    }
+    translateKeyToCode(key) {
+        if (key.length == 1) {
+            let s = key.toUpperCase();
+            if (s[0] >= 'A' && s[0] <= 'Z')
+                return 'Key' + s[0];
+            if (s[0] >= '0' && s[0] <= '9')
+                return 'Digit' + s[0];
+            if (s[0] == ' ')
+                return "Space";
+        }
+        if (key == "Left" || key == "ArrowLeft")
+            return "ArrowLeft";
+        if (key == "Right" || key == "ArrowRight")
+            return "ArrowRight";
+        if (key == "Up" || key == "ArrowUp")
+            return "ArrowUp";
+        if (key == "Down" || key == "ArrowDown")
+            return "ArrowDown";
+        if (key == "Esc" || key == "Escape")
+            return "Escape";
+        if (key == "Enter" || key == "Return")
+            return "Enter";
+        return "Unidentified";
+    }
+    onkeydown(e) {
+        if (e.key == "Shift")
+            this.changeModifier(1, true);
+        if (e.key == "Ctrl")
+            this.changeModifier(2, true);
+        if (e.key == "Alt")
+            this.changeModifier(4, true);
+        this.keys.set(e.key, 1);
+        if (e.code != undefined) {
+            this.codes.set(e.code, 1);
+        }
+        else {
+            this.codes.set(this.translateKeyToCode(e.key), 1);
+        }
+        e.preventDefault();
+    }
+    onkeyup(e) {
+        if (e.key == "Shift")
+            this.changeModifier(1, false);
+        if (e.key == "Ctrl")
+            this.changeModifier(2, false);
+        if (e.key == "Alt")
+            this.changeModifier(4, false);
+        this.keys.set(e.key, 0);
+        if (e.code != undefined) {
+            this.codes.set(e.code, 0);
+        }
+        else {
+            this.codes.set(this.translateKeyToCode(e.key), 0);
+        }
+        e.preventDefault();
     }
 }
 class LibXOR {
@@ -1017,57 +1509,99 @@ class LibXOR {
         this.dt = 0.0;
         this.oninit = () => { };
         this.onupdate = (dt) => { };
+        this.frameCount = 0;
         let n = document.getElementById(parentId);
         if (!n)
             throw "Unable to initialize LibXOR due to bad parentId '" + parentId.toString() + "'";
         this.parentElement = n;
     }
     start() {
+        this.memory.init();
+        this.graphics.init();
+        this.sound.init();
+        this.input.init();
         this.oninit();
         this.mainloop();
     }
     mainloop() {
+        let self = this;
         window.requestAnimationFrame((t) => {
-            this.t0 = this.t1;
-            this.t1 = t;
-            this.dt = this.t1 - this.t0;
-            this.onupdate(this.dt);
-            this.graphics.render();
+            self.t0 = this.t1;
+            self.t1 = t / 1000.0;
+            self.dt = this.t1 - this.t0;
+            self.onupdate(this.dt);
+            self.graphics.readFromMemory();
+            self.graphics.render();
+            self.mainloop();
         });
     }
 }
-function randomUint8() {
-    return (Math.random() * 255.99) | 0;
-}
-function randomUint16() {
-    return (Math.random() * 65535.99) | 0;
-}
-class GraphicsSystem {
+class MemorySystem {
     constructor(xor) {
         this.xor = xor;
-        this.gl = null;
-        this.glcontextid = "GraphicsSystem" + randomUint8().toString();
+        this.mem = new Int32Array(65536);
     }
-    setVideoMode(width, height) {
-        let p = this.xor.parentElement;
-        while (p.firstChild) {
-            p.removeChild(p.firstChild);
+    init() {
+        for (let i = 0; i < 65536; i++) {
+            this.mem[i] = 0;
         }
-        let canvas = document.createElement("canvas");
-        canvas.id = this.glcontextid;
-        canvas.width = width;
-        canvas.height = height;
-        this.gl = canvas.getContext("webgl");
-        p.appendChild(canvas);
     }
-    render() {
-        if (!this.gl)
+    PEEK(location) {
+        if (location < 0 || location > 65536) {
+            return 0;
+        }
+        return this.mem[location];
+    }
+    POKE(location, value) {
+        if (location < 0 || location > 65535) {
             return;
-        let gl = this.gl;
-        let xor = this.xor;
-        let s = Math.sin(xor.t1);
-        gl.clearColor(0.3 * s, 0.1 * s, 0.2 * s, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        }
+        this.mem[location] = value | 0;
+    }
+}
+class GraphicsSprite {
+    constructor() {
+        this.position = GTE.vec3(0, 0, 0);
+        this.pivot = GTE.vec3(0, 0, 0);
+        this.palette = 0;
+        this.index = 0;
+        this.plane = 0;
+        this.enabled = true;
+        this.alpha = 1.0;
+        this.fliph = false;
+        this.flipv = false;
+        this.rotate90 = 0;
+        this.matrix = Matrix4.makeIdentity();
+    }
+    readFromMemory(mem, offset) {
+        this.position.x = mem.PEEK(offset + 0);
+        this.position.y = mem.PEEK(offset + 1);
+        this.pivot.x = mem.PEEK(offset + 2);
+        this.pivot.y = mem.PEEK(offset + 3);
+        this.palette = mem.PEEK(offset + 4);
+        this.index = mem.PEEK(offset + 5);
+        this.plane = mem.PEEK(offset + 6);
+        this.enabled = mem.PEEK(offset + 7) > 0.0 ? true : false;
+        this.alpha = mem.PEEK(offset + 8);
+        let rvh = mem.PEEK(offset + 9);
+        this.fliph = (rvh & 1) ? true : false;
+        this.flipv = (rvh & 2) ? true : false;
+        this.rotate90 = (rvh >> 2) & 3;
+        let M11 = mem.PEEK(offset + 10);
+        let M12 = mem.PEEK(offset + 11);
+        let M13 = mem.PEEK(offset + 12);
+        let M21 = mem.PEEK(offset + 13);
+        let M22 = mem.PEEK(offset + 14);
+        let M23 = mem.PEEK(offset + 15);
+        this.matrix.LoadRowMajor(M11, M12, 0, M13, M21, M22, 0, M23, 0, 0, 1, 0, 0, 0, 0, 1);
+    }
+}
+class GraphicsTileLayer {
+    constructor() {
+        this.tiles = [];
+        this.layer = 0;
+    }
+    readFromMemory(mem, offset) {
     }
 }
 //# sourceMappingURL=LibXOR.js.map

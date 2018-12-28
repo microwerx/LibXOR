@@ -3,4 +3,8 @@
 class SoundSystem {
     constructor(private xor: LibXOR) {
     }
+
+    init() {
+        
+    }
 }

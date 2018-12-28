@@ -1,3 +1,4 @@
+/// <reference path="../Fluxions/GTE.ts" />
 /// <reference path="MemorySystem.ts" />
 /// <reference path="GraphicsSystem.ts" />
 /// <reference path="SoundSystem.ts" />
@@ -24,18 +25,26 @@ class LibXOR {
     }
 
     start() {
+        this.memory.init();
+        this.graphics.init();
+        this.sound.init();
+        this.input.init();
         this.oninit();
         this.mainloop();
     }
 
+    frameCount = 0;
     mainloop() {
+        let self = this;
         window.requestAnimationFrame((t) => {
-            this.t0 = this.t1;
-            this.t1 = t;
-            this.dt = this.t1 - this.t0;
+            self.t0 = this.t1;
+            self.t1 = t / 1000.0;
+            self.dt = this.t1 - this.t0;
 
-            this.onupdate(this.dt);
-            this.graphics.render();
+            self.onupdate(this.dt);
+            self.graphics.readFromMemory();
+            self.graphics.render();
+            self.mainloop();
         });
     }
 }

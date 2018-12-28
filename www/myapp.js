@@ -59,25 +59,44 @@ xor.oninit = () => {
 };
 
 xor.onupdate = () => {
-    // let velocity = vec3(0, 0, 0);
-    // let player = xor.Graphics.Sprites.get(0);
+    let velocity = GTE.vec3(0, 0, 0);
+    let player = xor.graphics.sprites[0];
 
-    // if (xor.Input.CheckKeys(["ArrowLeft", "A", "a"])) {
-    //     velocity.x -= 1;
-    // }
+    if (xor.input.checkKeys(["ArrowLeft", "KeyA", "A", "a"])) {
+        velocity.x -= 1;
+    }
 
-    // if (xor.Input.CheckKeys(["ArrowRight", "D", "d"])) {
-    //     velocity.x += 1;
-    // }
+    if (xor.input.checkKeys(["ArrowRight", "KeyD", "D", "d"])) {
+        velocity.x += 1;
+    }
 
-    // if (xor.Input.CheckKeys(["ArrowUp", "W", "w"])) {
-    //     velocity.y += 1;
-    // }
+    if (xor.input.checkKeys(["ArrowUp", "KeyW", "W", "w"])) {
+        velocity.y += 1;
+    }
 
-    // if (xor.Input.CheckKeys(["ArrowDown", "S", "s"])) {
-    //     velocity.y -= 1;
-    // }
-    // player.moveBy(velocity);
+    if (xor.input.checkKeys(["ArrowDown", "KeyS", "S", "s"])) {
+        velocity.y -= 1;
+    }
+
+    let spr = Math.floor(Math.random() * 127.99);
+    let base = xor.graphics.SpriteInfoMemoryStart + spr * 16;
+    xor.memory.POKE(base + 0, Math.random() * 255);
+    xor.memory.POKE(base + 1, Math.random() * 255);
+    base = xor.graphics.SpriteInfoMemoryStart;
+    xor.memory.POKE(base + 0, player.position.x + velocity.x);
+    xor.memory.POKE(base + 1, player.position.y + velocity.y);
+
+    if (velocity.x != 0.0 || velocity!= 0.0 || Math.random() < 0.1) {
+        let str = '';
+        str += xor.memory.PEEK(base + 0).toPrecision(3) + ' ';
+        str += xor.memory.PEEK(base + 1).toPrecision(3) + ' ';
+        str += xor.memory.PEEK(base + 2).toPrecision(3) + ' ';
+        str += xor.memory.PEEK(base + 3).toPrecision(3) + ' ';
+        memElement.innerHTML = str;
+    }
 };
+
+var memElement = document.createElement("pre");
+document.body.appendChild(memElement);
 
 xor.start();

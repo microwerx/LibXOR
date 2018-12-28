@@ -5,6 +5,6 @@
         "./**/*.{html,htm,css,js,glsl,vert,frag,scn,obj}"
     ],
     "server": {
-        "baseDir": "www"
+        "baseDir": "."
     }
 }

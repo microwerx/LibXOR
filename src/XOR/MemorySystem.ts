@@ -7,6 +7,12 @@ class MemorySystem {
 
     }
 
+    init() {
+        for (let i = 0; i < 65536; i++) {
+            this.mem[i] = 0;
+        }
+    }
+
     PEEK(location: number): number {
         if (location < 0 || location > 65536) {
             return 0;
