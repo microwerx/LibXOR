@@ -9,6 +9,7 @@ class LibXOR {
     public graphics = new GraphicsSystem(this);
     public sound = new SoundSystem(this);
     public input = new InputSystem(this);
+    public palette = new PaletteSystem(this);
     public parentElement: HTMLElement;
 
     public t1 = 0.0;

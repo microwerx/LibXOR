@@ -86,7 +86,7 @@ xor.onupdate = () => {
     xor.memory.POKE(base + 0, player.position.x + velocity.x);
     xor.memory.POKE(base + 1, player.position.y + velocity.y);
 
-    if (velocity.x != 0.0 || velocity!= 0.0 || Math.random() < 0.1) {
+    if (velocity.x != 0.0 || velocity != 0.0 || Math.random() < 0.1) {
         let str = '';
         str += xor.memory.PEEK(base + 0).toPrecision(3) + ' ';
         str += xor.memory.PEEK(base + 1).toPrecision(3) + ' ';
@@ -100,3 +100,170 @@ var memElement = document.createElement("pre");
 document.body.appendChild(memElement);
 
 xor.start();
+
+function itohex(value) {
+    let str = value.toString(16);
+    switch (str.length) {
+        case 0:
+            str = '00';
+            break;
+        case 1:
+            str = '0' + str;
+            break;
+        case 2:
+            break;
+        case 3:
+            str = '0' + str;
+            break;
+    }
+    return str;
+}
+
+let modelLastMemoryBase = 0;
+
+function updateModel() {
+    let palette = document.getElementById("palette").value | 0;
+    let index = document.getElementById("paletteindex").value | 0;
+    let color1 = document.getElementById("color1").value | 0;
+    let color2 = document.getElementById("color2").value | 0;
+    let colormix = document.getElementById("colormix").value | 0;
+    let color1hue = document.getElementById("color1hue").value | 0;
+    let color2hue = document.getElementById("color2hue").value | 0;
+    let negative = document.getElementById("negative").value | 0;
+
+    let byte1 = color1 + (color2 << 4);
+    let byte2 = colormix + (color1hue << 3) + (color2hue << 5) + (negative << 7);
+    let byte1str = itohex(byte1);
+    let byte2str = itohex(byte2);
+    let memoryBase = palette * 8 + index * 2;
+    let memoryAddress = itohex(palette * 8 + index * 2);
+
+    if (modelLastMemoryBase != memoryBase) {
+        let base = modelLastMemoryBase;
+        if (modelLastMemoryBase != 0) {
+            // Save last palette entry
+            xor.memory.POKE(base + 0, byte1);
+            xor.memory.POKE(base + 1, byte2);
+        }
+        modelLastMemoryBase = memoryBase;
+        base = memoryBase;
+        // Read palette entry
+        byte1 = xor.memory.PEEK(base + 0);
+        byte2 = xor.memory.PEEK(base + 0);
+        color1 = byte1 & 0xF;
+        color2 = (byte1 >> 4) & 0xF;
+        colormix = byte2 & 0xF;
+        color1hue = (byte2 >> 3) & 0x3;
+        color2hue = (byte2 >> 5) & 0x3;
+        negative = (byte2 >> 7) & 0x1;
+        document.getElementById("color1").value = color1;
+        document.getElementById("color2").value = color2;
+        document.getElementById("colormix").value = colormix;
+        document.getElementById("color1hue").value = color1hue;
+        document.getElementById("color2hue").value = color2hue;
+        document.getElementById("negative").value = negative;
+    }
+
+    
+
+    let memoryValue = document.getElementById("modelMemoryValue");
+    memoryValue.textContent = memoryAddress + ": " + byte2str + byte1str;
+
+    let palettecolor = document.getElementById("palettecolor");
+    let color1color = document.getElementById("color1color");
+    let color2color = document.getElementById("color2color");
+    let colormixcolor = document.getElementById("colormixcolor");
+    let color1huecolor = document.getElementById("color1huecolor");
+    let color2huecolor = document.getElementById("color2huecolor");
+    let negativecolor = document.getElementById("negativecolor");
+    let indexcolor = document.getElementById("paletteindexcolor");
+
+    let pal = xor.palette;
+    let c1 = pal.getColor(color1);
+    let c2 = pal.getColor(color2);
+    let ch1 = pal.hueshiftColor(c1, color1hue);
+    let ch2 = pal.hueshiftColor(c2, color2hue);
+    let cmix = pal.mixColors(ch1, ch2, colormix);
+    let cneg = pal.negativeColor(cmix);
+
+    if (palettecolor) palettecolor.style.background = pal.getHtmlColor(pal.getColor(palette));
+    if (indexcolor) indexcolor.style.background = pal.getHtmlColor(negative ? cneg : cmix);
+    if (color1color) color1color.style.background = pal.getHtmlColor(c1);
+    if (color2color) color2color.style.background = pal.getHtmlColor(c2);
+    if (colormixcolor) colormixcolor.style.background = pal.getHtmlColor(cmix);
+    if (color1huecolor) color1huecolor.style.background = pal.getHtmlColor(ch1);
+    if (color2huecolor) color2huecolor.style.background = pal.getHtmlColor(ch2);
+    if (negativecolor) negativecolor.style.background = pal.getHtmlColor(cneg);
+}
+
+function addRange(parent, name, min, max, step, id) {
+    let tr = document.createElement("tr");
+    let td1 = document.createElement("td");
+    let td2 = document.createElement("td");
+    let td3 = document.createElement("td");
+    let td4 = document.createElement("td");
+    td4.id = id + "color";
+    td4.style.width = "100px";
+    td4.style.background = "#00ff00";
+    parent.appendChild(tr);
+    tr.appendChild(td1);
+    tr.appendChild(td2);
+    tr.appendChild(td3);
+    tr.appendChild(td4);
+
+    let label = document.createElement("label");
+    label.innerText = name;
+    label.id = id + "label";
+    label.htmlFor = id;
+
+    let range = document.createElement("input");
+    range.id = id;
+    range.type = "range";
+    range.min = min;
+    range.max = max;
+    range.step = step;
+    range.value = 0;
+
+    let value = document.createElement("span");
+    value.id = id + "value";
+    value.textContent = "0";
+
+    td1.appendChild(label);
+    td2.appendChild(range);
+    td3.appendChild(value);
+
+    range.onchange = (e) => {
+        let el = document.getElementById(id + "value");
+        if (el) el.innerText = e.srcElement.value.toString(16);
+        updateModel();
+    };
+
+    range.oninput = (e) => {
+        updateModel();
+    };
+}
+
+// Palette Editor
+let pe = document.createElement("div");
+pe.id = "paletteEditor";
+document.body.appendChild(pe);
+let pt = document.createElement("table");
+let ph1 = document.createElement("h1");
+ph1.textContent = "Palette Editor";
+pe.appendChild(ph1);
+pe.appendChild(pt);
+addRange(pt, "Palette", 0, 15, 1, "palette");
+addRange(pt, "Index", 0, 3, 1, "paletteindex");
+addRange(pt, "Color 1", 0, 15, 1, "color1");
+addRange(pt, "Color 2", 0, 15, 1, "color2");
+addRange(pt, "Color Mix", 0, 7, 1, "colormix");
+addRange(pt, "Color 1 Hue", 0, 3, 1, "color1hue");
+addRange(pt, "Color 2 Hue", 0, 3, 1, "color2hue");
+addRange(pt, "Negative", 0, 1, 1, "negative");
+let colorValue = document.createElement("p");
+colorValue.id = "modelColorValue";
+pe.appendChild(colorValue);
+let memoryValue = document.createElement("p");
+memoryValue.id = "modelMemoryValue";
+pe.appendChild(memoryValue);
+updateModel();
