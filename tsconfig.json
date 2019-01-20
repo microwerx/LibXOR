@@ -11,7 +11,7 @@
         "sourceMap": true
     },
     "include": [
-        "src/**/*"
+        "src/XOR/LibXOR.ts"
     ],
     "exclude": [
         "node_modules",

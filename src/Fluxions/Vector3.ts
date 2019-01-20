@@ -164,6 +164,30 @@ class Vector3 {
         );
     }
 
+    scale(scalar: number): Vector3 {
+        return new Vector3(
+            this.x * scalar,
+            this.y * scalar,
+            this.z * scalar
+        );
+    }
+
+    compMul(b: Vector3): Vector3 {
+        return new Vector3(
+            this.x * b.x,
+            this.y * b.y,
+            this.z * b.z
+        );
+    }
+
+    compDiv(b: Vector3): Vector3 {
+        return new Vector3(
+            this.x / b.x,
+            this.y / b.y,
+            this.z / b.z
+        )
+    }
+
     // returns 0 if denominator is 0
     div(divisor: number): Vector3 {
         if (divisor == 0.0)
@@ -175,7 +199,11 @@ class Vector3 {
         )
     }
 
-    neg(): Vector3 {
+    // neg(): Vector3 {
+    //     return new Vector3(-this.x, -this.y, -this.z);
+    // }
+
+    negate(): Vector3 {
         return new Vector3(-this.x, -this.y, -this.z);
     }
 

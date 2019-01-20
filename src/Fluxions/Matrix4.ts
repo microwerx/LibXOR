@@ -377,6 +377,14 @@ class Matrix4 {
 		);
 	}
 
+	static makeOrbit(azimuthInDegrees: number, pitchInDegrees: number, distance: number) {
+		let center = Vector3.make();
+		let eye = Vector3.makeFromSpherical(GTE.radians(azimuthInDegrees), GTE.radians(pitchInDegrees));
+		eye = eye.scale(distance);
+		let up = Vector3.make(0, 1, 0);
+		return Matrix4.makeLookAt(eye, center, up);
+	}
+
 	static makeLookAt2(eye: Vector3, center: Vector3, up: Vector3): Matrix4 {
 		let F = Vector3.sub(center, eye).norm();
 		let UP = up.norm();

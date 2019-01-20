@@ -1,4 +1,6 @@
 /// <reference path="LibXOR.ts" />
+/// <reference path="GraphicsSprite.ts" />
+/// <reference path="GraphicsTileLayer.ts" />
 
 function randomUint8() {
     return (Math.random() * 255.99) | 0;
@@ -44,6 +46,9 @@ class GraphicsSystem {
     readonly TileBitmapMemoryStart = 0xD000;
     readonly TileMatrixMemoryStart = 0xF000;
 
+    get width(): number { return this.canvas ? this.canvas.width : 0; }
+    get height(): number { return this.canvas ? this.canvas.height : 0; }
+
     constructor(private xor: LibXOR) { }
 
     init() {
@@ -71,6 +76,17 @@ class GraphicsSystem {
         this.gl = canvas.getContext("webgl");
         this.canvas = canvas;
         p.appendChild(canvas);
+
+        if(this.gl) {
+            this.xor.fluxions = new FxRenderingContext(this.xor);
+        }
+    }
+
+    clear(r: number, g: number, b: number, a: number) {
+        if (!this.gl) return;
+        let gl = this.gl;
+        gl.clearColor(r, g, b, a);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     }
 
     readFromMemory() {

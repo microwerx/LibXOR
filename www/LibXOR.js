@@ -59,6 +59,94 @@ class Hatchetfish {
     }
 }
 var hflog = new Hatchetfish();
+class Vector2 {
+    constructor(x = 0.0, y = 0.0) {
+        this.x = x;
+        this.y = y;
+    }
+    copy(v) {
+        this.x = v.x;
+        this.y = v.y;
+        return this;
+    }
+    clone() {
+        return new Vector2(this.x, this.y);
+    }
+    reset(x, y) {
+        this.x = x;
+        this.y = y;
+        return this;
+    }
+    add(v) {
+        return new Vector2(this.x + v.x, this.y + v.y);
+    }
+    sub(v) {
+        return new Vector2(this.x - v.x, this.y - v.y);
+    }
+    mul(multiplicand) {
+        return new Vector2(this.x * multiplicand, this.y * multiplicand);
+    }
+    div(divisor) {
+        if (divisor == 0.0)
+            return new Vector2();
+        return new Vector2(this.x / divisor, this.y / divisor);
+    }
+    negate() {
+        return new Vector2(-this.x, -this.y);
+    }
+    toFloat32Array() {
+        return new Float32Array([this.x, this.y]);
+    }
+    toVector2() {
+        return new Vector2(this.x, this.y);
+    }
+    toVector3() {
+        return new Vector3(this.x, this.y, 0.0);
+    }
+    toVector4() {
+        return new Vector4(this.x, this.y, 0.0, 0.0);
+    }
+    project() {
+        return this.x / this.y;
+    }
+    length() {
+        return Math.sqrt(this.x * this.x + this.y * this.y);
+    }
+    lengthSquared() {
+        return this.x * this.x + this.y * this.y;
+    }
+    norm() {
+        let len = this.lengthSquared();
+        if (len == 0.0)
+            return new Vector2();
+        else
+            len = Math.sqrt(len);
+        return new Vector2(this.x / len, this.y / len);
+    }
+    static make(x, y) {
+        return new Vector2(x, y);
+    }
+    static makeRandom(minValue, maxValue) {
+        return new Vector2(Math.random() * (maxValue - minValue) + minValue, Math.random() * (maxValue - minValue) + minValue);
+    }
+    static dot(v1, v2) {
+        return v1.x * v2.x + v1.y * v2.y;
+    }
+    static cross(a, b) {
+        return a.x * b.y - a.y * b.x;
+    }
+    static normalize(v) {
+        let len = v.length();
+        if (len == 0.0) {
+            v.reset(0.0, 0.0);
+        }
+        else {
+            v.x /= len;
+            v.y /= len;
+        }
+        return v;
+    }
+}
 class Vector3 {
     constructor(x = 0.0, y = 0.0, z = 0.0) {
         this.x = x;
@@ -143,12 +231,21 @@ class Vector3 {
     mul(multiplicand) {
         return new Vector3(this.x * multiplicand, this.y * multiplicand, this.z * multiplicand);
     }
+    scale(scalar) {
+        return new Vector3(this.x * scalar, this.y * scalar, this.z * scalar);
+    }
+    compMul(b) {
+        return new Vector3(this.x * b.x, this.y * b.y, this.z * b.z);
+    }
+    compDiv(b) {
+        return new Vector3(this.x / b.x, this.y / b.y, this.z / b.z);
+    }
     div(divisor) {
         if (divisor == 0.0)
             return new Vector3();
         return new Vector3(this.x / divisor, this.y / divisor, this.z / divisor);
     }
-    neg() {
+    negate() {
         return new Vector3(-this.x, -this.y, -this.z);
     }
     reciprocal() {
@@ -750,6 +847,13 @@ class Matrix4 {
         let U = (Vector3.cross(S, F)).norm();
         return Matrix4.multiply(Matrix4.makeRowMajor(S.x, S.y, S.z, 0, U.x, U.y, U.z, 0, -F.x, -F.y, -F.z, 0, 0, 0, 0, 1), Matrix4.makeTranslation(-eye.x, -eye.y, -eye.z));
     }
+    static makeOrbit(azimuthInDegrees, pitchInDegrees, distance) {
+        let center = Vector3.make();
+        let eye = Vector3.makeFromSpherical(GTE.radians(azimuthInDegrees), GTE.radians(pitchInDegrees));
+        eye = eye.scale(distance);
+        let up = Vector3.make(0, 1, 0);
+        return Matrix4.makeLookAt(eye, center, up);
+    }
     static makeLookAt2(eye, center, up) {
         let F = Vector3.sub(center, eye).norm();
         let UP = up.norm();
@@ -894,73 +998,6 @@ var GTE;
 })(GTE || (GTE = {}));
 var GTE;
 (function (GTE) {
-    function clamp(x, a, b) {
-        return x < a ? a : x > b ? b : x;
-    }
-    GTE.clamp = clamp;
-    function lerp(a, b, mix) {
-        return mix * a + (1 - mix) * b;
-    }
-    GTE.lerp = lerp;
-    function sigmoid(x) {
-        let ex = Math.exp(x);
-        return ex / (ex + 1);
-    }
-    GTE.sigmoid = sigmoid;
-    function signzero(x) {
-        if (x >= 0.0)
-            return 1.0;
-        return -1.0;
-    }
-    GTE.signzero = signzero;
-    function sign(x, epsilon = 1e-5) {
-        if (x < -epsilon)
-            return -1.0;
-        if (x > epsilon)
-            return 1.0;
-        return 0.0;
-    }
-    GTE.sign = sign;
-    function gaussian(x, center, sigma) {
-        let t = (x - center) / sigma;
-        return 1 / (sigma * Math.sqrt(2 * Math.PI)) * Math.exp(-0.5 * t * t);
-    }
-    GTE.gaussian = gaussian;
-    function min3(a, b, c) {
-        return Math.min(Math.min(a, b), c);
-    }
-    GTE.min3 = min3;
-    function max3(a, b, c) {
-        return Math.max(Math.max(a, b), c);
-    }
-    GTE.max3 = max3;
-    function transformRT(vertex, R, T) {
-        return new Vector3(R.m11 * vertex.x + R.m12 * vertex.y + R.m13 * vertex.z + T.x, R.m21 * vertex.x + R.m22 * vertex.y + R.m23 * vertex.z + T.y, R.m31 * vertex.x + R.m32 * vertex.y + R.m33 * vertex.z + T.z);
-    }
-    GTE.transformRT = transformRT;
-    function length2(dx, dy) {
-        return Math.sqrt(dx * dx + dy * dy);
-    }
-    GTE.length2 = length2;
-    function length3(dx, dy, dz) {
-        return Math.sqrt(dx * dx + dy * dy + dz * dz);
-    }
-    GTE.length3 = length3;
-    function dirTo3(p1, p2) {
-        return p2.sub(p1).norm();
-    }
-    GTE.dirTo3 = dirTo3;
-    function vec3(x, y, z) {
-        return new Vector3(x, y, z);
-    }
-    GTE.vec3 = vec3;
-    function vec4(x, y, z, w) {
-        return new Vector4(x, y, z, w);
-    }
-    GTE.vec4 = vec4;
-})(GTE || (GTE = {}));
-var GTE;
-(function (GTE) {
     class BoundingBox {
         constructor() {
             this.minBounds = Vector3.make(1e6, 1e6, 1e6);
@@ -1037,6 +1074,2373 @@ var GTE;
     }
     GTE.BoundingBox = BoundingBox;
 })(GTE || (GTE = {}));
+var GTE;
+(function (GTE) {
+    function clamp(x, a, b) {
+        return x < a ? a : x > b ? b : x;
+    }
+    GTE.clamp = clamp;
+    function lerp(a, b, mix) {
+        return mix * a + (1 - mix) * b;
+    }
+    GTE.lerp = lerp;
+    function sigmoid(x) {
+        let ex = Math.exp(x);
+        return ex / (ex + 1);
+    }
+    GTE.sigmoid = sigmoid;
+    function signzero(x) {
+        if (x >= 0.0)
+            return 1.0;
+        return -1.0;
+    }
+    GTE.signzero = signzero;
+    function sign(x, epsilon = 1e-5) {
+        if (x < -epsilon)
+            return -1.0;
+        if (x > epsilon)
+            return 1.0;
+        return 0.0;
+    }
+    GTE.sign = sign;
+    function gaussian(x, center, sigma) {
+        let t = (x - center) / sigma;
+        return 1 / (sigma * Math.sqrt(2 * Math.PI)) * Math.exp(-0.5 * t * t);
+    }
+    GTE.gaussian = gaussian;
+    function degrees(x) {
+        return 180.0 / Math.PI * x;
+    }
+    GTE.degrees = degrees;
+    function radians(x) {
+        return Math.PI / 180.0 * x;
+    }
+    GTE.radians = radians;
+    function min3(a, b, c) {
+        return Math.min(Math.min(a, b), c);
+    }
+    GTE.min3 = min3;
+    function max3(a, b, c) {
+        return Math.max(Math.max(a, b), c);
+    }
+    GTE.max3 = max3;
+    function transformRT(vertex, R, T) {
+        return new Vector3(R.m11 * vertex.x + R.m12 * vertex.y + R.m13 * vertex.z + T.x, R.m21 * vertex.x + R.m22 * vertex.y + R.m23 * vertex.z + T.y, R.m31 * vertex.x + R.m32 * vertex.y + R.m33 * vertex.z + T.z);
+    }
+    GTE.transformRT = transformRT;
+    function length2(dx, dy) {
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+    GTE.length2 = length2;
+    function length3(dx, dy, dz) {
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
+    }
+    GTE.length3 = length3;
+    function dirTo3(p1, p2) {
+        return p2.sub(p1).norm();
+    }
+    GTE.dirTo3 = dirTo3;
+    function vec3(x, y, z) {
+        return new Vector3(x, y, z);
+    }
+    GTE.vec3 = vec3;
+    function vec4(x, y, z, w) {
+        return new Vector4(x, y, z, w);
+    }
+    GTE.vec4 = vec4;
+})(GTE || (GTE = {}));
+class FxRenderingContext {
+    constructor(xor) {
+        this.xor = xor;
+        this.enabledExtensions = new Map();
+        this._visible = false;
+        this._resized = true;
+        if (!xor.graphics.gl)
+            throw "Unable to start Fluxions without valid gl context";
+        this.gl = xor.graphics.gl;
+        let debugInfo = this.gl.getExtension('WEBGL_debug_renderer_info');
+        if (debugInfo) {
+            let vendor = this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+            let renderer = this.gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+            hflog.log(vendor);
+            hflog.log(renderer);
+        }
+        this.enableExtensions([
+            "OES_standard_derivatives",
+            "WEBGL_depth_texture",
+            "OES_element_index_uint",
+            "EXT_texture_filter_anisotropic",
+            "OES_texture_float",
+            "OES_texture_float_linear"
+        ]);
+        this.scenegraph = new Scenegraph(this);
+    }
+    get width() { return this.xor.graphics.width; }
+    get height() { return this.xor.graphics.height; }
+    get aspectRatio() { return this.width / this.height; }
+    enableExtensions(names) {
+        let supportedExtensions = this.gl.getSupportedExtensions();
+        if (!supportedExtensions)
+            return false;
+        let allFound = true;
+        for (let name of names) {
+            let found = false;
+            for (let ext of supportedExtensions) {
+                if (name == ext) {
+                    this.enabledExtensions.set(name, this.gl.getExtension(name));
+                    hflog.log("Extension " + name + " enabled");
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                hflog.log("Extension " + name + " not enabled");
+                allFound = false;
+                break;
+            }
+        }
+        return allFound;
+    }
+    getExtension(name) {
+        if (this.enabledExtensions.has(name)) {
+            return this.enabledExtensions.get(name);
+        }
+        return null;
+    }
+    update() {
+        return;
+    }
+}
+class RenderConfig {
+    constructor(fx) {
+        this.fx = fx;
+        this._isCompiled = false;
+        this._isLinked = false;
+        this._vertShader = null;
+        this._fragShader = null;
+        this._program = null;
+        this._vertShaderSource = "";
+        this._fragShaderSource = "";
+        this._vertShaderInfoLog = "";
+        this._fragShaderInfoLog = "";
+        this._vertShaderCompileStatus = false;
+        this._fragShaderCompileStatus = false;
+        this._programInfoLog = "";
+        this._programLinkStatus = false;
+        this.uniforms = new Map();
+        this.uniformInfo = new Map();
+        this.useDepthTest = true;
+        this.depthTest = WebGLRenderingContext.LESS;
+        this.depthMask = true;
+        this.useBlending = false;
+        this.blendSrcFactor = WebGLRenderingContext.ONE;
+        this.blendDstFactor = WebGLRenderingContext.ZERO;
+        this.useStencilTest = false;
+        this.stencilFunc = WebGLRenderingContext.ALWAYS;
+        this.stencilFuncRef = 0.0;
+        this.stencilMask = 1;
+        this.usesFBO = false;
+        this.renderShadowMap = false;
+        this.renderGBuffer = false;
+        this.renderImage = false;
+        this.renderEdges = false;
+    }
+    get usable() { return this.isCompiledAndLinked(); }
+    isCompiledAndLinked() {
+        if (this._isCompiled && this._isLinked)
+            return true;
+        return false;
+    }
+    use() {
+        let gl = this.fx.gl;
+        gl.useProgram(this._program);
+        if (this.useDepthTest) {
+            gl.enable(gl.DEPTH_TEST);
+            gl.depthFunc(this.depthTest);
+        }
+        if (this.useBlending) {
+            gl.enable(gl.BLEND);
+            gl.blendFunc(this.blendSrcFactor, this.blendDstFactor);
+        }
+        if (this.useStencilTest) {
+            gl.enable(gl.STENCIL_TEST);
+            gl.stencilFunc(this.stencilFunc, this.stencilFuncRef, this.stencilMask);
+        }
+        gl.depthMask(this.depthMask);
+    }
+    restore() {
+        let gl = this.fx.gl;
+        gl.useProgram(null);
+        if (this.useDepthTest) {
+            gl.disable(gl.DEPTH_TEST);
+            gl.depthFunc(gl.LESS);
+        }
+        if (this.useBlending) {
+            gl.disable(gl.BLEND);
+            gl.blendFunc(gl.ONE, gl.ZERO);
+        }
+        if (this.useStencilTest) {
+            gl.disable(gl.STENCIL_TEST);
+            gl.stencilFunc(gl.ALWAYS, 0, 1);
+        }
+        gl.depthMask(true);
+    }
+    uniformMatrix4f(uniformName, m) {
+        let gl = this.fx.gl;
+        if (!this._program)
+            return;
+        let location = gl.getUniformLocation(this._program, uniformName);
+        if (location != null) {
+            gl.uniformMatrix4fv(location, false, m.toColMajorArray());
+        }
+    }
+    uniform1i(uniformName, x) {
+        let gl = this.fx.gl;
+        if (!this._program)
+            return;
+        let location = gl.getUniformLocation(this._program, uniformName);
+        if (location != null) {
+            gl.uniform1i(location, x);
+        }
+    }
+    uniform1f(uniformName, x) {
+        let gl = this.fx.gl;
+        if (!this._program)
+            return;
+        let location = gl.getUniformLocation(this._program, uniformName);
+        if (location != null) {
+            gl.uniform1f(location, x);
+        }
+    }
+    uniform2f(uniformName, v) {
+        let gl = this.fx.gl;
+        if (!this._program)
+            return;
+        let location = gl.getUniformLocation(this._program, uniformName);
+        if (location != null) {
+            gl.uniform2fv(location, v.toFloat32Array());
+        }
+    }
+    uniform3f(uniformName, v) {
+        let gl = this.fx.gl;
+        if (!this._program)
+            return;
+        let location = gl.getUniformLocation(this._program, uniformName);
+        if (location != null) {
+            gl.uniform3fv(location, v.toFloat32Array());
+        }
+    }
+    uniform4f(uniformName, v) {
+        let gl = this.fx.gl;
+        if (!this._program)
+            return;
+        let location = gl.getUniformLocation(this._program, uniformName);
+        if (location) {
+            gl.uniform4fv(location, v.toFloat32Array());
+        }
+    }
+    getAttribLocation(name) {
+        let gl = this.fx.gl;
+        if (!gl)
+            return -1;
+        if (!this._program)
+            return -1;
+        return gl.getAttribLocation(this._program, name);
+    }
+    getUniformLocation(name) {
+        let gl = this.fx.gl;
+        if (!gl)
+            return null;
+        if (!this._program)
+            return null;
+        let uloc = gl.getUniformLocation(this._program, name);
+        if (!uloc)
+            return null;
+        return uloc;
+    }
+    compile(vertShaderSource, fragShaderSource) {
+        let gl = this.fx.gl;
+        let vertShader = gl.createShader(gl.VERTEX_SHADER);
+        if (vertShader) {
+            gl.shaderSource(vertShader, vertShaderSource);
+            gl.compileShader(vertShader);
+            let status = gl.getShaderParameter(vertShader, gl.COMPILE_STATUS);
+            let infoLog = null;
+            if (!status) {
+                infoLog = gl.getShaderInfoLog(vertShader);
+                hflog.error("VERTEX SHADER COMPILE ERROR:");
+                hflog.error(infoLog ? infoLog : "");
+                hflog.error("--------------------------------------------");
+                let errorElement = document.getElementById("errors");
+                if (!errorElement && infoLog) {
+                    let newDiv = document.createElement("div");
+                    newDiv.appendChild(document.createTextNode("Vertex shader info log"));
+                    newDiv.appendChild(document.createElement("br"));
+                    newDiv.appendChild(document.createTextNode(infoLog));
+                    let pre = document.createElement("pre");
+                    pre.textContent = this._vertShaderSource;
+                    pre.style.width = "50%";
+                    newDiv.appendChild(pre);
+                    document.body.appendChild(newDiv);
+                }
+            }
+            if (status)
+                this._vertShaderCompileStatus = true;
+            if (infoLog)
+                this._vertShaderInfoLog = infoLog;
+            this._vertShader = vertShader;
+        }
+        else {
+            return false;
+        }
+        let fragShader = gl.createShader(gl.FRAGMENT_SHADER);
+        if (fragShader) {
+            gl.shaderSource(fragShader, fragShaderSource);
+            gl.compileShader(fragShader);
+            let status = gl.getShaderParameter(fragShader, gl.COMPILE_STATUS);
+            let infoLog = null;
+            if (!status) {
+                infoLog = gl.getShaderInfoLog(fragShader);
+                hflog.error("FRAGMENT SHADER COMPILE ERROR:");
+                hflog.error(infoLog ? infoLog : "");
+                hflog.error("--------------------------------------------");
+                let errorElement = document.getElementById("errors");
+                if (!errorElement && infoLog) {
+                    let newDiv = document.createElement("div");
+                    newDiv.appendChild(document.createTextNode("Fragment shader info log"));
+                    newDiv.appendChild(document.createElement("br"));
+                    newDiv.appendChild(document.createTextNode(infoLog));
+                    let pre = document.createElement("pre");
+                    pre.textContent = this._fragShaderSource;
+                    pre.style.width = "50%";
+                    newDiv.appendChild(pre);
+                    document.body.appendChild(newDiv);
+                }
+            }
+            if (status)
+                this._fragShaderCompileStatus = true;
+            if (infoLog)
+                this._fragShaderInfoLog = infoLog;
+            this._fragShader = fragShader;
+        }
+        else {
+            return false;
+        }
+        if (this._vertShaderCompileStatus && this._fragShaderCompileStatus) {
+            this._isCompiled = true;
+            this._program = gl.createProgram();
+            if (this._program) {
+                gl.attachShader(this._program, this._vertShader);
+                gl.attachShader(this._program, this._fragShader);
+                gl.linkProgram(this._program);
+                if (gl.getProgramParameter(this._program, gl.LINK_STATUS)) {
+                    this._programLinkStatus = true;
+                    this._isLinked = true;
+                }
+                else {
+                    this._programLinkStatus = false;
+                    let infoLog = gl.getProgramInfoLog(this._program);
+                    console.error("PROGRAM LINK ERROR:");
+                    console.error(infoLog);
+                    console.error("--------------------------------------------");
+                    if (infoLog) {
+                        this._programInfoLog = infoLog;
+                        let errorElement = document.getElementById("errors");
+                        if (!errorElement && infoLog) {
+                            let newDiv = document.createElement("div");
+                            newDiv.appendChild(document.createTextNode("PROGRAM INFO LOG"));
+                            newDiv.appendChild(document.createElement("br"));
+                            newDiv.appendChild(document.createTextNode(infoLog));
+                            document.body.appendChild(newDiv);
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            return false;
+        }
+        this.updateActiveUniforms();
+        return true;
+    }
+    updateActiveUniforms() {
+        let gl = this.fx.gl;
+        if (!this._program)
+            return false;
+        let numUniforms = gl.getProgramParameter(this._program, gl.ACTIVE_UNIFORMS);
+        this.uniforms.clear();
+        this.uniformInfo.clear();
+        for (let i = 0; i < numUniforms; i++) {
+            let uniform = gl.getActiveUniform(this._program, i);
+            if (!uniform)
+                continue;
+            this.uniformInfo.set(uniform.name, uniform);
+            this.uniforms.set(uniform.name, gl.getUniformLocation(this._program, uniform.name));
+        }
+        return true;
+    }
+}
+class TextParser {
+    constructor(data) {
+        this.lines = [];
+        let lines = data.split(/[\n\r]+/);
+        for (let line of lines) {
+            let unfilteredTokens = line.split(/\s+/);
+            if (unfilteredTokens.length > 0 && unfilteredTokens[0][0] == '#')
+                continue;
+            let tokens = [];
+            for (let t of unfilteredTokens) {
+                if (t.length > 0) {
+                    tokens.push(t);
+                }
+            }
+            if (tokens.length == 0) {
+                continue;
+            }
+            this.lines.push(tokens);
+        }
+    }
+    static MakeIdentifier(token) {
+        if (token.length == 0)
+            return "unknown";
+        return token.replace(/[^\w]+/, "_");
+    }
+    static ParseIdentifier(tokens) {
+        if (tokens.length >= 2)
+            return tokens[1].replace(/[^\w]+/, "_");
+        return "unknown";
+    }
+    static ParseVector(tokens) {
+        let x = (tokens.length >= 2) ? parseFloat(tokens[1]) : 0.0;
+        let y = (tokens.length >= 3) ? parseFloat(tokens[2]) : 0.0;
+        let z = (tokens.length >= 4) ? parseFloat(tokens[3]) : 0.0;
+        return new Vector3(x, y, z);
+    }
+    static ParseVector4(tokens) {
+        let x = (tokens.length >= 2) ? parseFloat(tokens[1]) : 0.0;
+        let y = (tokens.length >= 3) ? parseFloat(tokens[2]) : 0.0;
+        let z = (tokens.length >= 4) ? parseFloat(tokens[3]) : 0.0;
+        let w = (tokens.length >= 5) ? parseFloat(tokens[4]) : 0.0;
+        return new Vector4(x, y, z, w);
+    }
+    static ParseMatrix(tokens) {
+        if (tokens.length > 16 && tokens[0] == "transform") {
+            let m = new Matrix4(parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3]), parseFloat(tokens[4]), parseFloat(tokens[5]), parseFloat(tokens[6]), parseFloat(tokens[7]), parseFloat(tokens[8]), parseFloat(tokens[9]), parseFloat(tokens[10]), parseFloat(tokens[11]), parseFloat(tokens[12]), parseFloat(tokens[13]), parseFloat(tokens[14]), parseFloat(tokens[15]), parseFloat(tokens[16])).asTranspose();
+            return m;
+        }
+        return Matrix4.makeZero();
+    }
+    static ParseFaceIndices(_token) {
+        let indices = [-1, -1, -1];
+        let token = _token.replace("//", "/0/");
+        let tokens = token.split("/");
+        if (tokens.length >= 1) {
+            indices[0] = parseInt(tokens[0]) - 1;
+        }
+        if (tokens.length == 2) {
+            indices[2] = parseInt(tokens[1]) - 1;
+        }
+        else if (tokens.length == 3) {
+            indices[1] = parseInt(tokens[1]) - 1;
+            indices[2] = parseInt(tokens[2]) - 1;
+        }
+        return indices;
+    }
+    static ParseFace(tokens) {
+        let indices = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+        if (tokens.length < 4) {
+            return indices;
+        }
+        let v1 = TextParser.ParseFaceIndices(tokens[1]);
+        let v2 = TextParser.ParseFaceIndices(tokens[2]);
+        let v3 = TextParser.ParseFaceIndices(tokens[3]);
+        return [...v1, ...v2, ...v3];
+    }
+}
+var Utils;
+(function (Utils) {
+    function GetURLResource(url) {
+        let parts = url.split('/');
+        let lastSection = parts.pop() || parts.pop();
+        if (lastSection) {
+            return lastSection;
+        }
+        else {
+            return "unknown";
+        }
+    }
+    Utils.GetURLResource = GetURLResource;
+    function GetURLPath(url) {
+        let parts = url.split('/');
+        if (!parts.pop())
+            parts.pop();
+        let path = parts.join("/") + "/";
+        if (path) {
+            return path;
+        }
+        else {
+            return "";
+        }
+    }
+    Utils.GetURLPath = GetURLPath;
+    function IsExtension(sourceString, extensionWithDot) {
+        let start = sourceString.length - extensionWithDot.length - 1;
+        if (start >= 0 && sourceString.substr(start, extensionWithDot.length) == extensionWithDot) {
+            return true;
+        }
+        return false;
+    }
+    Utils.IsExtension = IsExtension;
+    function GetExtension(sourceString) {
+        let position = sourceString.lastIndexOf(".");
+        if (position >= 0) {
+            return sourceString.substr(position + 1).toLowerCase();
+        }
+        return "";
+    }
+    Utils.GetExtension = GetExtension;
+    class ShaderLoader {
+        constructor(vertShaderUrl, fragShaderUrl, callbackfn) {
+            this.vertShaderUrl = vertShaderUrl;
+            this.fragShaderUrl = fragShaderUrl;
+            this.callbackfn = callbackfn;
+            this.vertLoaded = false;
+            this.fragLoaded = false;
+            this.vertFailed = false;
+            this.fragFailed = false;
+            this.vertShaderSource = "";
+            this.fragShaderSource = "";
+            let self = this;
+            let vertXHR = new XMLHttpRequest();
+            vertXHR.addEventListener("load", (e) => {
+                self.vertShaderSource = vertXHR.responseText;
+                self.vertLoaded = true;
+                if (this.loaded) {
+                    self.callbackfn(self.vertShaderSource, self.fragShaderSource);
+                }
+            });
+            vertXHR.addEventListener("abort", (e) => {
+                self.vertFailed = true;
+                console.error("unable to GET " + vertShaderUrl);
+            });
+            vertXHR.addEventListener("error", (e) => {
+                self.vertFailed = true;
+                console.error("unable to GET " + vertShaderUrl);
+            });
+            vertXHR.open("GET", vertShaderUrl);
+            vertXHR.send();
+            let fragXHR = new XMLHttpRequest();
+            fragXHR.addEventListener("load", (e) => {
+                self.fragShaderSource = fragXHR.responseText;
+                self.fragLoaded = true;
+                if (this.loaded) {
+                    self.callbackfn(self.vertShaderSource, self.fragShaderSource);
+                }
+            });
+            fragXHR.addEventListener("abort", (e) => {
+                self.fragFailed = true;
+                console.error("unable to GET " + fragShaderUrl);
+            });
+            fragXHR.addEventListener("error", (e) => {
+                self.vertFailed = true;
+                console.error("unable to GET " + fragShaderUrl);
+            });
+            fragXHR.open("GET", fragShaderUrl);
+            fragXHR.send();
+        }
+        get failed() { return this.vertFailed || this.fragFailed; }
+        get loaded() { return this.vertLoaded && this.fragLoaded; }
+    }
+    Utils.ShaderLoader = ShaderLoader;
+    class TextFileLoader {
+        constructor(url, callbackfn, parameter = 0) {
+            this.callbackfn = callbackfn;
+            this._loaded = false;
+            this._failed = false;
+            this.data = "";
+            this.name = GetURLResource(url);
+            let self = this;
+            let xhr = new XMLHttpRequest();
+            xhr.addEventListener("load", (e) => {
+                if (!xhr.responseText) {
+                    self._failed = true;
+                    self.data = "unknown";
+                }
+                else {
+                    self.data = xhr.responseText;
+                }
+                self._loaded = true;
+                callbackfn(self.data, self.name, parameter);
+                hflog.log("Loaded " + url);
+            });
+            xhr.addEventListener("abort", (e) => {
+                self._failed = true;
+                console.error("unable to GET " + url);
+            });
+            xhr.addEventListener("error", (e) => {
+                self._failed = true;
+                console.error("unable to GET " + url);
+            });
+            xhr.open("GET", url);
+            xhr.send();
+        }
+        get loaded() { return this._loaded; }
+        get failed() { return this._failed; }
+    }
+    Utils.TextFileLoader = TextFileLoader;
+    class ImageFileLoader {
+        constructor(url, callbackfn, parameter = 0) {
+            this.callbackfn = callbackfn;
+            this._loaded = false;
+            this._failed = false;
+            this.image = new Image();
+            this.name = GetURLResource(url);
+            let self = this;
+            this.image.addEventListener("load", (e) => {
+                self._loaded = true;
+                callbackfn(self.image, this.name, parameter);
+            });
+            this.image.addEventListener("error", (e) => {
+                self._failed = true;
+                console.error("unable to GET " + url);
+            });
+            this.image.addEventListener("abort", (e) => {
+                self._failed = true;
+                console.error("unable to GET " + url);
+            });
+            this.image.src = url;
+        }
+        get loaded() { return this._loaded; }
+        get failed() { return this._failed; }
+    }
+    Utils.ImageFileLoader = ImageFileLoader;
+    function SeparateCubeMapImages(image, images) {
+        if (image.width != 6 * image.height) {
+            return;
+        }
+        let canvas = document.createElement("canvas");
+        if (canvas) {
+            canvas.width = image.width;
+            canvas.height = image.height;
+            let ctx = canvas.getContext("2d");
+            if (ctx) {
+                ctx.drawImage(image, 0, 0);
+                for (let i = 0; i < 6; i++) {
+                    images[i] = ctx.getImageData(i * image.height, 0, image.height, image.height);
+                }
+            }
+        }
+    }
+    Utils.SeparateCubeMapImages = SeparateCubeMapImages;
+    function niceTimestamp(timestamp) {
+        return (Math.round(1000.0 * timestamp) / 1000.0).toString() + "ms";
+    }
+    Utils.niceTimestamp = niceTimestamp;
+    function niceFramesPerSecond(t0, t1) {
+        let s = (t1 - t0);
+        return Math.round(1.0 / s).toString() + "fps";
+    }
+    Utils.niceFramesPerSecond = niceFramesPerSecond;
+    function niceDuration(t0, t1) {
+        return ((Math.round(1000.0 * (t1 - t0))) / 1000.0).toString() + "ms";
+    }
+    Utils.niceDuration = niceDuration;
+    function round3(x) {
+        return Math.round(x * 1000.0) / 1000.0;
+    }
+    Utils.round3 = round3;
+    function round3str(x) {
+        return (Math.round(x * 1000.0) / 1000.0).toString();
+    }
+    Utils.round3str = round3str;
+    function niceVector(v) {
+        return "(" + round3str(v.x) + ", " + round3str(v.y) + ", " + round3str(v.z) + ")";
+    }
+    Utils.niceVector = niceVector;
+    function niceNumber(x, digits) {
+        let t = Math.pow(10.0, digits);
+        return (Math.round(x * t) / t).toString();
+    }
+    Utils.niceNumber = niceNumber;
+    function niceMatrix4(m) {
+        return "("
+            + round3str(m.m11) + ", " + round3str(m.m12) + ", " + round3str(m.m13) + ", " + round3str(m.m14) + ", "
+            + round3str(m.m21) + ", " + round3str(m.m22) + ", " + round3str(m.m23) + ", " + round3str(m.m24) + ", "
+            + round3str(m.m31) + ", " + round3str(m.m32) + ", " + round3str(m.m33) + ", " + round3str(m.m34) + ", "
+            + round3str(m.m41) + ", " + round3str(m.m42) + ", " + round3str(m.m43) + ", " + round3str(m.m44)
+            + ")";
+    }
+    Utils.niceMatrix4 = niceMatrix4;
+    class GLTypeInfo {
+        constructor(type, baseType, components, sizeOfType) {
+            this.type = type;
+            this.baseType = baseType;
+            this.components = components;
+            this.sizeOfType = sizeOfType;
+        }
+        CreateArray(size) {
+            switch (this.type) {
+                case WebGLRenderingContext.FLOAT:
+                case WebGLRenderingContext.FLOAT_VEC2:
+                case WebGLRenderingContext.FLOAT_VEC3:
+                case WebGLRenderingContext.FLOAT_VEC4:
+                case WebGLRenderingContext.FLOAT_MAT2:
+                case WebGLRenderingContext.FLOAT_MAT3:
+                case WebGLRenderingContext.FLOAT_MAT4:
+                    return new Float32Array(size);
+                case WebGLRenderingContext.INT:
+                case WebGLRenderingContext.INT_VEC2:
+                case WebGLRenderingContext.INT_VEC3:
+                case WebGLRenderingContext.INT_VEC4:
+                    return new Int32Array(size);
+                case WebGLRenderingContext.SHORT:
+                    return new Int16Array(size);
+                case WebGLRenderingContext.UNSIGNED_INT:
+                    return new Uint32Array(size);
+                case WebGLRenderingContext.UNSIGNED_SHORT:
+                    return new Uint16Array(size);
+                case WebGLRenderingContext.UNSIGNED_BYTE:
+                    return new Uint8ClampedArray(size);
+                case WebGLRenderingContext.BOOL:
+                    return new Uint32Array(size);
+            }
+            return null;
+        }
+    }
+    Utils.WebGLTypeInfo = new Map([
+        [WebGLRenderingContext.BYTE, new GLTypeInfo(WebGLRenderingContext.BYTE, WebGLRenderingContext.BYTE, 1, 1)],
+        [WebGLRenderingContext.UNSIGNED_BYTE, new GLTypeInfo(WebGLRenderingContext.UNSIGNED_BYTE, WebGLRenderingContext.UNSIGNED_BYTE, 1, 1)],
+        [WebGLRenderingContext.SHORT, new GLTypeInfo(WebGLRenderingContext.SHORT, WebGLRenderingContext.SHORT, 1, 2)],
+        [WebGLRenderingContext.UNSIGNED_SHORT, new GLTypeInfo(WebGLRenderingContext.UNSIGNED_SHORT, WebGLRenderingContext.UNSIGNED_SHORT, 1, 2)],
+        [WebGLRenderingContext.INT, new GLTypeInfo(WebGLRenderingContext.INT, WebGLRenderingContext.INT, 1, 4)],
+        [WebGLRenderingContext.UNSIGNED_INT, new GLTypeInfo(WebGLRenderingContext.UNSIGNED_INT, WebGLRenderingContext.UNSIGNED_INT, 1, 4)],
+        [WebGLRenderingContext.BOOL, new GLTypeInfo(WebGLRenderingContext.BOOL, WebGLRenderingContext.INT, 1, 4)],
+        [WebGLRenderingContext.FLOAT, new GLTypeInfo(WebGLRenderingContext.FLOAT, WebGLRenderingContext.FLOAT, 1, 4)],
+        [WebGLRenderingContext.FLOAT_VEC2, new GLTypeInfo(WebGLRenderingContext.FLOAT_VEC2, WebGLRenderingContext.FLOAT, 2, 4)],
+        [WebGLRenderingContext.FLOAT_VEC3, new GLTypeInfo(WebGLRenderingContext.FLOAT_VEC3, WebGLRenderingContext.FLOAT, 3, 4)],
+        [WebGLRenderingContext.FLOAT_VEC4, new GLTypeInfo(WebGLRenderingContext.FLOAT_VEC4, WebGLRenderingContext.FLOAT, 4, 4)],
+        [WebGLRenderingContext.FLOAT_MAT2, new GLTypeInfo(WebGLRenderingContext.FLOAT_MAT2, WebGLRenderingContext.FLOAT, 4, 4)],
+        [WebGLRenderingContext.FLOAT_MAT3, new GLTypeInfo(WebGLRenderingContext.FLOAT_MAT3, WebGLRenderingContext.FLOAT, 9, 4)],
+        [WebGLRenderingContext.FLOAT_MAT4, new GLTypeInfo(WebGLRenderingContext.FLOAT_MAT4, WebGLRenderingContext.FLOAT, 16, 4)],
+        [WebGLRenderingContext.SAMPLER_2D, new GLTypeInfo(WebGLRenderingContext.SAMPLER_2D, WebGLRenderingContext.FLOAT, 1, 4)],
+        [WebGLRenderingContext.SAMPLER_CUBE, new GLTypeInfo(WebGLRenderingContext.SAMPLER_CUBE, WebGLRenderingContext.FLOAT, 1, 4)],
+    ]);
+})(Utils || (Utils = {}));
+class Vertex {
+    constructor(position = new Vector3(0, 0, 0), normal = new Vector3(0, 0, 1), color = new Vector3(1, 1, 1), texcoord = new Vector3(0, 0, 0)) {
+        this.position = position;
+        this.normal = normal;
+        this.color = color;
+        this.texcoord = texcoord;
+    }
+    asFloat32Array() {
+        return new Float32Array([
+            this.position.x, this.position.y, this.position.z,
+            this.normal.x, this.normal.y, this.normal.z,
+            this.color.x, this.color.y, this.color.z,
+            this.texcoord.x, this.texcoord.y, this.texcoord.z
+        ]);
+    }
+    asArray() {
+        return [
+            this.position.x, this.position.y, this.position.z,
+            this.normal.x, this.normal.y, this.normal.z,
+            this.color.x, this.color.y, this.color.z,
+            this.texcoord.x, this.texcoord.y, this.texcoord.z
+        ];
+    }
+}
+;
+class Surface {
+    constructor(mode, offset, mtllib, mtl) {
+        this.mode = mode;
+        this.offset = offset;
+        this.mtllib = mtllib;
+        this.mtl = mtl;
+        this.count = 0;
+    }
+    Add() {
+        this.count++;
+    }
+}
+var FluxionsImpl;
+(function (FluxionsImpl) {
+    class Edge {
+        constructor() {
+            this.v1 = -1;
+            this.v2 = -1;
+            this.leftFaceIndex = -1;
+            this.rightFaceIndex = -1;
+            this.leftNormal = Vector3.makeZero();
+            this.rightNormal = Vector3.makeZero();
+            this.N = Vector3.makeZero();
+        }
+        static makeIndex(v1, v2) {
+            const SEPARATION = 1000000;
+            if (v1 < v2)
+                return (v1 + 1) * SEPARATION + (v2 + 1);
+            else
+                return (v2 + 1) * SEPARATION + (v1 + 1);
+        }
+    }
+    class EdgeMeshFace {
+        constructor() {
+            this.vertices = [];
+            this.centerPoint = Vector3.makeZero();
+            this.normalPoint = Vector3.makeZero();
+            this.N = Vector3.makeZero();
+        }
+    }
+    class EdgeMesh {
+        constructor() {
+            this.vertices = [];
+            this.edges = new Map();
+            this.faces = [];
+            this._ebo = null;
+            this._dirty = true;
+            this._edgeData = [];
+            this.eboCount = 0;
+        }
+        get length() { return (this.edges.size + this.faces.length) * 2; }
+        addVertex(v) {
+            this.vertices.push(v);
+        }
+        calcNormal(v1, v2, v3) {
+            let v1v2 = this.vertices[v2].sub(this.vertices[v1]);
+            let v1v3 = this.vertices[v3].sub(this.vertices[v1]);
+            let N = Vector3.cross(v1v2, v1v3);
+            return N.norm();
+        }
+        addFace(v) {
+            this._dirty = true;
+            if (v.length < 3)
+                return;
+            let f = new EdgeMeshFace();
+            for (let i = 0; i < v.length; i++) {
+                if (v[i] < 0)
+                    v[i] = this.vertices.length + v[i];
+            }
+            f.vertices.push(...v);
+            f.N = this.calcNormal(v[0], v[1], v[2]);
+            f.centerPoint = Vector3.makeZero();
+            for (let v of f.vertices) {
+                f.centerPoint = f.centerPoint.add(this.vertices[v]);
+            }
+            f.centerPoint = f.centerPoint.div(f.vertices.length);
+            f.normalPoint = f.centerPoint.add(f.N.mul(0.1));
+            let faceIndex = this.faces.length;
+            this.faces.push(f);
+            for (let i = 0; i < v.length; i++) {
+                let v1 = v[i];
+                let v2 = v[(i + 1) % v.length];
+                this.addEdge(v1, v2, faceIndex);
+            }
+        }
+        addEdge(v1, v2, faceIndex) {
+            let isLeft = true;
+            if (v1 > v2) {
+                let tmp = v1;
+                v1 = v2;
+                v2 = tmp;
+                isLeft = false;
+            }
+            let face = this.faces[faceIndex];
+            let edgeIndex = Edge.makeIndex(v1, v2);
+            let edge = this.edges.get(edgeIndex);
+            if (!edge) {
+                edge = new Edge();
+                edge.v1 = v1;
+                edge.v2 = v2;
+                this.edges.set(edgeIndex, edge);
+            }
+            if (isLeft) {
+                edge.leftFaceIndex = faceIndex;
+                edge.leftNormal = face.N;
+                edge.N = edge.N.add(face.N);
+            }
+            else {
+                edge.rightFaceIndex = faceIndex;
+                edge.rightNormal = face.N;
+                edge.N = edge.N.add(face.N);
+            }
+            if (edge.leftFaceIndex >= 0 &&
+                edge.rightFaceIndex >= 0) {
+                edge.N.normalize();
+            }
+        }
+        buildBuffers(gl, isStatic = true) {
+            if (!this._dirty && this._ebo)
+                return this._ebo;
+            let self = this;
+            this._edgeData = [];
+            this.edges.forEach((value, index, array) => {
+                let v1 = this.vertices[value.v1];
+                let v2 = this.vertices[value.v2];
+                let N = value.N;
+                let N1 = value.leftNormal;
+                let N2 = value.rightNormal;
+                let v = [
+                    v1.x, v1.y, v1.z,
+                    N.x, N.y, N.z,
+                    N1.x, N1.y, N1.z,
+                    N2.x, N2.y, N2.z,
+                    v2.x, v2.y, v2.z,
+                    N.x, N.y, N.z,
+                    N1.x, N1.y, N1.z,
+                    N2.x, N2.y, N2.z,
+                ];
+                self._edgeData.push(...v);
+                v = [
+                    v2.x, v2.y, v2.z,
+                    N.x, N.y, N.z,
+                    N1.x, N1.y, N1.z,
+                    N2.x, N2.y, N2.z,
+                    v1.x, v1.y, v1.z,
+                    N.x, N.y, N.z,
+                    N1.x, N1.y, N1.z,
+                    N2.x, N2.y, N2.z,
+                ];
+                self._edgeData.push(...v);
+            });
+            if (1)
+                this.faces.forEach((value, index) => {
+                    let f = value;
+                    let dir = f.normalPoint.sub(f.centerPoint);
+                    let v = [
+                        f.centerPoint.x, f.centerPoint.y, f.centerPoint.z,
+                        dir.x, dir.y, dir.z,
+                        f.N.x, f.N.y, f.N.z,
+                        f.N.x, f.N.y, f.N.z,
+                        f.normalPoint.x, f.normalPoint.y, f.normalPoint.z,
+                        dir.x, dir.y, dir.z,
+                        f.N.x, f.N.y, f.N.z,
+                        f.N.x, f.N.y, f.N.z,
+                    ];
+                    self._edgeData.push(...v);
+                });
+            this.eboCount = self._edgeData.length / 16;
+            let eboData = new Float32Array(this._edgeData);
+            let ebo = gl.createBuffer();
+            if (ebo) {
+                gl.bindBuffer(gl.ARRAY_BUFFER, ebo);
+                gl.bufferData(gl.ARRAY_BUFFER, eboData, isStatic ? gl.STATIC_DRAW : gl.DYNAMIC_DRAW);
+                gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            }
+            this._ebo = ebo;
+            this._dirty = false;
+            return this._ebo;
+        }
+    }
+    FluxionsImpl.EdgeMesh = EdgeMesh;
+})(FluxionsImpl || (FluxionsImpl = {}));
+class IndexedGeometryMesh {
+    constructor(fx) {
+        this.fx = fx;
+        this.vertices = [];
+        this.indices = [];
+        this.surfaces = [];
+        this.edgeMesh = new FluxionsImpl.EdgeMesh();
+        this._mtllib = "";
+        this._mtl = "";
+        this._vertex = new Vertex();
+        this._dirty = true;
+        this._vboData = new Float32Array(0);
+        this._iboData = new Uint32Array(0);
+        this.aabb = new GTE.BoundingBox();
+        let gl = this.fx.gl;
+        let vbo = gl.createBuffer();
+        let ibo = gl.createBuffer();
+        let ebo = gl.createBuffer();
+        if (!vbo || !ibo || !ebo)
+            throw "IndexedGeometryMesh::constructor() Unable to create buffer";
+        this._vbo = vbo;
+        this._ibo = ibo;
+        this._ebo = ebo;
+    }
+    reset() {
+        this.vertices = [];
+        this.indices = [];
+        this.surfaces = [];
+        this._dirty = true;
+        this._vertex = new Vertex();
+        this._mtllib = "";
+        this._mtl = "";
+        this.aabb.reset();
+    }
+    mtllib(mtllib) {
+        this._mtllib = mtllib;
+    }
+    usemtl(mtl) {
+        this._mtl = mtl;
+    }
+    begin(mode) {
+        if (this.surfaces.length == 0) {
+            this.surfaces.push(new Surface(mode, this.indices.length, this._mtllib, this._mtl));
+        }
+        else if (this.currentIndexCount != 0) {
+            this.surfaces.push(new Surface(mode, this.indices.length, this._mtllib, this._mtl));
+        }
+        if (this.surfaces.length > 0) {
+            let s = this.surfaces[this.surfaces.length - 1];
+            s.mtl = this._mtl;
+            s.mtllib = this._mtllib;
+        }
+    }
+    addIndex(i) {
+        if (this.surfaces.length == 0)
+            return;
+        if (i < 0) {
+            this.indices.push((this.vertices.length / 12) + i);
+        }
+        else {
+            this.indices.push(i);
+        }
+        this.surfaces[this.surfaces.length - 1].Add();
+        this._dirty = true;
+    }
+    get currentIndexCount() {
+        if (this.surfaces.length == 0)
+            return 0;
+        return this.surfaces[this.surfaces.length - 1].count;
+    }
+    normal3(n) {
+        this._vertex.normal.copy(n);
+    }
+    normal(x, y, z) {
+        this._vertex.normal.reset(x, y, z);
+    }
+    color3(c) {
+        this._vertex.color.copy(c);
+    }
+    color(r, g, b) {
+        this._vertex.color.reset(r, g, b);
+    }
+    texcoord3(t) {
+        this._vertex.texcoord.copy(t);
+    }
+    texcoord(x, y, z) {
+        this._vertex.texcoord.reset(x, y, z);
+    }
+    vertex3(v) {
+        this.aabb.add(v);
+        this._vertex.position.copy(v);
+        this.vertices.push(...this._vertex.asArray());
+        this._vertex = new Vertex();
+    }
+    vertex(x, y, z) {
+        let v = new Vector3(x, y, z);
+        this.vertex3(v);
+    }
+    position(x, y, z) {
+        let v = new Vector3(x, y, z);
+        this.vertex3(v);
+    }
+    build() {
+        if (!this._dirty)
+            return;
+        this._vboData = new Float32Array(this.vertices);
+        this._iboData = new Uint32Array(this.indices);
+        let gl = this.fx.gl;
+        if (!gl)
+            return;
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._vbo);
+        gl.bufferData(gl.ARRAY_BUFFER, this._vboData, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._ibo);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this._iboData, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+        this._dirty = false;
+    }
+    render(rc, sg) {
+        if (!rc.usable) {
+            return;
+        }
+        this.build();
+        let gl = this.fx.gl;
+        if (!gl)
+            return;
+        let offsets = [0, 12, 24, 36];
+        let locs = [
+            rc.getAttribLocation("aPosition"),
+            rc.getAttribLocation("aNormal"),
+            rc.getAttribLocation("aColor"),
+            rc.getAttribLocation("aTexcoord")
+        ];
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._vbo);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._ibo);
+        for (let i = 0; i < 4; i++) {
+            if (locs[i] >= 0) {
+                gl.enableVertexAttribArray(locs[i]);
+                gl.vertexAttribPointer(locs[i], 3, gl.FLOAT, false, 48, offsets[i]);
+            }
+        }
+        for (let s of this.surfaces) {
+            sg.UseMaterial(rc, s.mtllib, s.mtl);
+            gl.drawElements(s.mode, s.count, gl.UNSIGNED_INT, s.offset * 4);
+        }
+        for (let i = 0; i < 4; i++) {
+            if (locs[i] >= 0) {
+                gl.disableVertexAttribArray(locs[i]);
+            }
+        }
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+    }
+    renderEdges(rc) {
+        let gl = this.fx.gl;
+        if (!gl)
+            return;
+        let ebo = this.edgeMesh.buildBuffers(gl);
+        let offsets = [0, 12, 24, 36];
+        let stride = 48;
+        let locs = [
+            rc.getAttribLocation("aPosition"),
+            rc.getAttribLocation("aNormal"),
+            rc.getAttribLocation("aFace1Normal"),
+            rc.getAttribLocation("aFace2Normal")
+        ];
+        gl.bindBuffer(gl.ARRAY_BUFFER, ebo);
+        for (let i = 0; i < locs.length; i++) {
+            if (locs[i] >= 0) {
+                gl.enableVertexAttribArray(locs[i]);
+                gl.vertexAttribPointer(locs[i], 3, gl.FLOAT, false, 48, offsets[i]);
+            }
+        }
+        gl.drawArrays(gl.LINES, 0, this.edgeMesh.eboCount);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        for (let i = 0; i < locs.length; i++) {
+            if (locs[i] >= 0) {
+                gl.disableVertexAttribArray(locs[i]);
+            }
+        }
+    }
+}
+class FBO {
+    constructor(_renderingContext, depth, color, width = 512, height = 512, colorType = 0, shouldAutoResize = false) {
+        this._renderingContext = _renderingContext;
+        this.depth = depth;
+        this.color = color;
+        this.width = width;
+        this.height = height;
+        this.colorType = colorType;
+        this.shouldAutoResize = shouldAutoResize;
+        this._colorTexture = null;
+        this._depthTexture = null;
+        this._colorType = 0;
+        this._complete = false;
+        this._colorUnit = -1;
+        this._depthUnit = -1;
+        this.clearColor = Vector3.make(0.2, 0.2, 0.2);
+        let gl = _renderingContext.gl;
+        let fbo = gl.createFramebuffer();
+        if (fbo) {
+            this._fbo = fbo;
+        }
+        else {
+            throw "Unable to create FBO";
+        }
+        if (colorType == 0)
+            this._colorType = gl.UNSIGNED_BYTE;
+        else
+            this._colorType = gl.FLOAT;
+        this.make();
+    }
+    get complete() { return this._complete; }
+    get dimensions() { return Vector2.make(this.width, this.height); }
+    autoResize(width, height) {
+        if (!this.shouldAutoResize)
+            return;
+        if (this.width == width && this.height == height)
+            return;
+        let gl = this._renderingContext.gl;
+        this.width = width;
+        this.height = height;
+        if (this._colorTexture)
+            gl.deleteTexture(this._colorTexture);
+        if (this._depthTexture)
+            gl.deleteTexture(this._depthTexture);
+        this._colorTexture = null;
+        this._depthTexture = null;
+        this.make();
+    }
+    make() {
+        let gl = this._renderingContext.gl;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
+        gl.activeTexture(gl.TEXTURE0);
+        if (this.color && !this._colorTexture) {
+            this._colorTexture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, this._colorTexture);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, this._colorType, null);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._colorTexture, 0);
+        }
+        if (this.depth && !this._depthTexture) {
+            this._depthTexture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, this._depthTexture);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, this.width, this.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this._depthTexture, 0);
+        }
+        let resolutionSizeText = this.width + "x" + this.height;
+        let fboStatus = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+        if (fboStatus != gl.FRAMEBUFFER_COMPLETE) {
+            if (this._colorType == gl.FLOAT) {
+                this._colorType = gl.UNSIGNED_BYTE;
+                this.colorType = 0;
+                gl.deleteTexture(this._colorTexture);
+                this._colorTexture = null;
+                this.make();
+                hflog.warn("FBO::make() --> Can't create FLOAT texture, trying UNSIGNED_BYTE");
+                return;
+            }
+            this._complete = false;
+            hflog.error("Unable to create a complete framebuffer " + resolutionSizeText, "| status: " + FBO.statusToText(fboStatus));
+        }
+        else {
+            this._complete = true;
+            hflog.log("Framebuffer is okay! size is " + resolutionSizeText);
+        }
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+    use(clearScreen = true, disableColorWrites = false) {
+        let gl = this._renderingContext.gl;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
+        if (disableColorWrites)
+            gl.colorMask(false, false, false, false);
+        this._savedViewport = gl.getParameter(gl.VIEWPORT);
+        gl.viewport(0, 0, this.width, this.height);
+        if (clearScreen) {
+            gl.clearColor(this.clearColor.x, this.clearColor.y, this.clearColor.z, 1.0);
+            let bits = 0;
+            if (this.color)
+                bits |= gl.COLOR_BUFFER_BIT;
+            if (this.depth)
+                bits |= gl.DEPTH_BUFFER_BIT;
+            gl.clear(bits);
+        }
+    }
+    restore() {
+        let gl = this._renderingContext.gl;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        if (this.color && this._colorTexture) {
+            gl.bindTexture(gl.TEXTURE_2D, this._colorTexture);
+            gl.generateMipmap(gl.TEXTURE_2D);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+        }
+        gl.colorMask(true, true, true, true);
+        if (this._savedViewport) {
+            gl.viewport(this._savedViewport[0], this._savedViewport[1], this._savedViewport[2], this._savedViewport[3]);
+            this._savedViewport = undefined;
+        }
+    }
+    bindTextures(colorUnit = 15, depthUnit = 16) {
+        let gl = this._renderingContext.gl;
+        this._colorUnit = colorUnit;
+        this._depthUnit = depthUnit;
+        if (this._colorUnit >= 0) {
+            gl.activeTexture(this._colorUnit + gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this._colorTexture);
+        }
+        if (this._depthUnit >= 0) {
+            gl.activeTexture(this._depthUnit + gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this._depthTexture);
+        }
+        gl.activeTexture(gl.TEXTURE0);
+    }
+    unbindTextures() {
+        let gl = this._renderingContext.gl;
+        if (this._colorUnit >= 0) {
+            gl.activeTexture(this._colorUnit + gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            this._colorUnit = -1;
+        }
+        if (this._depthUnit >= 0) {
+            gl.activeTexture(this._depthUnit + gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            this._depthUnit = -1;
+        }
+        gl.activeTexture(gl.TEXTURE0);
+    }
+    static statusToText(status) {
+        let gl = WebGLRenderingContext;
+        switch (status) {
+            case gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+                return "Incomplete attachment";
+                break;
+            case gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+                return "Incomplete dimensions";
+                break;
+            case gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+                return "Missing attachment";
+                break;
+            case gl.FRAMEBUFFER_UNSUPPORTED:
+                return "Unsupported";
+                break;
+        }
+        return "Unknown error: " + status;
+    }
+}
+class Camera {
+    constructor() {
+        this._transform = Matrix4.makeIdentity();
+        this._center = new Vector3();
+        this._eye = new Vector3(0.0, 0.0, 10.0);
+        this._angleOfView = 45.0;
+        this._aspectRatio = 1.0;
+        this._znear = 1.0;
+        this._zfar = 100.0;
+        this.projection = Matrix4.makePerspectiveY(this._angleOfView, this._aspectRatio, this._znear, this._zfar);
+        this.pretransform = Matrix4.makeIdentity();
+        this.posttransform = Matrix4.makeIdentity();
+    }
+    get transform() { return Matrix4.multiply3(this.pretransform, this._transform, this.posttransform); }
+    get rotatetransform() {
+        let M = this.transform;
+        M.m14 = 0.0;
+        M.m24 = 0.0;
+        M.m34 = 0.0;
+        return M;
+    }
+    set aspectRatio(ar) {
+        this._aspectRatio = Math.max(0.001, ar);
+        this.projection = Matrix4.makePerspectiveY(this._angleOfView, this._aspectRatio, this._znear, this._zfar);
+    }
+    set angleOfView(angleInDegrees) {
+        this._angleOfView = Math.max(1.0, angleInDegrees);
+        this.projection = Matrix4.makePerspectiveY(this._angleOfView, this._aspectRatio, this._znear, this._zfar);
+    }
+    set zfar(z) {
+        this._zfar = Math.max(z, 0.001);
+        let znear = Math.min(this._znear, this._zfar);
+        let zfar = Math.max(this._znear, this._zfar);
+        this._znear = znear;
+        this._zfar = zfar;
+        this.projection = Matrix4.makePerspectiveY(this._angleOfView, this._aspectRatio, this._znear, this._zfar);
+    }
+    set znear(z) {
+        this._znear = Math.max(z, 0.001);
+        let znear = Math.min(this._znear, this._zfar);
+        let zfar = Math.max(this._znear, this._zfar);
+        this._znear = znear;
+        this._zfar = zfar;
+        this.projection = Matrix4.makePerspectiveY(this._angleOfView, this._aspectRatio, this._znear, this._zfar);
+    }
+    get position() {
+        return this._transform.col3(3);
+    }
+    get right() {
+        return this._transform.col3(0);
+    }
+    get left() {
+        return this._transform.col3(0).negate();
+    }
+    get up() {
+        return this._transform.col3(1);
+    }
+    get down() {
+        return this._transform.col3(1).negate();
+    }
+    get forward() {
+        return this._transform.col3(2);
+    }
+    get backward() {
+        return this._transform.col3(2).negate();
+    }
+    get eye() {
+        return this._transform.asInverse().row3(3);
+    }
+    set eye(p) {
+        this._eye = p.clone();
+        this._transform = Matrix4.makeLookAt(this._eye, this._center, this.up);
+        this._eye = this._transform.col3(3);
+    }
+    set center(p) {
+        this._center = p;
+        this._transform.LookAt(this._eye, this._center, this.up);
+    }
+    moveTo(position) {
+        this._transform.m14 = position.x;
+        this._transform.m24 = position.y;
+        this._transform.m34 = position.z;
+    }
+    move(delta) {
+        let tx = this.right.mul(delta.x);
+        let ty = this.up.mul(delta.y);
+        let tz = this.forward.mul(delta.z);
+        this._transform.Translate(tx.x, tx.y, tx.z);
+        this._transform.Translate(ty.x, ty.y, ty.z);
+        this._transform.Translate(tz.x, tz.y, tz.z);
+        return this.position;
+    }
+    turn(delta) {
+        let m = Matrix4.makeIdentity();
+        m.Rotate(delta.x, 1, 0, 0);
+        m.Rotate(delta.y, 0, 1, 0);
+        m.Rotate(delta.z, 0, 0, 1);
+        this._transform.MultMatrix(m);
+    }
+    setOrbit(azimuthInDegrees, pitchInDegrees, distance) {
+        this._transform.LoadIdentity();
+        this._transform.Rotate(azimuthInDegrees, 0.0, 1.0, 0.0);
+        this._transform.Rotate(pitchInDegrees, 1.0, 0.0, 0.0);
+        this._transform.Translate(0.0, 0.0, -distance);
+        return this._transform.clone();
+    }
+}
+class Texture {
+    constructor(fx, name, url, target, texture) {
+        this.fx = fx;
+        this.name = name;
+        this.url = url;
+        this.target = target;
+        this.texture = texture;
+        this.id = "";
+    }
+}
+class Material {
+    constructor(name) {
+        this.name = name;
+        this.Kd = Vector3.make(0.8, 0.8, 0.8);
+        this.Ka = Vector3.make(0.2, 0.2, 0.2);
+        this.Ks = Vector3.make(1.0, 1.0, 1.0);
+        this.map_Kd_mix = 0.0;
+        this.map_Kd = "";
+        this.map_Ks_mix = 0.0;
+        this.map_Ks = "";
+        this.map_normal_mix = 0.0;
+        this.map_normal = "";
+        this.PBKsm = 0;
+        this.PBKdm = 0;
+        this.PBn2 = 1.333;
+        this.PBk2 = 0;
+        this.minFilter = 0;
+        this.magFilter = 0;
+    }
+}
+class DirectionalLight {
+    constructor() {
+        this._direction = new Vector3(0.34816, 0.87039, 0.34816);
+        this._center = new Vector3();
+        this._eye = new Vector3();
+        this._distance = 5.0;
+        this._zfar = 100.0;
+        this._znear = 1.0;
+        this._E0 = new Vector3(100000, 100000, 100000);
+        this._transform = Matrix4.makeIdentity();
+        this._isOrbit = false;
+        this._zoom = 1.0;
+        this._offset = new Vector2(0.0, 0.0);
+    }
+    set distance(d) {
+        this._distance = d;
+        this._znear = -d + 1.0;
+        this._zfar = d + 1.0;
+    }
+    set direction(v) {
+        this._direction = v.norm();
+        this._eye = this._center.add(this._direction.mul(this._distance));
+        this._isOrbit = false;
+    }
+    get direction() {
+        if (this._isOrbit) {
+            let v1 = new Vector4(0.0, 0.0, 0.0, 1.0);
+            let v1p = this._transform.transform(v1).toVector3();
+            return this._transform.asInverse().row3(3);
+            let v2 = new Vector4(1.0, 0.0, 0.0, 1.0);
+            let v2p = this._transform.transform(v2).toVector3();
+            return v2p.sub(v1p);
+        }
+        return this._direction.clone();
+    }
+    set center(location) {
+        this._center = location.clone();
+        this._eye = this._center.add(this._direction.mul(this._distance));
+    }
+    set E0(color) {
+        this._E0.copy(color);
+    }
+    get E0() {
+        return this._E0.clone();
+    }
+    setOrbit(azimuthInDegrees, pitchInDegrees, distance) {
+        this._transform.LoadIdentity();
+        this._transform.Rotate(azimuthInDegrees, 0.0, 1.0, 0.0);
+        this._transform.Rotate(pitchInDegrees, 1.0, 0.0, 0.0);
+        this._transform.Translate(0.0, 0.0, -distance);
+        this._isOrbit = true;
+        return this._transform.clone();
+    }
+    get lightMatrix() {
+        if (this._isOrbit == true)
+            return this._transform.clone();
+        return Matrix4.makeLookAt2(this._direction.mul(this._distance), new Vector3(0.0), new Vector3(0.0, 1.0, 0.0));
+        this._eye = this._center.add(this._direction.mul(this._distance));
+        return Matrix4.makeLookAt(this._eye, this._center, new Vector3(0.0, 1.0, 0.0));
+    }
+    get projectionMatrix() {
+        let size = this._distance;
+        return Matrix4.makeOrtho(-size, size, -size, size, -size * 2, size * 2);
+    }
+}
+var SGAssetType;
+(function (SGAssetType) {
+    SGAssetType[SGAssetType["Scene"] = 0] = "Scene";
+    SGAssetType[SGAssetType["GeometryGroup"] = 1] = "GeometryGroup";
+    SGAssetType[SGAssetType["MaterialLibrary"] = 2] = "MaterialLibrary";
+    SGAssetType[SGAssetType["ShaderProgram"] = 3] = "ShaderProgram";
+    SGAssetType[SGAssetType["Image"] = 4] = "Image";
+    SGAssetType[SGAssetType["Text"] = 5] = "Text";
+})(SGAssetType || (SGAssetType = {}));
+;
+class ScenegraphNode {
+    constructor(name = "unknown", sceneName = "default", parent = "") {
+        this.name = name;
+        this.sceneName = sceneName;
+        this.parent = parent;
+        this.geometryGroup = "";
+        this.transform_ = Matrix4.makeIdentity();
+        this.pretransform_ = Matrix4.makeIdentity();
+        this.posttransform_ = Matrix4.makeIdentity();
+    }
+    set worldMatrix(m) {
+        this.pretransform_.LoadIdentity();
+        this.transform_.copy(m);
+        this.posttransform_.LoadIdentity();
+    }
+    get worldMatrix() { return Matrix4.multiply3(this.pretransform_, this.transform_, this.posttransform_); }
+    get pretransform() { return this.pretransform_; }
+    get posttransform() { return this.posttransform_; }
+    get transform() { return this.transform_; }
+}
+class Scenegraph {
+    constructor(fx) {
+        this.fx = fx;
+        this.textfiles = [];
+        this.imagefiles = [];
+        this.shaderSrcFiles = [];
+        this._scenegraphs = new Map();
+        this._fbo = new Map();
+        this._renderConfigs = new Map();
+        this._textures = new Map();
+        this._materials = new Map();
+        this._sceneResources = new Map();
+        this._nodes = [];
+        this._meshes = new Map();
+        this._tempNode = new ScenegraphNode("", "");
+        this.textFiles = new Map();
+        this.camera = new Camera();
+        this.sunlight = new DirectionalLight();
+        this._defaultRenderConfig = new RenderConfig(this.fx);
+        this._defaultRenderConfig.compile(`attribute vec4 aPosition;
+             void main() {
+                 gl_Position = aPosition;
+            }`, `void main() {
+                gl_FragColor = vec4(0.4, 0.3, 0.2, 1.0);
+            }`);
+        const width = this.fx.width;
+        const height = this.fx.height;
+        this._defaultFBO = new FBO(this.fx, true, true, 1024, 1024, 0, true);
+        this._fbo.set("sunshadow", new FBO(this.fx, true, true, 512, 512, 0));
+        this._fbo.set("gbuffer", new FBO(this.fx, true, true, width, height, 1, true));
+        this._fbo.set("image", new FBO(this.fx, true, true, width, height, 1, true));
+        let gl = this.fx.gl;
+        this._deferredMesh = new IndexedGeometryMesh(this.fx);
+        this._deferredMesh.texcoord3(Vector3.make(0.0, 0.0, 0.0));
+        this._deferredMesh.vertex3(Vector3.make(-1.0, -1.0, 0.0));
+        this._deferredMesh.texcoord3(Vector3.make(1.0, 0.0, 0.0));
+        this._deferredMesh.vertex3(Vector3.make(1.0, -1.0, 0.0));
+        this._deferredMesh.texcoord3(Vector3.make(1.0, 1.0, 0.0));
+        this._deferredMesh.vertex3(Vector3.make(1.0, 1.0, 0.0));
+        this._deferredMesh.texcoord3(Vector3.make(0.0, 1.0, 0.0));
+        this._deferredMesh.vertex3(Vector3.make(-1.0, 1.0, 0.0));
+        this._deferredMesh.mtllib("Floor10x10_mtl");
+        this._deferredMesh.usemtl("ConcreteFloor");
+        this._deferredMesh.begin(gl.TRIANGLES);
+        this._deferredMesh.addIndex(0);
+        this._deferredMesh.addIndex(1);
+        this._deferredMesh.addIndex(2);
+        this._deferredMesh.addIndex(0);
+        this._deferredMesh.addIndex(2);
+        this._deferredMesh.addIndex(3);
+    }
+    get shadowFBO() { return this.getFBO("sunshadow"); }
+    get gbufferFBO() { return this.getFBO("gbuffer"); }
+    get imageFBO() { return this.getFBO("image"); }
+    get width() { return this.fx.width; }
+    get height() { return this.fx.height; }
+    get aspectRatio() { return this.width / this.height; }
+    get loaded() {
+        for (let t of this.textfiles) {
+            if (!t.loaded)
+                return false;
+        }
+        for (let i of this.imagefiles) {
+            if (!i.loaded)
+                return false;
+        }
+        for (let s of this.shaderSrcFiles) {
+            if (!s.loaded)
+                return false;
+        }
+        return true;
+    }
+    get failed() {
+        for (let t of this.textfiles) {
+            if (t.failed)
+                return true;
+        }
+        for (let i of this.imagefiles) {
+            if (i.failed)
+                return true;
+        }
+        for (let s of this.shaderSrcFiles) {
+            if (s.failed)
+                return true;
+        }
+        return false;
+    }
+    get percentLoaded() {
+        let a = 0;
+        for (let t of this.textfiles) {
+            if (t.loaded)
+                a++;
+        }
+        for (let i of this.imagefiles) {
+            if (i.loaded)
+                a++;
+        }
+        for (let s of this.shaderSrcFiles) {
+            if (s.loaded)
+                a++;
+        }
+        return 100.0 * a / (this.textfiles.length + this.imagefiles.length + this.shaderSrcFiles.length);
+    }
+    Load(url) {
+        let name = Utils.GetURLResource(url);
+        let self = this;
+        let assetType;
+        let ext = Utils.GetExtension(name);
+        let path = Utils.GetURLPath(url);
+        if (ext == "scn")
+            assetType = SGAssetType.Scene;
+        else if (ext == "obj")
+            assetType = SGAssetType.GeometryGroup;
+        else if (ext == "mtl")
+            assetType = SGAssetType.MaterialLibrary;
+        else if (ext == "png")
+            assetType = SGAssetType.Image;
+        else if (ext == "jpg")
+            assetType = SGAssetType.Image;
+        else if (ext == "txt")
+            assetType = SGAssetType.Text;
+        else
+            return;
+        if (this.wasRequested(name))
+            return;
+        if (assetType == SGAssetType.Image) {
+            if (this._textures.has(name))
+                return;
+            this.imagefiles.push(new Utils.ImageFileLoader(url, (data, name, assetType) => {
+                self.processTextureMap(data, name, assetType);
+                hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + name);
+            }));
+        }
+        else {
+            if (assetType == SGAssetType.Scene) {
+                this._scenegraphs.set(name, false);
+            }
+            this.textfiles.push(new Utils.TextFileLoader(url, (data, name, assetType) => {
+                self.processTextFile(data, name, path, assetType);
+                hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + name);
+            }, assetType));
+        }
+        hflog.debug("MyScenegraph::Load() => Requesting " + url);
+    }
+    isSceneGraph(name) {
+        let status = this._scenegraphs.get(name);
+        if (status)
+            return true;
+        return false;
+    }
+    wasRequested(name) {
+        for (let tf of this.textfiles) {
+            if (tf.name == name)
+                return true;
+        }
+        for (let img of this.imagefiles) {
+            if (img.name == name)
+                return true;
+        }
+        return false;
+    }
+    areMeshes(names) {
+        for (let name of names) {
+            if (!this._meshes.has(name))
+                return false;
+        }
+        return true;
+    }
+    AddRenderConfig(name, vertshaderUrl, fragshaderUrl) {
+        let self = this;
+        this.shaderSrcFiles.push(new Utils.ShaderLoader(vertshaderUrl, fragshaderUrl, (vertShaderSource, fragShaderSource) => {
+            let rc = new RenderConfig(this.fx);
+            rc.compile(vertShaderSource, fragShaderSource);
+            self._renderConfigs.set(name, rc);
+            hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + vertshaderUrl + " and " + fragshaderUrl);
+        }));
+    }
+    GetRenderConfig(name) {
+        let rc = this._renderConfigs.get(name);
+        if (rc) {
+            return rc;
+        }
+        return null;
+    }
+    UseRenderConfig(name) {
+        let rc = this._renderConfigs.get(name);
+        if (rc) {
+            rc.use();
+            return rc;
+        }
+        return null;
+    }
+    GetMaterial(mtllib, mtl) {
+        for (let ml of this._materials) {
+            if (ml["0"] == mtllib + mtl) {
+                return ml["1"];
+            }
+        }
+        return null;
+    }
+    UseMaterial(rc, mtllib, mtl) {
+        let gl = this.fx.gl;
+        for (let ml of this._materials) {
+            if (ml["0"] == mtllib + mtl) {
+                let m = ml["1"];
+                let tnames = ["map_Kd", "map_Ks", "map_normal"];
+                let textures = [m.map_Kd, m.map_Ks, m.map_normal];
+                for (let i = 0; i < textures.length; i++) {
+                    if (textures[i].length == 0)
+                        continue;
+                    let loc = rc.getUniformLocation(tnames[i]);
+                    if (loc) {
+                        this.useTexture(textures[i], i);
+                        rc.uniform1i(tnames[i], i);
+                    }
+                }
+                let v1fnames = ["map_Kd_mix", "map_Ks_mix", "map_normal_mix", "PBKdm", "PBKsm", "PBn2", "PBk2"];
+                let v1fvalues = [m.map_Kd_mix, m.map_Ks_mix, m.map_normal_mix, m.PBKdm, m.PBKsm, m.PBn2, m.PBk2];
+                for (let i = 0; i < v1fnames.length; i++) {
+                    let uloc = rc.getUniformLocation(v1fnames[i]);
+                    if (uloc) {
+                        rc.uniform1f(v1fnames[i], v1fvalues[i]);
+                    }
+                }
+                let v3fnames = ["Kd", "Ks", "Ka"];
+                let v3fvalues = [m.Kd, m.Ks, m.Ka];
+                for (let i = 0; i < v3fnames.length; i++) {
+                    let uloc = rc.getUniformLocation(v3fnames[i]);
+                    if (uloc) {
+                        rc.uniform3f(v3fnames[i], v3fvalues[i]);
+                    }
+                }
+            }
+        }
+    }
+    RenderMesh(name, rc) {
+        if (name.length == 0) {
+            for (let mesh of this._meshes) {
+                mesh["1"].render(rc, this);
+            }
+            return;
+        }
+        let mesh = this._meshes.get(name);
+        if (mesh) {
+            mesh.render(rc, this);
+        }
+    }
+    useTexture(textureName, unit, enable = true) {
+        let texunit = unit | 0;
+        let gl = this.fx.gl;
+        let result = false;
+        let minFilter = gl.LINEAR_MIPMAP_LINEAR;
+        let magFilter = gl.LINEAR;
+        if (unit <= 31) {
+            unit += gl.TEXTURE0;
+        }
+        gl.activeTexture(unit);
+        let t = this._textures.get(textureName);
+        if (!t) {
+            let alias = this._sceneResources.get(textureName);
+            if (alias) {
+                t = this._textures.get(alias);
+            }
+        }
+        if (t) {
+            if (unit <= 31) {
+                unit += gl.TEXTURE0;
+            }
+            gl.activeTexture(unit);
+            if (enable) {
+                gl.bindTexture(t.target, t.texture);
+                gl.texParameteri(t.target, gl.TEXTURE_MIN_FILTER, minFilter);
+                gl.texParameteri(t.target, gl.TEXTURE_MAG_FILTER, magFilter);
+                result = true;
+            }
+            else {
+                gl.bindTexture(t.target, null);
+            }
+        }
+        if (!t) {
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+        }
+        gl.activeTexture(gl.TEXTURE0);
+        return result;
+    }
+    GetNode(sceneName, objectName) {
+        for (let node of this._nodes) {
+            if (sceneName.length > 0 && node.sceneName != sceneName) {
+                continue;
+            }
+            if (node.name.length > 0 && node.name == objectName) {
+                return node;
+            }
+        }
+        return null;
+    }
+    GetChildren(parentName) {
+        let children = [];
+        for (let node of this._nodes) {
+            if (node.parent == parentName)
+                children.push(node);
+        }
+        return children;
+    }
+    UpdateChildTransforms(parentName = "") {
+        let nodeWorldMatrix;
+        let children = [];
+        if (parentName.length == 0) {
+            nodeWorldMatrix = Matrix4.makeIdentity();
+            children = this._nodes;
+        }
+        else {
+            let node = this.GetNode("", parentName);
+            if (!node)
+                return;
+            nodeWorldMatrix = node.worldMatrix;
+            children = this.GetChildren(parentName);
+        }
+        for (let child of children) {
+            child.pretransform.copy(nodeWorldMatrix);
+            this.UpdateChildTransforms(child.name);
+        }
+    }
+    AddNode(sceneName, objectName, parentNode = "") {
+        let sn = this.GetNode(sceneName, objectName);
+        if (!sn) {
+            sn = new ScenegraphNode(objectName, sceneName);
+            this._nodes.push(sn);
+        }
+        return sn;
+    }
+    RemoveNode(sceneName, objectName) {
+        let i = 0;
+        for (let node of this._nodes) {
+            if (sceneName.length > 0 && node.sceneName != sceneName) {
+                continue;
+            }
+            if (node.name.length > 0 && node.name == objectName) {
+                this._nodes.splice(i, 1);
+                return true;
+            }
+            i++;
+        }
+        return false;
+    }
+    GetMesh(meshName) {
+        let mesh = this._meshes.get(meshName);
+        if (!mesh) {
+            mesh = new IndexedGeometryMesh(this.fx);
+            this._meshes.set(meshName, mesh);
+        }
+        return mesh;
+    }
+    SetGlobalParameters(rc) {
+        if (rc) {
+            rc.use();
+            rc.uniform1f("uWindowWidth", this.width);
+            rc.uniform1f("uWindowHeight", this.height);
+            rc.uniform1f("uWindowCenterX", this.width * 0.5);
+            rc.uniform1f("uWindowCenterY", this.height * 0.5);
+            rc.uniform3f("SunDirTo", this.sunlight.direction);
+            rc.uniform3f("SunE0", this.sunlight.E0);
+            this.camera.aspectRatio = this.aspectRatio;
+            rc.uniformMatrix4f("ProjectionMatrix", this.camera.projection);
+            rc.uniformMatrix4f("CameraMatrix", this.camera.transform);
+            rc.uniform3f("CameraPosition", this.camera.eye);
+            this.useTexture("enviroCube", 10);
+            rc.uniform1i("EnviroCube", 10);
+            rc.uniform1i("UsingGBuffer", 0);
+            if (!rc.usesFBO) {
+                if (this.shadowFBO.complete) {
+                    this.shadowFBO.bindTextures(11, 12);
+                    if (this.shadowFBO.color)
+                        rc.uniform1i("SunShadowColorMap", 11);
+                    if (this.shadowFBO.depth)
+                        rc.uniform1i("SunShadowDepthMap", 12);
+                    rc.uniformMatrix4f("SunShadowBiasMatrix", Matrix4.makeShadowBias());
+                    rc.uniformMatrix4f("SunShadowProjectionMatrix", this.sunlight.projectionMatrix);
+                    rc.uniformMatrix4f("SunShadowViewMatrix", this.sunlight.lightMatrix);
+                    rc.uniform2f("iResolutionSunShadow", this.shadowFBO.dimensions);
+                    rc.uniform1i("UsingSunShadow", 1);
+                }
+                if (this.gbufferFBO.complete) {
+                    this.gbufferFBO.bindTextures(13, 14);
+                    if (this.gbufferFBO.color)
+                        rc.uniform1i("GBufferColor0", 13);
+                    if (this.gbufferFBO.depth)
+                        rc.uniform1i("GBufferDepth", 14);
+                    rc.uniform2f("iResolutionGBuffer", this.gbufferFBO.dimensions);
+                    rc.uniform1i("UsingGBuffer", 1);
+                }
+                if (this.imageFBO.complete) {
+                    this.imageFBO.bindTextures(15, 16);
+                    if (this.imageFBO.color)
+                        rc.uniform1i("ImageColor0", 15);
+                    if (this.imageFBO.depth)
+                        rc.uniform1i("ImageDepth", 16);
+                    rc.uniform2f("iResolutionImage", this.imageFBO.dimensions);
+                    rc.uniform1i("UsingImage", 1);
+                }
+            }
+            else {
+                if (this.shadowFBO.color)
+                    rc.uniform1i("SunShadowColorMap", 0);
+                if (this.shadowFBO.depth)
+                    rc.uniform1i("SunShadowDepthMap", 0);
+                if (this.gbufferFBO.color)
+                    rc.uniform1i("GBufferColor0", 0);
+                if (this.gbufferFBO.depth)
+                    rc.uniform1i("GBufferDepth", 0);
+                if (this.imageFBO.color)
+                    rc.uniform1i("ImageColor0", 0);
+                if (this.imageFBO.depth)
+                    rc.uniform1i("ImageDepth", 0);
+                rc.uniform1i("UsingSunShadow", 0);
+                rc.uniform1i("UsingGBuffer", 0);
+                rc.uniform1i("UsingImage", 0);
+            }
+        }
+        let gl = this.fx.gl;
+        gl.viewport(0, 0, this.width, this.height);
+    }
+    Restore() {
+        let gl = this.fx.gl;
+        for (let i = 0; i < 10; i++) {
+            gl.activeTexture(i + gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+        }
+        this.useTexture("enviroCube", 10, false);
+        if (this.shadowFBO.complete) {
+            this.shadowFBO.unbindTextures();
+        }
+        if (this.gbufferFBO.complete) {
+            this.gbufferFBO.unbindTextures();
+        }
+    }
+    Update() {
+        this._fbo.forEach((fbo) => {
+            if (fbo.width != this.width || fbo.height != this.height) {
+                fbo.autoResize(this.width, this.height);
+            }
+        });
+        this._defaultFBO.autoResize(this.width, this.height);
+    }
+    RenderScene(shaderName, sceneName = "") {
+        let rc = this.UseRenderConfig(shaderName);
+        if (!rc || !rc.usable) {
+            return;
+        }
+        for (let node of this._nodes) {
+            if (sceneName.length > 0 && node.sceneName != sceneName) {
+                continue;
+            }
+            rc.uniformMatrix4f("WorldMatrix", node.worldMatrix);
+            let mesh = this._meshes.get(node.geometryGroup);
+            if (mesh) {
+                if (rc.renderEdges) {
+                    mesh.renderEdges(rc);
+                }
+                else {
+                    mesh.render(rc, this);
+                }
+            }
+        }
+        rc.restore();
+    }
+    RenderDeferred(shaderName) {
+        let rc = this.UseRenderConfig(shaderName);
+        if (!rc || !rc.usable) {
+            return;
+        }
+        let gl = this.fx.gl;
+        gl.disable(gl.DEPTH_TEST);
+        rc.uniformMatrix4f("ProjectionMatrix", Matrix4.makeOrtho2D(-1.0, 1.0, -1.0, 1.0));
+        rc.uniformMatrix4f("CameraMatrix", Matrix4.makeLookAt(Vector3.make(0.0, 0.0, 1.0), Vector3.make(0.0, 0.0, 0.0), Vector3.make(0.0, 1.0, 0.0)));
+        rc.uniformMatrix4f("WorldMatrix", Matrix4.makeTranslation(0.0, 0.0, 0.0));
+        this._deferredMesh.render(rc, this);
+        rc.restore();
+    }
+    processTextFile(data, name, path, assetType) {
+        let textParser = new TextParser(data);
+        switch (assetType) {
+            case SGAssetType.Scene:
+                this.loadScene(textParser.lines, name, path);
+                break;
+            case SGAssetType.GeometryGroup:
+                this.loadOBJ(textParser.lines, name, path);
+                break;
+            case SGAssetType.MaterialLibrary:
+                this.loadMTL(textParser.lines, name, path);
+                break;
+            case SGAssetType.Text:
+                this.textFiles.set(name, textParser.lines);
+                break;
+        }
+    }
+    processTextureMap(image, name, assetType) {
+        let gl = this.fx.gl;
+        let minFilter = gl.NEAREST;
+        let magFilter = gl.NEAREST;
+        let maxAnisotropy = 1.0;
+        let ext = this.fx.getExtension("EXT_texture_filter_anisotropic");
+        if (ext) {
+            let maxAnisotropy = gl.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+        }
+        else {
+            hflog.debug("cannot use anisotropic filtering");
+        }
+        if (image.width == 6 * image.height) {
+            let images = new Array(6);
+            Utils.SeparateCubeMapImages(image, images);
+            let texture = gl.createTexture();
+            if (texture) {
+                gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+                for (let i = 0; i < 6; i++) {
+                    if (!images[i]) {
+                        continue;
+                    }
+                    else {
+                        hflog.debug("image " + i + " w:" + images[i].width + "/h:" + images[i].height);
+                    }
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[i]);
+                }
+                gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+                let t = new Texture(this.fx, name, name, gl.TEXTURE_CUBE_MAP, texture);
+                this._textures.set(name, t);
+            }
+        }
+        else {
+            let texture = gl.createTexture();
+            if (texture) {
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                gl.generateMipmap(gl.TEXTURE_2D);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
+                if (ext) {
+                    gl.texParameterf(gl.TEXTURE_2D, ext.TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy);
+                }
+                let t = new Texture(this.fx, name, name, gl.TEXTURE_2D, texture);
+                this._textures.set(name, t);
+            }
+        }
+    }
+    loadScene(lines, name, path) {
+        for (let tokens of lines) {
+            if (tokens[0] == "enviroCube") {
+                this._sceneResources.set("enviroCube", Utils.GetURLResource(tokens[1]));
+                this.Load(path + tokens[1]);
+            }
+            else if (tokens[0] == "transform") {
+                this._tempNode.transform.LoadMatrix(TextParser.ParseMatrix(tokens));
+            }
+            else if (tokens[0] == "loadIdentity") {
+                this._tempNode.transform.LoadIdentity();
+            }
+            else if (tokens[0] == "translate") {
+                let t = TextParser.ParseVector(tokens);
+                this._tempNode.transform.Translate(t.x, t.y, t.z);
+            }
+            else if (tokens[0] == "rotate") {
+                let values = TextParser.ParseVector4(tokens);
+                this._tempNode.transform.Rotate(values.x, values.y, values.z, values.w);
+            }
+            else if (tokens[0] == "scale") {
+                let values = TextParser.ParseVector4(tokens);
+                this._tempNode.transform.Scale(values.x, values.y, values.z);
+            }
+            else if (tokens[0] == "geometryGroup") {
+                let parentName = "";
+                let filename = (tokens.length >= 2) ? tokens[tokens.length - 1] : "nothing.obj";
+                let nodeName = (tokens.length >= 3) ? tokens[1] : filename;
+                if (tokens.length >= 4) {
+                    parentName = tokens[2];
+                }
+                this._tempNode.sceneName = name;
+                this._tempNode.parent = parentName;
+                this._tempNode.name = nodeName;
+                this._tempNode.geometryGroup = filename;
+                if (!this.wasRequested(filename)) {
+                    hflog.log("loading geometry group [parent = " + parentName + "]" + path + filename);
+                    this.Load(path + filename);
+                }
+                this._nodes.push(this._tempNode);
+                this._tempNode = new ScenegraphNode();
+            }
+            else if (tokens[0] == "node") {
+                let nodeName = (tokens.length >= 2) ? tokens[1] : "";
+                let parentName = (tokens.length >= 3) ? tokens[2] : "";
+                this._tempNode.name = nodeName;
+                this._tempNode.parent = parentName;
+                this._tempNode.sceneName = name;
+                this._tempNode.geometryGroup = "";
+                this._nodes.push(this._tempNode);
+                this._tempNode = new ScenegraphNode();
+            }
+            else if (tokens[0] == "renderconfig") {
+                let name = tokens[1];
+                let vertShaderUrl = tokens[2];
+                let fragShaderUrl = tokens[3];
+                this.AddRenderConfig(name, vertShaderUrl, fragShaderUrl);
+            }
+        }
+        this._scenegraphs.set(name, true);
+    }
+    loadOBJ(lines, name, path) {
+        let gl = this.fx.gl;
+        let positions = [];
+        let normals = [];
+        let colors = [];
+        let texcoords = [];
+        let mesh = new IndexedGeometryMesh(this.fx);
+        mesh.begin(gl.TRIANGLES);
+        for (let tokens of lines) {
+            if (tokens.length >= 3) {
+                if (tokens[0] == "v") {
+                    let position = TextParser.ParseVector(tokens);
+                    positions.push(position);
+                    mesh.edgeMesh.addVertex(position);
+                }
+                else if (tokens[0] == "vn") {
+                    normals.push(TextParser.ParseVector(tokens));
+                }
+                else if (tokens[0] == "vt") {
+                    texcoords.push(TextParser.ParseVector(tokens));
+                }
+                else if (tokens[0] == "f") {
+                    let indices = TextParser.ParseFace(tokens);
+                    let edgeIndices = [];
+                    for (let i = 0; i < 3; i++) {
+                        try {
+                            if (indices[i * 3 + 2] >= 0)
+                                mesh.normal3(normals[indices[i * 3 + 2]]);
+                            if (indices[i * 3 + 1] >= 0)
+                                mesh.texcoord3(texcoords[indices[i * 3 + 1]]);
+                            mesh.vertex3(positions[indices[i * 3 + 0]]);
+                            mesh.addIndex(-1);
+                            edgeIndices.push(indices[i * 3]);
+                        }
+                        catch (s) {
+                            hflog.debug(s);
+                        }
+                        mesh.edgeMesh.addFace(edgeIndices);
+                    }
+                }
+            }
+            else if (tokens.length >= 2) {
+                if (tokens[0] == "mtllib") {
+                    this.Load(path + tokens[1]);
+                    mesh.mtllib(TextParser.ParseIdentifier(tokens));
+                    mesh.begin(gl.TRIANGLES);
+                }
+                else if (tokens[0] == "usemtl") {
+                    mesh.usemtl(TextParser.ParseIdentifier(tokens));
+                    mesh.begin(gl.TRIANGLES);
+                }
+                else if (tokens[0] == "o") {
+                    mesh.begin(gl.TRIANGLES);
+                }
+                else if (tokens[0] == "g") {
+                    mesh.begin(gl.TRIANGLES);
+                }
+                else if (tokens[0] == "s") {
+                    mesh.begin(gl.TRIANGLES);
+                }
+            }
+        }
+        mesh.build();
+        this._meshes.set(name, mesh);
+    }
+    loadMTL(lines, name, path) {
+        let mtl = "";
+        let mtllib = TextParser.MakeIdentifier(name);
+        let curmtl;
+        for (let tokens of lines) {
+            if (tokens.length >= 2) {
+                if (tokens[0] == "newmtl") {
+                    mtl = TextParser.MakeIdentifier(tokens[1]);
+                    curmtl = new Material(mtl);
+                    this._materials.set(mtllib + mtl, curmtl);
+                }
+                else if (tokens[0] == "map_Kd") {
+                    if (curmtl) {
+                        curmtl.map_Kd = Utils.GetURLResource(tokens[1]);
+                        curmtl.map_Kd_mix = 1.0;
+                    }
+                    this.Load(path + tokens[1]);
+                }
+                else if (tokens[0] == "map_Ks") {
+                    if (curmtl) {
+                        curmtl.map_Ks = Utils.GetURLResource(tokens[1]);
+                        curmtl.map_Ks_mix = 1.0;
+                    }
+                    this.Load(path + tokens[1]);
+                }
+                else if (tokens[0] == "map_normal") {
+                    if (curmtl) {
+                        curmtl.map_normal = Utils.GetURLResource(tokens[1]);
+                        curmtl.map_normal_mix = 1.0;
+                    }
+                    this.Load(path + tokens[1]);
+                }
+                else if (tokens[0] == "Kd") {
+                    if (curmtl) {
+                        curmtl.Kd = TextParser.ParseVector(tokens);
+                    }
+                }
+                else if (tokens[0] == "Ks") {
+                    if (curmtl) {
+                        curmtl.Ks = TextParser.ParseVector(tokens);
+                    }
+                }
+                else if (tokens[0] == "Ka") {
+                    if (curmtl) {
+                        curmtl.Ka = TextParser.ParseVector(tokens);
+                    }
+                }
+                else if (tokens[0] == "PBn2") {
+                    if (curmtl) {
+                        curmtl.PBn2 = parseFloat(tokens[1]);
+                    }
+                }
+                else if (tokens[0] == "PBk2") {
+                    if (curmtl) {
+                        curmtl.PBk2 = parseFloat(tokens[1]);
+                    }
+                }
+                else if (tokens[0] == "map_Kd_mix") {
+                    if (curmtl) {
+                        curmtl.map_Kd_mix = parseFloat(tokens[1]);
+                    }
+                }
+                else if (tokens[0] == "map_Ks_mix") {
+                    if (curmtl) {
+                        curmtl.map_Ks_mix = parseFloat(tokens[1]);
+                    }
+                }
+                else if (tokens[0] == "map_normal_mix") {
+                    if (curmtl) {
+                        curmtl.map_normal_mix = parseFloat(tokens[1]);
+                    }
+                }
+            }
+        }
+    }
+    getFBO(name) {
+        let fbo = this._fbo.get(name);
+        if (!fbo)
+            return this._defaultFBO;
+        return fbo;
+    }
+}
+class MemorySystem {
+    constructor(xor) {
+        this.xor = xor;
+        this.mem = new Int32Array(65536);
+    }
+    init() {
+        for (let i = 0; i < 65536; i++) {
+            this.mem[i] = 0;
+        }
+    }
+    PEEK(location) {
+        if (location < 0 || location > 65536) {
+            return 0;
+        }
+        return this.mem[location];
+    }
+    POKE(location, value) {
+        if (location < 0 || location > 65535) {
+            return;
+        }
+        this.mem[location] = value | 0;
+    }
+}
+class GraphicsSprite {
+    constructor() {
+        this.position = GTE.vec3(0, 0, 0);
+        this.pivot = GTE.vec3(0, 0, 0);
+        this.palette = 0;
+        this.index = 0;
+        this.plane = 0;
+        this.enabled = true;
+        this.alpha = 1.0;
+        this.fliph = false;
+        this.flipv = false;
+        this.rotate90 = 0;
+        this.matrix = Matrix4.makeIdentity();
+    }
+    readFromMemory(mem, offset) {
+        this.position.x = mem.PEEK(offset + 0);
+        this.position.y = mem.PEEK(offset + 1);
+        this.pivot.x = mem.PEEK(offset + 2);
+        this.pivot.y = mem.PEEK(offset + 3);
+        this.palette = mem.PEEK(offset + 4);
+        this.index = mem.PEEK(offset + 5);
+        this.plane = mem.PEEK(offset + 6);
+        this.enabled = mem.PEEK(offset + 7) > 0.0 ? true : false;
+        this.alpha = mem.PEEK(offset + 8);
+        let rvh = mem.PEEK(offset + 9);
+        this.fliph = (rvh & 1) ? true : false;
+        this.flipv = (rvh & 2) ? true : false;
+        this.rotate90 = (rvh >> 2) & 3;
+        let M11 = mem.PEEK(offset + 10);
+        let M12 = mem.PEEK(offset + 11);
+        let M13 = mem.PEEK(offset + 12);
+        let M21 = mem.PEEK(offset + 13);
+        let M22 = mem.PEEK(offset + 14);
+        let M23 = mem.PEEK(offset + 15);
+        this.matrix.LoadRowMajor(M11, M12, 0, M13, M21, M22, 0, M23, 0, 0, 1, 0, 0, 0, 0, 1);
+    }
+}
+class GraphicsTileLayer {
+    constructor() {
+        this.tiles = [];
+        this.layer = 0;
+    }
+    readFromMemory(mem, offset) {
+    }
+}
 function randomUint8() {
     return (Math.random() * 255.99) | 0;
 }
@@ -1092,6 +3496,8 @@ class GraphicsSystem {
         this.uCameraMatrix = null;
         this.uWorldMatrix = null;
     }
+    get width() { return this.canvas ? this.canvas.width : 0; }
+    get height() { return this.canvas ? this.canvas.height : 0; }
     init() {
         this.sprites = [];
         for (let i = 0; i < this.MaxSprites; i++) {
@@ -1114,6 +3520,16 @@ class GraphicsSystem {
         this.gl = canvas.getContext("webgl");
         this.canvas = canvas;
         p.appendChild(canvas);
+        if (this.gl) {
+            this.xor.fluxions = new FxRenderingContext(this.xor);
+        }
+    }
+    clear(r, g, b, a) {
+        if (!this.gl)
+            return;
+        let gl = this.gl;
+        gl.clearColor(r, g, b, a);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     }
     readFromMemory() {
         let mem = this.xor.memory;
@@ -1497,114 +3913,6 @@ class InputSystem {
         e.preventDefault();
     }
 }
-class LibXOR {
-    constructor(parentId) {
-        this.parentId = parentId;
-        this.memory = new MemorySystem(this);
-        this.graphics = new GraphicsSystem(this);
-        this.sound = new SoundSystem(this);
-        this.input = new InputSystem(this);
-        this.palette = new PaletteSystem(this);
-        this.t1 = 0.0;
-        this.t0 = 0.0;
-        this.dt = 0.0;
-        this.oninit = () => { };
-        this.onupdate = (dt) => { };
-        this.frameCount = 0;
-        let n = document.getElementById(parentId);
-        if (!n)
-            throw "Unable to initialize LibXOR due to bad parentId '" + parentId.toString() + "'";
-        this.parentElement = n;
-    }
-    start() {
-        this.memory.init();
-        this.graphics.init();
-        this.sound.init();
-        this.input.init();
-        this.oninit();
-        this.mainloop();
-    }
-    mainloop() {
-        let self = this;
-        window.requestAnimationFrame((t) => {
-            self.t0 = this.t1;
-            self.t1 = t / 1000.0;
-            self.dt = this.t1 - this.t0;
-            self.onupdate(this.dt);
-            self.graphics.readFromMemory();
-            self.graphics.render();
-            self.mainloop();
-        });
-    }
-}
-class MemorySystem {
-    constructor(xor) {
-        this.xor = xor;
-        this.mem = new Int32Array(65536);
-    }
-    init() {
-        for (let i = 0; i < 65536; i++) {
-            this.mem[i] = 0;
-        }
-    }
-    PEEK(location) {
-        if (location < 0 || location > 65536) {
-            return 0;
-        }
-        return this.mem[location];
-    }
-    POKE(location, value) {
-        if (location < 0 || location > 65535) {
-            return;
-        }
-        this.mem[location] = value | 0;
-    }
-}
-class GraphicsSprite {
-    constructor() {
-        this.position = GTE.vec3(0, 0, 0);
-        this.pivot = GTE.vec3(0, 0, 0);
-        this.palette = 0;
-        this.index = 0;
-        this.plane = 0;
-        this.enabled = true;
-        this.alpha = 1.0;
-        this.fliph = false;
-        this.flipv = false;
-        this.rotate90 = 0;
-        this.matrix = Matrix4.makeIdentity();
-    }
-    readFromMemory(mem, offset) {
-        this.position.x = mem.PEEK(offset + 0);
-        this.position.y = mem.PEEK(offset + 1);
-        this.pivot.x = mem.PEEK(offset + 2);
-        this.pivot.y = mem.PEEK(offset + 3);
-        this.palette = mem.PEEK(offset + 4);
-        this.index = mem.PEEK(offset + 5);
-        this.plane = mem.PEEK(offset + 6);
-        this.enabled = mem.PEEK(offset + 7) > 0.0 ? true : false;
-        this.alpha = mem.PEEK(offset + 8);
-        let rvh = mem.PEEK(offset + 9);
-        this.fliph = (rvh & 1) ? true : false;
-        this.flipv = (rvh & 2) ? true : false;
-        this.rotate90 = (rvh >> 2) & 3;
-        let M11 = mem.PEEK(offset + 10);
-        let M12 = mem.PEEK(offset + 11);
-        let M13 = mem.PEEK(offset + 12);
-        let M21 = mem.PEEK(offset + 13);
-        let M22 = mem.PEEK(offset + 14);
-        let M23 = mem.PEEK(offset + 15);
-        this.matrix.LoadRowMajor(M11, M12, 0, M13, M21, M22, 0, M23, 0, 0, 1, 0, 0, 0, 0, 1);
-    }
-}
-class GraphicsTileLayer {
-    constructor() {
-        this.tiles = [];
-        this.layer = 0;
-    }
-    readFromMemory(mem, offset) {
-    }
-}
 class PaletteSystem {
     constructor(xor) {
         this.xor = xor;
@@ -1744,6 +4052,108 @@ class PaletteSystem {
                 h -= 1.0;
         }
         return GTE.vec3(h, s, l);
+    }
+}
+class RenderConfigSystem {
+    constructor(xor) {
+        this.xor = xor;
+        this.renderconfigs = new Map();
+    }
+    create(name) {
+        if (!this.xor.fluxions)
+            throw "Fluxions is not initialized";
+        let rc = new RenderConfig(this.xor.fluxions);
+        this.renderconfigs.set(name, rc);
+        return rc;
+    }
+    use(name) {
+        if (!this.xor.fluxions)
+            throw "Fluxions is not initialized";
+        if (!name) {
+            this.xor.fluxions.gl.useProgram(null);
+        }
+        else if (this.renderconfigs.has(name)) {
+            let rc = this.renderconfigs.get(name);
+            if (rc) {
+                rc.use();
+                return rc;
+            }
+        }
+        return null;
+    }
+}
+class MeshSystem {
+    constructor(xor) {
+        this.xor = xor;
+        this.meshes = new Map();
+    }
+    create(name) {
+        if (!this.xor.fluxions)
+            throw "Fluxions is not initialized";
+        let mesh = new IndexedGeometryMesh(this.xor.fluxions);
+        this.meshes.set(name, mesh);
+        return mesh;
+    }
+    render(name, rc, sg) {
+        if (!this.xor.fluxions)
+            throw "Fluxions is not initialized";
+        if (!name) {
+            return null;
+        }
+        else if (this.meshes.has(name)) {
+            let mesh = this.meshes.get(name);
+            if (mesh) {
+                mesh.render(rc, sg);
+                return mesh;
+            }
+        }
+        return null;
+    }
+}
+class LibXOR {
+    constructor(parentId) {
+        this.parentId = parentId;
+        this.memory = new MemorySystem(this);
+        this.graphics = new GraphicsSystem(this);
+        this.sound = new SoundSystem(this);
+        this.input = new InputSystem(this);
+        this.palette = new PaletteSystem(this);
+        this.fluxions = null;
+        this.renderconfigs = new RenderConfigSystem(this);
+        this.meshes = new MeshSystem(this);
+        this.t1 = 0.0;
+        this.t0 = 0.0;
+        this.dt = 0.0;
+        this.oninit = () => { };
+        this.onupdate = (dt) => { };
+        this.frameCount = 0;
+        let n = document.getElementById(parentId);
+        if (!n)
+            throw "Unable to initialize LibXOR due to bad parentId '" + parentId.toString() + "'";
+        this.parentElement = n;
+    }
+    start() {
+        this.memory.init();
+        this.graphics.init();
+        this.sound.init();
+        this.input.init();
+        this.oninit();
+        this.mainloop();
+    }
+    startFrame(t) {
+        this.t0 = this.t1;
+        this.t1 = t / 1000.0;
+        this.dt = this.t1 - this.t0;
+    }
+    mainloop() {
+        let self = this;
+        window.requestAnimationFrame((t) => {
+            self.startFrame(t);
+            self.onupdate(this.dt);
+            self.graphics.readFromMemory();
+            self.graphics.render();
+            self.mainloop();
+        });
     }
 }
 //# sourceMappingURL=LibXOR.js.map

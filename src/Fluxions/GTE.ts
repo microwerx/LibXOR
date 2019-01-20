@@ -22,6 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
+/// <reference path="./Vector2.ts" />
 /// <reference path="./Vector3.ts" />
 /// <reference path="./Vector4.ts" />
 /// <reference path="./Matrix3.ts" />
@@ -69,6 +70,14 @@ namespace GTE {
         let t = (x - center) / sigma;
         return 1 / (sigma * Math.sqrt(2 * Math.PI)) * Math.exp(-0.5 * t * t);
         //return 1 / (Math.sqrt(2.0 * sigma * sigma * Math.PI)) * Math.exp(-Math.pow(x - center, 2) / (2 * sigma * sigma));
+    }
+
+    export function degrees(x: number): number {
+        return 180.0 / Math.PI * x;
+    }
+
+    export function radians(x: number): number {
+        return Math.PI / 180.0 * x;
     }
 
     export function min3(a: number, b: number, c: number): number {
