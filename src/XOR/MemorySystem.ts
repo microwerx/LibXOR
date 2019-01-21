@@ -3,6 +3,9 @@
 class MemorySystem {
     private mem: Int32Array = new Int32Array(65536);
 
+    readonly PALETTESTART = 0x1000;
+    readonly PALETTECOUNT = 16 * 16;
+
     constructor(private xor: LibXOR) {
 
     }

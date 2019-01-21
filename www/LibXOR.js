@@ -3447,6 +3447,8 @@ class MemorySystem {
     constructor(xor) {
         this.xor = xor;
         this.mem = new Int32Array(65536);
+        this.PALETTESTART = 0x1000;
+        this.PALETTECOUNT = 16 * 16;
     }
     init() {
         for (let i = 0; i < 65536; i++) {
@@ -3991,6 +3993,22 @@ class InputSystem {
 class PaletteSystem {
     constructor(xor) {
         this.xor = xor;
+        this.BLACK = GTE.vec3(0.000, 0.000, 0.000);
+        this.GRAY33 = GTE.vec3(0.333, 0.333, 0.333);
+        this.GRAY67 = GTE.vec3(0.667, 0.667, 0.667);
+        this.WHITE = GTE.vec3(1.000, 1.000, 1.000);
+        this.RED = GTE.vec3(1.000, 0.000, 0.000);
+        this.ORANGE = GTE.vec3(0.894, 0.447, 0.000);
+        this.YELLOW = GTE.vec3(0.894, 0.894, 0.000);
+        this.GREEN = GTE.vec3(0.000, 1.000, 0.000);
+        this.CYAN = GTE.vec3(0.000, 0.707, 0.707);
+        this.AZURE = GTE.vec3(0.000, 0.447, 0.894);
+        this.BLUE = GTE.vec3(0.000, 0.000, 1.000);
+        this.VIOLET = GTE.vec3(0.447, 0.000, 0.894);
+        this.ROSE = GTE.vec3(0.894, 0.000, 0.447);
+        this.BROWN = GTE.vec3(0.500, 0.250, 0.000);
+        this.GOLD = GTE.vec3(0.830, 0.670, 0.220);
+        this.FORESTGREEN = GTE.vec3(0.250, 0.500, 0.250);
     }
     getColor(index) {
         if (index == 0)
@@ -4045,6 +4063,16 @@ class PaletteSystem {
         let negative = (bits >> 15) & 0x1;
         return this.calcColor(color1, color2, colormix, color1hue, color2hue, negative);
     }
+    calcBits(color1, color2, colormix, color1hue, color2hue, negative) {
+        let bits = 0;
+        bits |= (color1 & 0xF);
+        bits |= (color2 & 0xF) << 4;
+        bits |= (colormix & 0x7) << 8;
+        bits |= (color1hue & 0x3) << 11;
+        bits |= (color2hue & 0x3) << 14;
+        bits |= (negative & 0x1) << 15;
+        return bits;
+    }
     mixColors(color1, color2, mix) {
         let t = GTE.clamp(1.0 - mix / 7.0, 0.0, 1.0);
         return GTE.vec3(GTE.lerp(color1.x, color2.x, t), GTE.lerp(color1.y, color2.y, t), GTE.lerp(color1.z, color2.z, t));
@@ -4075,6 +4103,28 @@ class PaletteSystem {
         if (b.length % 2)
             b = '0' + b;
         return '#' + r + g + b;
+    }
+    setpalette(paletteIndex, colorIndex, color1, color2, colormix, color1hue, color2hue, negative) {
+        let bits = this.calcBits(color1, color2, colormix, color1hue, color2hue, negative);
+        this.setpalettebits(paletteIndex, colorIndex, bits);
+    }
+    setpalettebits(paletteIndex, colorIndex, bits) {
+        if (!isFinite(paletteIndex) || paletteIndex < 0 || paletteIndex > 15)
+            return;
+        if (!isFinite(colorIndex) || colorIndex < 0 || colorIndex > 15)
+            return;
+        this.xor.memory.POKE(this.xor.memory.PALETTESTART + paletteIndex * 16 + colorIndex, bits);
+    }
+    getpalette(paletteIndex, colorIndex) {
+        let bits = this.getpalettebits(paletteIndex, colorIndex);
+        return this.calcColorBits(bits);
+    }
+    getpalettebits(paletteIndex, colorIndex) {
+        if (!isFinite(paletteIndex) || paletteIndex < 0 || paletteIndex > 15)
+            return 0;
+        if (!isFinite(colorIndex) || colorIndex < 0 || colorIndex > 15)
+            return 0;
+        return this.xor.memory.PEEK(this.xor.memory.PALETTESTART + paletteIndex * 16 + colorIndex);
     }
     static hue2rgb(f1, f2, hue) {
         if (hue < 0.0)

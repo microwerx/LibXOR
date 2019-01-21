@@ -1,8 +1,30 @@
 /// <reference path="LibXOR.ts" />
 
 class PaletteSystem {
+    readonly BLACK = GTE.vec3(0.000, 0.000, 0.000);
+    readonly GRAY33 = GTE.vec3(0.333, 0.333, 0.333);
+    readonly GRAY67 = GTE.vec3(0.667, 0.667, 0.667);
+    readonly WHITE = GTE.vec3(1.000, 1.000, 1.000);
+    readonly RED = GTE.vec3(1.000, 0.000, 0.000);
+    readonly ORANGE = GTE.vec3(0.894, 0.447, 0.000);
+    readonly YELLOW = GTE.vec3(0.894, 0.894, 0.000);
+    readonly GREEN = GTE.vec3(0.000, 1.000, 0.000);
+    readonly CYAN = GTE.vec3(0.000, 0.707, 0.707);
+    readonly AZURE = GTE.vec3(0.000, 0.447, 0.894);
+    readonly BLUE = GTE.vec3(0.000, 0.000, 1.000);
+    readonly VIOLET = GTE.vec3(0.447, 0.000, 0.894);
+    readonly ROSE = GTE.vec3(0.894, 0.000, 0.447);
+    readonly BROWN = GTE.vec3(0.500, 0.250, 0.000);
+    readonly GOLD = GTE.vec3(0.830, 0.670, 0.220);
+    readonly FORESTGREEN = GTE.vec3(0.250, 0.500, 0.250);
+
     constructor(public xor: LibXOR) { }
 
+    /**
+     * 
+     * @param index (0 = BLACK, 1 = GRAY33, 2 = GRAY67, 3 = WHITE, 4 = RED, 5 = ORANGE, 6 = YELLOW, 7 = GREEN, 8 = CYAN, 9 = AZURE, 10 = BLUE, 11 = VIOLET, 12 = ROSE, 13 = BROWN, 14 = GOLD, 15 = FORESTGREEN)
+     * @returns Vector3 color with RGB values 0 to 1
+     */
     getColor(index: number): Vector3 {
         if (index == 0) return GTE.vec3(0.000, 0.000, 0.000); //Black
         if (index == 1) return GTE.vec3(0.333, 0.333, 0.333); //Gray33
@@ -25,12 +47,13 @@ class PaletteSystem {
 
     /**
      * calcColor(color1, color2, colormix, color1hue, color2hue, negative)
-     * @param color1 
-     * @param color2 
-     * @param colormix 
-     * @param color1hue 
-     * @param color2hue 
-     * @param negative 
+     * @param color1 0 to 15
+     * @param color2 0 to 15
+     * @param colormix 0 to 7
+     * @param color1hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
+     * @param color2hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
+     * @param negative 0 = none, 1 = 1 - RGB
+     * @returns Vector3 color with RGB values 0 to 1
      */
     calcColor(color1: number, color2: number, colormix: number, color1hue: number, color2hue: number, negative: number): Vector3 {
         let c1 = this.getColor(color1);
@@ -45,6 +68,7 @@ class PaletteSystem {
     /**
      * calcColorBits(bits)
      * @param bits 16 bit number (0-3: color1, 4-7: color2, 8-10: mix, 9-11: color1 hue shift, 12-14: color2 hue shift, 15: negative)
+     * @returns Vector3 color with RGB values 0 to 1
      */
     calcColorBits(bits: number): Vector3 {
         let color1 = (bits | 0) & 0xF;
@@ -57,6 +81,34 @@ class PaletteSystem {
         return this.calcColor(color1, color2, colormix, color1hue, color2hue, negative);
     }
 
+    /**
+     * calcBits(color1, color2, colormix, color1hue, color2hue, negative)
+     * @param color1 0 to 15
+     * @param color2 0 to 15
+     * @param colormix 0 to 7
+     * @param color1hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
+     * @param color2hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
+     * @param negative 0 = none, 1 = 1 - RGB
+     * @returns number representing 16-bit XOR color model
+     */
+    calcBits(color1: number, color2: number, colormix: number, color1hue: number, color2hue: number, negative: number): number {
+        let bits = 0;
+        bits |= (color1 & 0xF);
+        bits |= (color2 & 0xF) << 4;
+        bits |= (colormix & 0x7) << 8;
+        bits |= (color1hue & 0x3) << 11;
+        bits |= (color2hue & 0x3) << 14;
+        bits |= (negative & 0x1) << 15;
+        return bits;
+    }
+
+    /**
+     * mixColors(color1, color2, mix)
+     * @param color1 RGB color with values 0 to 1
+     * @param color2 RGB color with values 0 to 1
+     * @param mix 0 to 7 representing lerp mix
+     * @returns Vector3 color with RGB values 0 to 1
+     */
     mixColors(color1: Vector3, color2: Vector3, mix: number): Vector3 {
         let t = GTE.clamp(1.0 - mix / 7.0, 0.0, 1.0);
         return GTE.vec3(
@@ -66,6 +118,12 @@ class PaletteSystem {
         );
     }
 
+    /**
+     * hueshiftcolor(color, shift)
+     * @param color RGB color with values 0 to 1
+     * @param shift 0 = no shift, 1 = 7.5 degrees, 2 = 15 degrees, 3 = 180 degrees
+     * @returns Vector3 color with RGB values 0 to 1
+     */
     hueshiftColor(color: Vector3, shift: number): Vector3 {
         let hue = 0;
         if (shift == 1) hue = 7.5 / 360;
@@ -76,6 +134,11 @@ class PaletteSystem {
         return PaletteSystem.hsl2rgb(hsl);
     }
 
+    /**
+     * negativeColor(color3)
+     * @param color RGB color with values 0 to 1
+     * @returns Vector3 representing 1 - color
+     */
     negativeColor(color: Vector3): Vector3 {
         return GTE.vec3(
             1.0 - color.x,
@@ -84,6 +147,11 @@ class PaletteSystem {
         );
     }
 
+    /**
+     * getHtmlColor(color: Vector3)
+     * @param color RGB color with values 0 to 1
+     * @returns string valid html color
+     */
     getHtmlColor(color: Vector3): string {
         let r = (GTE.clamp(color.x * 255.99, 0, 255) | 0).toString(16);
         let g = (GTE.clamp(color.y * 255.99, 0, 255) | 0).toString(16);
@@ -92,6 +160,61 @@ class PaletteSystem {
         if (g.length % 2) g = '0' + g;
         if (b.length % 2) b = '0' + b;
         return '#' + r + g + b;
+    }
+
+    /**
+     * setpalette(paletteIndex, colorIndex, color1, color2, colormix, color1hue, color2hue, negative)
+     * @param paletteIndex 0 to 15
+     * @param colorIndex 0 to 15
+     * @param color1 0 to 15
+     * @param color2 0 to 15
+     * @param colormix 0 to 7
+     * @param color1hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
+     * @param color2hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
+     * @param negative 0 = none, 1 = 1 - RGB
+     * @returns nothing
+     */
+    setpalette(paletteIndex: number, colorIndex: number,
+        color1: number, color2: number, colormix: number, color1hue: number, color2hue: number, negative: number) {
+        let bits = this.calcBits(color1, color2, colormix, color1hue, color2hue, negative);
+        this.setpalettebits(paletteIndex, colorIndex, bits);
+    }
+
+    /**
+     * setpalettebits(paletteIndex, colorIndex, bits)
+     * @param paletteIndex 0 to 15
+     * @param colorIndex 0 to 15
+     * @param bits 16 bit number (0-3: color1, 4-7: color2, 8-10: mix, 9-11: color1 hue shift, 12-14: color2 hue shift, 15: negative)
+     * @returns nothing
+     */
+    setpalettebits(paletteIndex: number, colorIndex: number, bits: number) {
+        if (!isFinite(paletteIndex) || paletteIndex < 0 || paletteIndex > 15) return;
+        if (!isFinite(colorIndex) || colorIndex < 0 || colorIndex > 15) return;
+
+        this.xor.memory.POKE(this.xor.memory.PALETTESTART + paletteIndex * 16 + colorIndex, bits);
+    }
+
+    /**
+     * getpalette(paletteIndex, colorIndex)
+     * @param paletteIndex 0 - 15
+     * @param colorIndex 0 - 15
+     * @returns Vector3 color with RGB values 0 to 1
+     */
+    getpalette(paletteIndex: number, colorIndex: number): Vector3 {
+        let bits = this.getpalettebits(paletteIndex, colorIndex);
+        return this.calcColorBits(bits);        
+    }
+
+    /**
+     * getpalettebits(paletteIndex, colorIndex)
+     * @param paletteIndex 0 - 15
+     * @param colorIndex 0 - 15
+     * @returns integer representing 16-bit LibXOR color model
+     */
+    getpalettebits(paletteIndex: number, colorIndex: number): number {
+        if (!isFinite(paletteIndex) || paletteIndex < 0 || paletteIndex > 15) return 0;
+        if (!isFinite(colorIndex) || colorIndex < 0 || colorIndex > 15) return 0;
+        return this.xor.memory.PEEK(this.xor.memory.PALETTESTART + paletteIndex * 16 + colorIndex);
     }
 
     private static hue2rgb(f1: number, f2: number, hue: number): number {
