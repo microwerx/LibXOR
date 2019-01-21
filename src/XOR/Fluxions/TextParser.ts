@@ -101,6 +101,11 @@ class TextParser {
         let v2: Array<number> = TextParser.ParseFaceIndices(tokens[2]);
         let v3: Array<number> = TextParser.ParseFaceIndices(tokens[3]);
 
+        if (tokens.length >= 5) {
+            let v4: Array<number> = TextParser.ParseFaceIndices(tokens[4]);
+            return [...v1, ...v2, ...v3, ...v4]
+        }
+
         return [...v1, ...v2, ...v3];
     }
 }

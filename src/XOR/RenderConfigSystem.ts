@@ -14,6 +14,17 @@ class RenderConfigSystem {
         return rc;
     }
 
+    load(name: string, vshaderUrl: string, fshaderUrl: string): RenderConfig {
+        if (!this.xor.fluxions) throw "Fluxions is not initialized";
+        let rc = new RenderConfig(this.xor.fluxions);
+        this.renderconfigs.set(name, rc);
+        let sl = new Utils.ShaderLoader(vshaderUrl, fshaderUrl, (vsource, fsource) => {
+            rc.compile(vsource, fsource);
+            hflog.log("Loaded " + vshaderUrl + " and " + fshaderUrl);
+        });
+        return rc;
+    }
+
     use(name: string | null): RenderConfig | null {
         if (!this.xor.fluxions) throw "Fluxions is not initialized";
         if (!name) {

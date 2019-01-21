@@ -23,6 +23,40 @@ class PaletteSystem {
         return GTE.vec3(0.0, 0.0, 0.0); // Black
     }
 
+    /**
+     * calcColor(color1, color2, colormix, color1hue, color2hue, negative)
+     * @param color1 
+     * @param color2 
+     * @param colormix 
+     * @param color1hue 
+     * @param color2hue 
+     * @param negative 
+     */
+    calcColor(color1: number, color2: number, colormix: number, color1hue: number, color2hue: number, negative: number): Vector3 {
+        let c1 = this.getColor(color1);
+        let c2 = this.getColor(color2);
+        let ch1 = this.hueshiftColor(c1, color1hue);
+        let ch2 = this.hueshiftColor(c2, color2hue);
+        let cmix = this.mixColors(ch1, ch2, colormix);
+        let cneg = negative ? this.negativeColor(cmix) : cmix;
+        return cneg;
+    }
+
+    /**
+     * calcColorBits(bits)
+     * @param bits 16 bit number (0-3: color1, 4-7: color2, 8-10: mix, 9-11: color1 hue shift, 12-14: color2 hue shift, 15: negative)
+     */
+    calcColorBits(bits: number): Vector3 {
+        let color1 = (bits | 0) & 0xF;
+        let color2 = (bits >> 4) & 0xF;
+        let colormix = (bits >> 8) & 0x7;
+        let color1hue = (bits >> 11) & 0x3;
+        let color2hue = (bits >> 14) & 0x3;
+        let negative = (bits >> 15) & 0x1;
+
+        return this.calcColor(color1, color2, colormix, color1hue, color2hue, negative);
+    }
+
     mixColors(color1: Vector3, color2: Vector3, mix: number): Vector3 {
         let t = GTE.clamp(1.0 - mix / 7.0, 0.0, 1.0);
         return GTE.vec3(

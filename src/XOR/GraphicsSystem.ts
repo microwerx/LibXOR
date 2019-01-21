@@ -73,6 +73,7 @@ class GraphicsSystem {
         canvas.id = this.glcontextid;
         canvas.width = width;
         canvas.height = height;
+        canvas.style.borderRadius = "4px";
         this.gl = canvas.getContext("webgl");
         this.canvas = canvas;
         p.appendChild(canvas);
@@ -82,7 +83,12 @@ class GraphicsSystem {
         }
     }
 
-    clear(r: number, g: number, b: number, a: number) {
+    clear(index: number) {
+        let c = this.xor.palette.getColor(index);
+        this.clearRgba(c.r, c.g, c.b, 1.0);
+    }
+
+    clearRgba(r: number, g: number, b: number, a: number) {
         if (!this.gl) return;
         let gl = this.gl;
         gl.clearColor(r, g, b, a);

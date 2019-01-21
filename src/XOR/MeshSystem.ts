@@ -13,8 +13,18 @@ class MeshSystem {
         return mesh;
     }
 
-    
-    render(name: string | null, rc: RenderConfig, sg: Scenegraph): IndexedGeometryMesh | null {
+    load(name: string, url: string): IndexedGeometryMesh {
+        if (!this.xor.fluxions) throw "Fluxions is not initialized";
+        let mesh = new IndexedGeometryMesh(this.xor.fluxions);
+        this.meshes.set(name, mesh);
+        let tl = new Utils.TextFileLoader(url, (data: string, name: string, p: number) => {
+            let textParser = new TextParser(data);
+            mesh.loadOBJ(textParser.lines);
+        });
+        return mesh;
+    }
+
+    render(name: string | null, rc: RenderConfig): IndexedGeometryMesh | null {
         if (!this.xor.fluxions) throw "Fluxions is not initialized";
         if (!name) {
             return null;
@@ -22,7 +32,7 @@ class MeshSystem {
         else if (this.meshes.has(name)) {
             let mesh = this.meshes.get(name);
             if (mesh) {
-                mesh.render(rc, sg);
+                mesh.renderplain(rc);
                 return mesh;
             }
         }

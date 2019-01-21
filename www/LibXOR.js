@@ -1554,6 +1554,10 @@ class TextParser {
         let v1 = TextParser.ParseFaceIndices(tokens[1]);
         let v2 = TextParser.ParseFaceIndices(tokens[2]);
         let v3 = TextParser.ParseFaceIndices(tokens[3]);
+        if (tokens.length >= 5) {
+            let v4 = TextParser.ParseFaceIndices(tokens[4]);
+            return [...v1, ...v2, ...v3, ...v4];
+        }
         return [...v1, ...v2, ...v3];
     }
 }
@@ -2073,6 +2077,22 @@ class IndexedGeometryMesh {
     usemtl(mtl) {
         this._mtl = mtl;
     }
+    rect(x1, y1, x2, y2) {
+        this.begin(WebGLRenderingContext.TRIANGLE_FAN);
+        this.normal(0, 0, 1);
+        this.texcoord(0, 0, 0);
+        this.position(x1, y1, 0);
+        this.texcoord(0, 1, 0);
+        this.position(x1, y2, 0);
+        this.texcoord(1, 1, 0);
+        this.position(x2, y2, 0);
+        this.texcoord(1, 0, 0);
+        this.position(x2, y1, 0);
+        this.addIndex(0);
+        this.addIndex(1);
+        this.addIndex(2);
+        this.addIndex(3);
+    }
     begin(mode) {
         if (this.surfaces.length == 0) {
             this.surfaces.push(new Surface(mode, this.indices.length, this._mtllib, this._mtl));
@@ -2125,7 +2145,6 @@ class IndexedGeometryMesh {
         this.aabb.add(v);
         this._vertex.position.copy(v);
         this.vertices.push(...this._vertex.asArray());
-        this._vertex = new Vertex();
     }
     vertex(x, y, z) {
         let v = new Vector3(x, y, z);
@@ -2175,7 +2194,41 @@ class IndexedGeometryMesh {
             }
         }
         for (let s of this.surfaces) {
-            sg.UseMaterial(rc, s.mtllib, s.mtl);
+            sg.usemtl(s.mtllib, s.mtl);
+            gl.drawElements(s.mode, s.count, gl.UNSIGNED_INT, s.offset * 4);
+        }
+        for (let i = 0; i < 4; i++) {
+            if (locs[i] >= 0) {
+                gl.disableVertexAttribArray(locs[i]);
+            }
+        }
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+    }
+    renderplain(rc) {
+        if (!rc.usable) {
+            return;
+        }
+        this.build();
+        let gl = this.fx.gl;
+        if (!gl)
+            return;
+        let offsets = [0, 12, 24, 36];
+        let locs = [
+            rc.getAttribLocation("aPosition"),
+            rc.getAttribLocation("aNormal"),
+            rc.getAttribLocation("aColor"),
+            rc.getAttribLocation("aTexcoord")
+        ];
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._vbo);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._ibo);
+        for (let i = 0; i < 4; i++) {
+            if (locs[i] >= 0) {
+                gl.enableVertexAttribArray(locs[i]);
+                gl.vertexAttribPointer(locs[i], 3, gl.FLOAT, false, 48, offsets[i]);
+            }
+        }
+        for (let s of this.surfaces) {
             gl.drawElements(s.mode, s.count, gl.UNSIGNED_INT, s.offset * 4);
         }
         for (let i = 0; i < 4; i++) {
@@ -2213,6 +2266,80 @@ class IndexedGeometryMesh {
                 gl.disableVertexAttribArray(locs[i]);
             }
         }
+    }
+    loadOBJ(lines, scenegraph = null, path = null) {
+        let positions = [];
+        let normals = [];
+        let colors = [];
+        let texcoords = [];
+        this.begin(WebGLRenderingContext.TRIANGLES);
+        for (let tokens of lines) {
+            if (tokens.length >= 3) {
+                if (tokens[0] == "v") {
+                    let position = TextParser.ParseVector(tokens);
+                    positions.push(position);
+                    this.edgeMesh.addVertex(position);
+                }
+                else if (tokens[0] == "vn") {
+                    normals.push(TextParser.ParseVector(tokens));
+                }
+                else if (tokens[0] == "vt") {
+                    texcoords.push(TextParser.ParseVector(tokens));
+                }
+                else if (tokens[0] == "vc") {
+                    let color = TextParser.ParseVector(tokens);
+                    colors.push(color);
+                    this.color(color.x, color.y, color.z);
+                }
+                else if (tokens[0] == "f") {
+                    let indices = TextParser.ParseFace(tokens);
+                    let edgeIndices = [];
+                    let ncount = normals.length;
+                    let tcount = texcoords.length;
+                    let pcount = positions.length;
+                    let vcount = indices.length / 3;
+                    for (let j = 1; j < vcount - 1; j++) {
+                        for (let k = 0; k < 3; k++) {
+                            let i = (k == 0) ? 0 : j + k - 1;
+                            let n = indices[i * 3 + 2];
+                            if (n >= 0 && n < ncount)
+                                this.normal3(normals[n]);
+                            let t = indices[i * 3 + 1];
+                            if (t >= 0 && t < tcount)
+                                this.texcoord3(texcoords[t]);
+                            let p = indices[i * 3 + 0];
+                            if (p >= 0 && p < pcount)
+                                this.vertex3(positions[p]);
+                            this.addIndex(-1);
+                            edgeIndices.push(indices[i * 3]);
+                        }
+                    }
+                    this.edgeMesh.addFace(edgeIndices);
+                }
+            }
+            else if (tokens.length >= 2) {
+                if (tokens[0] == "mtllib") {
+                    if (scenegraph && path)
+                        scenegraph.load(path + tokens[1]);
+                    this.mtllib(TextParser.ParseIdentifier(tokens));
+                    this.begin(WebGLRenderingContext.TRIANGLES);
+                }
+                else if (tokens[0] == "usemtl") {
+                    this.usemtl(TextParser.ParseIdentifier(tokens));
+                    this.begin(WebGLRenderingContext.TRIANGLES);
+                }
+                else if (tokens[0] == "o") {
+                    this.begin(WebGLRenderingContext.TRIANGLES);
+                }
+                else if (tokens[0] == "g") {
+                    this.begin(WebGLRenderingContext.TRIANGLES);
+                }
+                else if (tokens[0] == "s") {
+                    this.begin(WebGLRenderingContext.TRIANGLES);
+                }
+            }
+        }
+        this.build();
     }
 }
 class FBO {
@@ -2638,6 +2765,11 @@ class Scenegraph {
         this.textFiles = new Map();
         this.camera = new Camera();
         this.sunlight = new DirectionalLight();
+        this.currentrc = null;
+        this.currentmtllib = "";
+        this.currentmtl = "";
+        this.currentobj = "";
+        this.currentscn = "";
         this._defaultRenderConfig = new RenderConfig(this.fx);
         this._defaultRenderConfig.compile(`attribute vec4 aPosition;
              void main() {
@@ -2723,7 +2855,7 @@ class Scenegraph {
         }
         return 100.0 * a / (this.textfiles.length + this.imagefiles.length + this.shaderSrcFiles.length);
     }
-    Load(url) {
+    load(url) {
         let name = Utils.GetURLResource(url);
         let self = this;
         let assetType;
@@ -2788,69 +2920,66 @@ class Scenegraph {
         }
         return true;
     }
-    AddRenderConfig(name, vertshaderUrl, fragshaderUrl) {
+    addRenderConfig(name, vertshaderUrl, fragshaderUrl) {
+        let rc = new RenderConfig(this.fx);
+        this._renderConfigs.set(name, rc);
         let self = this;
         this.shaderSrcFiles.push(new Utils.ShaderLoader(vertshaderUrl, fragshaderUrl, (vertShaderSource, fragShaderSource) => {
-            let rc = new RenderConfig(this.fx);
             rc.compile(vertShaderSource, fragShaderSource);
-            self._renderConfigs.set(name, rc);
             hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + vertshaderUrl + " and " + fragshaderUrl);
         }));
     }
-    GetRenderConfig(name) {
-        let rc = this._renderConfigs.get(name);
-        if (rc) {
-            return rc;
-        }
-        return null;
+    getRenderConfig(name) {
+        let rc = this._renderConfigs.get(name) || null;
+        return rc;
     }
-    UseRenderConfig(name) {
-        let rc = this._renderConfigs.get(name);
-        if (rc) {
-            rc.use();
-            return rc;
+    userc(name) {
+        let rc = this.getRenderConfig(name);
+        if (this.currentrc && rc !== this.currentrc) {
+            this.currentrc.restore();
         }
-        return null;
-    }
-    GetMaterial(mtllib, mtl) {
-        for (let ml of this._materials) {
-            if (ml["0"] == mtllib + mtl) {
-                return ml["1"];
-            }
+        this.currentrc = rc;
+        if (this.currentrc) {
+            this.currentrc.use();
         }
-        return null;
+        return this.currentrc;
     }
-    UseMaterial(rc, mtllib, mtl) {
+    getMaterial(mtllib, mtl) {
+        let material = this._materials.get(mtllib + mtl) || null;
+        return material;
+    }
+    usemtl(mtllib, mtl) {
         let gl = this.fx.gl;
-        for (let ml of this._materials) {
-            if (ml["0"] == mtllib + mtl) {
-                let m = ml["1"];
-                let tnames = ["map_Kd", "map_Ks", "map_normal"];
-                let textures = [m.map_Kd, m.map_Ks, m.map_normal];
-                for (let i = 0; i < textures.length; i++) {
-                    if (textures[i].length == 0)
-                        continue;
-                    let loc = rc.getUniformLocation(tnames[i]);
-                    if (loc) {
-                        this.useTexture(textures[i], i);
-                        rc.uniform1i(tnames[i], i);
-                    }
+        if (!this.currentrc)
+            return;
+        let rc = this.currentrc;
+        let m = this.getMaterial(mtllib, mtl);
+        if (m) {
+            let tnames = ["map_Kd", "map_Ks", "map_normal"];
+            let textures = [m.map_Kd, m.map_Ks, m.map_normal];
+            for (let i = 0; i < textures.length; i++) {
+                if (textures[i].length == 0)
+                    continue;
+                let loc = rc.getUniformLocation(tnames[i]);
+                if (loc) {
+                    this.useTexture(textures[i], i);
+                    rc.uniform1i(tnames[i], i);
                 }
-                let v1fnames = ["map_Kd_mix", "map_Ks_mix", "map_normal_mix", "PBKdm", "PBKsm", "PBn2", "PBk2"];
-                let v1fvalues = [m.map_Kd_mix, m.map_Ks_mix, m.map_normal_mix, m.PBKdm, m.PBKsm, m.PBn2, m.PBk2];
-                for (let i = 0; i < v1fnames.length; i++) {
-                    let uloc = rc.getUniformLocation(v1fnames[i]);
-                    if (uloc) {
-                        rc.uniform1f(v1fnames[i], v1fvalues[i]);
-                    }
+            }
+            let v1fnames = ["map_Kd_mix", "map_Ks_mix", "map_normal_mix", "PBKdm", "PBKsm", "PBn2", "PBk2"];
+            let v1fvalues = [m.map_Kd_mix, m.map_Ks_mix, m.map_normal_mix, m.PBKdm, m.PBKsm, m.PBn2, m.PBk2];
+            for (let i = 0; i < v1fnames.length; i++) {
+                let uloc = rc.getUniformLocation(v1fnames[i]);
+                if (uloc) {
+                    rc.uniform1f(v1fnames[i], v1fvalues[i]);
                 }
-                let v3fnames = ["Kd", "Ks", "Ka"];
-                let v3fvalues = [m.Kd, m.Ks, m.Ka];
-                for (let i = 0; i < v3fnames.length; i++) {
-                    let uloc = rc.getUniformLocation(v3fnames[i]);
-                    if (uloc) {
-                        rc.uniform3f(v3fnames[i], v3fvalues[i]);
-                    }
+            }
+            let v3fnames = ["Kd", "Ks", "Ka"];
+            let v3fvalues = [m.Kd, m.Ks, m.Ka];
+            for (let i = 0; i < v3fnames.length; i++) {
+                let uloc = rc.getUniformLocation(v3fnames[i]);
+                if (uloc) {
+                    rc.uniform3f(v3fnames[i], v3fvalues[i]);
                 }
             }
         }
@@ -3066,7 +3195,7 @@ class Scenegraph {
         this._defaultFBO.autoResize(this.width, this.height);
     }
     RenderScene(shaderName, sceneName = "") {
-        let rc = this.UseRenderConfig(shaderName);
+        let rc = this.userc(shaderName);
         if (!rc || !rc.usable) {
             return;
         }
@@ -3088,7 +3217,7 @@ class Scenegraph {
         rc.restore();
     }
     RenderDeferred(shaderName) {
-        let rc = this.UseRenderConfig(shaderName);
+        let rc = this.userc(shaderName);
         if (!rc || !rc.usable) {
             return;
         }
@@ -3169,7 +3298,7 @@ class Scenegraph {
         for (let tokens of lines) {
             if (tokens[0] == "enviroCube") {
                 this._sceneResources.set("enviroCube", Utils.GetURLResource(tokens[1]));
-                this.Load(path + tokens[1]);
+                this.load(path + tokens[1]);
             }
             else if (tokens[0] == "transform") {
                 this._tempNode.transform.LoadMatrix(TextParser.ParseMatrix(tokens));
@@ -3202,7 +3331,7 @@ class Scenegraph {
                 this._tempNode.geometryGroup = filename;
                 if (!this.wasRequested(filename)) {
                     hflog.log("loading geometry group [parent = " + parentName + "]" + path + filename);
-                    this.Load(path + filename);
+                    this.load(path + filename);
                 }
                 this._nodes.push(this._tempNode);
                 this._tempNode = new ScenegraphNode();
@@ -3221,73 +3350,14 @@ class Scenegraph {
                 let name = tokens[1];
                 let vertShaderUrl = tokens[2];
                 let fragShaderUrl = tokens[3];
-                this.AddRenderConfig(name, vertShaderUrl, fragShaderUrl);
+                this.addRenderConfig(name, vertShaderUrl, fragShaderUrl);
             }
         }
         this._scenegraphs.set(name, true);
     }
     loadOBJ(lines, name, path) {
-        let gl = this.fx.gl;
-        let positions = [];
-        let normals = [];
-        let colors = [];
-        let texcoords = [];
         let mesh = new IndexedGeometryMesh(this.fx);
-        mesh.begin(gl.TRIANGLES);
-        for (let tokens of lines) {
-            if (tokens.length >= 3) {
-                if (tokens[0] == "v") {
-                    let position = TextParser.ParseVector(tokens);
-                    positions.push(position);
-                    mesh.edgeMesh.addVertex(position);
-                }
-                else if (tokens[0] == "vn") {
-                    normals.push(TextParser.ParseVector(tokens));
-                }
-                else if (tokens[0] == "vt") {
-                    texcoords.push(TextParser.ParseVector(tokens));
-                }
-                else if (tokens[0] == "f") {
-                    let indices = TextParser.ParseFace(tokens);
-                    let edgeIndices = [];
-                    for (let i = 0; i < 3; i++) {
-                        try {
-                            if (indices[i * 3 + 2] >= 0)
-                                mesh.normal3(normals[indices[i * 3 + 2]]);
-                            if (indices[i * 3 + 1] >= 0)
-                                mesh.texcoord3(texcoords[indices[i * 3 + 1]]);
-                            mesh.vertex3(positions[indices[i * 3 + 0]]);
-                            mesh.addIndex(-1);
-                            edgeIndices.push(indices[i * 3]);
-                        }
-                        catch (s) {
-                            hflog.debug(s);
-                        }
-                        mesh.edgeMesh.addFace(edgeIndices);
-                    }
-                }
-            }
-            else if (tokens.length >= 2) {
-                if (tokens[0] == "mtllib") {
-                    this.Load(path + tokens[1]);
-                    mesh.mtllib(TextParser.ParseIdentifier(tokens));
-                    mesh.begin(gl.TRIANGLES);
-                }
-                else if (tokens[0] == "usemtl") {
-                    mesh.usemtl(TextParser.ParseIdentifier(tokens));
-                    mesh.begin(gl.TRIANGLES);
-                }
-                else if (tokens[0] == "o") {
-                    mesh.begin(gl.TRIANGLES);
-                }
-                else if (tokens[0] == "g") {
-                    mesh.begin(gl.TRIANGLES);
-                }
-                else if (tokens[0] == "s") {
-                    mesh.begin(gl.TRIANGLES);
-                }
-            }
-        }
+        mesh.loadOBJ(lines, this, path);
         mesh.build();
         this._meshes.set(name, mesh);
     }
@@ -3307,21 +3377,21 @@ class Scenegraph {
                         curmtl.map_Kd = Utils.GetURLResource(tokens[1]);
                         curmtl.map_Kd_mix = 1.0;
                     }
-                    this.Load(path + tokens[1]);
+                    this.load(path + tokens[1]);
                 }
                 else if (tokens[0] == "map_Ks") {
                     if (curmtl) {
                         curmtl.map_Ks = Utils.GetURLResource(tokens[1]);
                         curmtl.map_Ks_mix = 1.0;
                     }
-                    this.Load(path + tokens[1]);
+                    this.load(path + tokens[1]);
                 }
                 else if (tokens[0] == "map_normal") {
                     if (curmtl) {
                         curmtl.map_normal = Utils.GetURLResource(tokens[1]);
                         curmtl.map_normal_mix = 1.0;
                     }
-                    this.Load(path + tokens[1]);
+                    this.load(path + tokens[1]);
                 }
                 else if (tokens[0] == "Kd") {
                     if (curmtl) {
@@ -3517,6 +3587,7 @@ class GraphicsSystem {
         canvas.id = this.glcontextid;
         canvas.width = width;
         canvas.height = height;
+        canvas.style.borderRadius = "4px";
         this.gl = canvas.getContext("webgl");
         this.canvas = canvas;
         p.appendChild(canvas);
@@ -3524,7 +3595,11 @@ class GraphicsSystem {
             this.xor.fluxions = new FxRenderingContext(this.xor);
         }
     }
-    clear(r, g, b, a) {
+    clear(index) {
+        let c = this.xor.palette.getColor(index);
+        this.clearRgba(c.r, c.g, c.b, 1.0);
+    }
+    clearRgba(r, g, b, a) {
         if (!this.gl)
             return;
         let gl = this.gl;
@@ -3952,6 +4027,24 @@ class PaletteSystem {
             return GTE.vec3(0.250, 0.500, 0.250);
         return GTE.vec3(0.0, 0.0, 0.0);
     }
+    calcColor(color1, color2, colormix, color1hue, color2hue, negative) {
+        let c1 = this.getColor(color1);
+        let c2 = this.getColor(color2);
+        let ch1 = this.hueshiftColor(c1, color1hue);
+        let ch2 = this.hueshiftColor(c2, color2hue);
+        let cmix = this.mixColors(ch1, ch2, colormix);
+        let cneg = negative ? this.negativeColor(cmix) : cmix;
+        return cneg;
+    }
+    calcColorBits(bits) {
+        let color1 = (bits | 0) & 0xF;
+        let color2 = (bits >> 4) & 0xF;
+        let colormix = (bits >> 8) & 0x7;
+        let color1hue = (bits >> 11) & 0x3;
+        let color2hue = (bits >> 14) & 0x3;
+        let negative = (bits >> 15) & 0x1;
+        return this.calcColor(color1, color2, colormix, color1hue, color2hue, negative);
+    }
     mixColors(color1, color2, mix) {
         let t = GTE.clamp(1.0 - mix / 7.0, 0.0, 1.0);
         return GTE.vec3(GTE.lerp(color1.x, color2.x, t), GTE.lerp(color1.y, color2.y, t), GTE.lerp(color1.z, color2.z, t));
@@ -4066,6 +4159,17 @@ class RenderConfigSystem {
         this.renderconfigs.set(name, rc);
         return rc;
     }
+    load(name, vshaderUrl, fshaderUrl) {
+        if (!this.xor.fluxions)
+            throw "Fluxions is not initialized";
+        let rc = new RenderConfig(this.xor.fluxions);
+        this.renderconfigs.set(name, rc);
+        let sl = new Utils.ShaderLoader(vshaderUrl, fshaderUrl, (vsource, fsource) => {
+            rc.compile(vsource, fsource);
+            hflog.log("Loaded " + vshaderUrl + " and " + fshaderUrl);
+        });
+        return rc;
+    }
     use(name) {
         if (!this.xor.fluxions)
             throw "Fluxions is not initialized";
@@ -4094,7 +4198,18 @@ class MeshSystem {
         this.meshes.set(name, mesh);
         return mesh;
     }
-    render(name, rc, sg) {
+    load(name, url) {
+        if (!this.xor.fluxions)
+            throw "Fluxions is not initialized";
+        let mesh = new IndexedGeometryMesh(this.xor.fluxions);
+        this.meshes.set(name, mesh);
+        let tl = new Utils.TextFileLoader(url, (data, name, p) => {
+            let textParser = new TextParser(data);
+            mesh.loadOBJ(textParser.lines);
+        });
+        return mesh;
+    }
+    render(name, rc) {
         if (!this.xor.fluxions)
             throw "Fluxions is not initialized";
         if (!name) {
@@ -4103,7 +4218,7 @@ class MeshSystem {
         else if (this.meshes.has(name)) {
             let mesh = this.meshes.get(name);
             if (mesh) {
-                mesh.render(rc, sg);
+                mesh.renderplain(rc);
                 return mesh;
             }
         }

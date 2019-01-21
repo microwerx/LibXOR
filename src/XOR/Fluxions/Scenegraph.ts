@@ -60,6 +60,12 @@ class Scenegraph {
     public camera: Camera = new Camera();
     public sunlight: DirectionalLight = new DirectionalLight();
 
+    public currentrc: RenderConfig | null = null;
+    public currentmtllib: string | null = "";
+    public currentmtl: string | null = "";
+    public currentobj: string | null = "";
+    public currentscn: string | null = "";
+
     private _defaultRenderConfig: RenderConfig;
 
     get shadowFBO(): FBO { return this.getFBO("sunshadow"); }
@@ -148,7 +154,7 @@ class Scenegraph {
         return 100.0 * a / (this.textfiles.length + this.imagefiles.length + this.shaderSrcFiles.length);
     }
 
-    Load(url: string): void {
+    load(url: string): void {
         let name = Utils.GetURLResource(url);
         let self = this;
         let assetType: SGAssetType;
@@ -208,78 +214,140 @@ class Scenegraph {
         return true;
     }
 
-    AddRenderConfig(name: string, vertshaderUrl: string, fragshaderUrl: string) {
+    addRenderConfig(name: string, vertshaderUrl: string, fragshaderUrl: string) {
+        let rc = new RenderConfig(this.fx);
+        this._renderConfigs.set(name, rc);
+
         let self = this;
         this.shaderSrcFiles.push(new Utils.ShaderLoader(vertshaderUrl, fragshaderUrl, (vertShaderSource: string, fragShaderSource: string) => {
-            let rc = new RenderConfig(this.fx);
             rc.compile(vertShaderSource, fragShaderSource);
-            self._renderConfigs.set(name, rc);
             hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + vertshaderUrl + " and " + fragshaderUrl);
         }));
     }
 
-    GetRenderConfig(name: string): RenderConfig | null {
-        let rc = this._renderConfigs.get(name);
-        if (rc) {
-            return rc;
-        }
-        return null;
+    getRenderConfig(name: string): RenderConfig | null {
+        let rc = this._renderConfigs.get(name) || null;
+        return rc;
     }
 
-    UseRenderConfig(name: string): RenderConfig | null {
-        let rc = this._renderConfigs.get(name);
-        if (rc) {
-            rc.use();
-            return rc;
+    userc(name: string): RenderConfig | null {
+        let rc = this.getRenderConfig(name);
+        if (this.currentrc && rc !== this.currentrc) {
+            this.currentrc.restore();
         }
-        return null;
+        this.currentrc = rc;
+        if (this.currentrc) { this.currentrc.use(); }
+        return this.currentrc;
     }
 
-    GetMaterial(mtllib: string, mtl: string): Material | null {
-        for (let ml of this._materials) {
-            if (ml["0"] == mtllib + mtl) {
-                return ml["1"];
-            }
-        }
-        return null;
+    // AddRenderConfig(name: string, vertshaderUrl: string, fragshaderUrl: string) {
+    //     let self = this;
+    //     this.shaderSrcFiles.push(new Utils.ShaderLoader(vertshaderUrl, fragshaderUrl, (vertShaderSource: string, fragShaderSource: string) => {
+    //         let rc = new RenderConfig(this.fx);
+    //         rc.compile(vertShaderSource, fragShaderSource);
+    //         self._renderConfigs.set(name, rc);
+    //         hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + vertshaderUrl + " and " + fragshaderUrl);
+    //     }));
+    // }
+
+    // GetRenderConfig(name: string): RenderConfig | null {
+    //     let rc = this._renderConfigs.get(name);
+    //     if (rc) {
+    //         return rc;
+    //     }
+    //     return null;
+    // }
+
+    // UseRenderConfig(name: string): RenderConfig | null {
+    //     let rc = this._renderConfigs.get(name);
+    //     if (rc) {
+    //         rc.use();
+    //         return rc;
+    //     }
+    //     return null;
+    // }
+
+    getMaterial(mtllib: string, mtl: string): Material | null {
+        let material = this._materials.get(mtllib + mtl) || null;
+        return material;
+        // for (let ml of this._materials) {
+        //     if (ml["0"] == mtllib + mtl) {
+        //         return ml["1"];
+        //     }
+        // }
+        // return null;
     }
 
-    UseMaterial(rc: RenderConfig, mtllib: string, mtl: string) {
+    usemtl(mtllib: string, mtl: string) {
         let gl = this.fx.gl;
-        for (let ml of this._materials) {
-            if (ml["0"] == mtllib + mtl) {// && ml["1"].name == mtl) {
-                let m = ml["1"];
-                let tnames = ["map_Kd", "map_Ks", "map_normal"];
-                let textures = [m.map_Kd, m.map_Ks, m.map_normal];
-                for (let i = 0; i < textures.length; i++) {
-                    if (textures[i].length == 0)
-                        continue;
-                    let loc = rc.getUniformLocation(tnames[i]);
-                    if (loc) {
-                        this.useTexture(textures[i], i);
-                        rc.uniform1i(tnames[i], i);
-                    }
+        if (!this.currentrc) return;
+        let rc = this.currentrc;
+        let m = this.getMaterial(mtllib, mtl);
+        if (m) {
+            let tnames = ["map_Kd", "map_Ks", "map_normal"];
+            let textures = [m.map_Kd, m.map_Ks, m.map_normal];
+            for (let i = 0; i < textures.length; i++) {
+                if (textures[i].length == 0)
+                    continue;
+                let loc = rc.getUniformLocation(tnames[i]);
+                if (loc) {
+                    this.useTexture(textures[i], i);
+                    rc.uniform1i(tnames[i], i);
                 }
+            }
 
-                let v1fnames = ["map_Kd_mix", "map_Ks_mix", "map_normal_mix", "PBKdm", "PBKsm", "PBn2", "PBk2"];
-                let v1fvalues = [m.map_Kd_mix, m.map_Ks_mix, m.map_normal_mix, m.PBKdm, m.PBKsm, m.PBn2, m.PBk2];
-                for (let i = 0; i < v1fnames.length; i++) {
-                    let uloc = rc.getUniformLocation(v1fnames[i]);
-                    if (uloc) {
-                        rc.uniform1f(v1fnames[i], v1fvalues[i]);
-                    }
+            let v1fnames = ["map_Kd_mix", "map_Ks_mix", "map_normal_mix", "PBKdm", "PBKsm", "PBn2", "PBk2"];
+            let v1fvalues = [m.map_Kd_mix, m.map_Ks_mix, m.map_normal_mix, m.PBKdm, m.PBKsm, m.PBn2, m.PBk2];
+            for (let i = 0; i < v1fnames.length; i++) {
+                let uloc = rc.getUniformLocation(v1fnames[i]);
+                if (uloc) {
+                    rc.uniform1f(v1fnames[i], v1fvalues[i]);
                 }
+            }
 
-                let v3fnames = ["Kd", "Ks", "Ka"];
-                let v3fvalues = [m.Kd, m.Ks, m.Ka];
-                for (let i = 0; i < v3fnames.length; i++) {
-                    let uloc = rc.getUniformLocation(v3fnames[i]);
-                    if (uloc) {
-                        rc.uniform3f(v3fnames[i], v3fvalues[i]);
-                    }
+            let v3fnames = ["Kd", "Ks", "Ka"];
+            let v3fvalues = [m.Kd, m.Ks, m.Ka];
+            for (let i = 0; i < v3fnames.length; i++) {
+                let uloc = rc.getUniformLocation(v3fnames[i]);
+                if (uloc) {
+                    rc.uniform3f(v3fnames[i], v3fvalues[i]);
                 }
             }
         }
+        // for (let ml of this._materials) {
+        //     if (ml["0"] == mtllib + mtl) {// && ml["1"].name == mtl) {
+        //         let m = ml["1"];
+        //         let tnames = ["map_Kd", "map_Ks", "map_normal"];
+        //         let textures = [m.map_Kd, m.map_Ks, m.map_normal];
+        //         for (let i = 0; i < textures.length; i++) {
+        //             if (textures[i].length == 0)
+        //                 continue;
+        //             let loc = rc.getUniformLocation(tnames[i]);
+        //             if (loc) {
+        //                 this.useTexture(textures[i], i);
+        //                 rc.uniform1i(tnames[i], i);
+        //             }
+        //         }
+
+        //         let v1fnames = ["map_Kd_mix", "map_Ks_mix", "map_normal_mix", "PBKdm", "PBKsm", "PBn2", "PBk2"];
+        //         let v1fvalues = [m.map_Kd_mix, m.map_Ks_mix, m.map_normal_mix, m.PBKdm, m.PBKsm, m.PBn2, m.PBk2];
+        //         for (let i = 0; i < v1fnames.length; i++) {
+        //             let uloc = rc.getUniformLocation(v1fnames[i]);
+        //             if (uloc) {
+        //                 rc.uniform1f(v1fnames[i], v1fvalues[i]);
+        //             }
+        //         }
+
+        //         let v3fnames = ["Kd", "Ks", "Ka"];
+        //         let v3fvalues = [m.Kd, m.Ks, m.Ka];
+        //         for (let i = 0; i < v3fnames.length; i++) {
+        //             let uloc = rc.getUniformLocation(v3fnames[i]);
+        //             if (uloc) {
+        //                 rc.uniform3f(v3fnames[i], v3fvalues[i]);
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     RenderMesh(name: string, rc: RenderConfig) {
@@ -496,7 +564,7 @@ class Scenegraph {
     }
 
     RenderScene(shaderName: string, sceneName: string = "") {
-        let rc = this.UseRenderConfig(shaderName);
+        let rc = this.userc(shaderName);
         if (!rc || !rc.usable) {
             //hflog.error("MyScenegraph::RenderScene(): \"" + shaderName + "\" is not a render config");
             return;
@@ -520,7 +588,7 @@ class Scenegraph {
 
 
     RenderDeferred(shaderName: string): void {
-        let rc = this.UseRenderConfig(shaderName);
+        let rc = this.userc(shaderName);
         if (!rc || !rc.usable) {
             //hflog.error("MyScenegraph::RenderDeferred(): \"" + shaderName + "\" is not a render config");
             return;
@@ -620,7 +688,7 @@ class Scenegraph {
         for (let tokens of lines) {
             if (tokens[0] == "enviroCube") {
                 this._sceneResources.set("enviroCube", Utils.GetURLResource(tokens[1]));
-                this.Load(path + tokens[1]);
+                this.load(path + tokens[1]);
             }
             else if (tokens[0] == "transform") {
                 this._tempNode.transform.LoadMatrix(TextParser.ParseMatrix(tokens));
@@ -655,7 +723,7 @@ class Scenegraph {
                 this._tempNode.geometryGroup = filename;
                 if (!this.wasRequested(filename)) {
                     hflog.log("loading geometry group [parent = " + parentName + "]" + path + filename);
-                    this.Load(path + filename);
+                    this.load(path + filename);
                 }
                 this._nodes.push(this._tempNode);
                 this._tempNode = new ScenegraphNode();
@@ -676,7 +744,7 @@ class Scenegraph {
                 let name = tokens[1];
                 let vertShaderUrl = tokens[2];
                 let fragShaderUrl = tokens[3];
-                this.AddRenderConfig(name, vertShaderUrl, fragShaderUrl);
+                this.addRenderConfig(name, vertShaderUrl, fragShaderUrl);
             }
         }
         this._scenegraphs.set(name, true);
@@ -697,63 +765,69 @@ class Scenegraph {
         // g <newSmoothingGroup: string>
         // s <newSmoothingGroup: string>
 
-        let gl = this.fx.gl;
-        let positions: Vector3[] = [];
-        let normals: Vector3[] = [];
-        let colors: Vector3[] = [];
-        let texcoords: Vector3[] = [];
         let mesh: IndexedGeometryMesh = new IndexedGeometryMesh(this.fx);
 
-        // in case there are no mtllib's, usemtl's, o's, g's, or s's
-        mesh.begin(gl.TRIANGLES);
-        for (let tokens of lines) {
-            if (tokens.length >= 3) {
-                if (tokens[0] == "v") {
-                    let position = TextParser.ParseVector(tokens);
-                    positions.push(position);
-                    mesh.edgeMesh.addVertex(position);
-                } else if (tokens[0] == "vn") {
-                    normals.push(TextParser.ParseVector(tokens));
-                } else if (tokens[0] == "vt") {
-                    texcoords.push(TextParser.ParseVector(tokens));
-                } else if (tokens[0] == "f") {
-                    let indices = TextParser.ParseFace(tokens);
-                    let edgeIndices: number[] = [];
-                    for (let i = 0; i < 3; i++) {
-                        try {
-                            if (indices[i * 3 + 2] >= 0)
-                                mesh.normal3(normals[indices[i * 3 + 2]]);
-                            if (indices[i * 3 + 1] >= 0)
-                                mesh.texcoord3(texcoords[indices[i * 3 + 1]]);
-                            mesh.vertex3(positions[indices[i * 3 + 0]]);
-                            mesh.addIndex(-1);
-                            edgeIndices.push(indices[i * 3]);
-                        }
-                        catch (s) {
-                            hflog.debug(s);
-                        }
-                        mesh.edgeMesh.addFace(edgeIndices);
-                    }
-                }
-            }
-            else if (tokens.length >= 2) {
-                if (tokens[0] == "mtllib") {
-                    this.Load(path + tokens[1]);
-                    mesh.mtllib(TextParser.ParseIdentifier(tokens));
-                    mesh.begin(gl.TRIANGLES);
-                } else if (tokens[0] == "usemtl") {
-                    mesh.usemtl(TextParser.ParseIdentifier(tokens));
-                    mesh.begin(gl.TRIANGLES);
-                } else if (tokens[0] == "o") {
-                    mesh.begin(gl.TRIANGLES);
-                } else if (tokens[0] == "g") {
-                    mesh.begin(gl.TRIANGLES);
-                } else if (tokens[0] == "s") {
-                    mesh.begin(gl.TRIANGLES);
-                }
-            }
-        }
+        // let gl = this.fx.gl;
+        // let positions: Vector3[] = [];
+        // let normals: Vector3[] = [];
+        // let colors: Vector3[] = [];
+        // let texcoords: Vector3[] = [];
 
+        // // in case there are no mtllib's, usemtl's, o's, g's, or s's
+        // mesh.begin(gl.TRIANGLES);
+        // for (let tokens of lines) {
+        //     if (tokens.length >= 3) {
+        //         if (tokens[0] == "v") {
+        //             let position = TextParser.ParseVector(tokens);
+        //             positions.push(position);
+        //             mesh.edgeMesh.addVertex(position);
+        //         } else if (tokens[0] == "vn") {
+        //             normals.push(TextParser.ParseVector(tokens));
+        //         } else if (tokens[0] == "vt") {
+        //             texcoords.push(TextParser.ParseVector(tokens));
+        //         } else if (tokens[0] == "vc") {
+        //             let color = TextParser.ParseVector(tokens);
+        //             colors.push(color);
+        //             mesh.color(color.x, color.y, color.z);
+        //         } else if (tokens[0] == "f") {
+        //             let indices = TextParser.ParseFace(tokens);
+        //             let edgeIndices: number[] = [];
+        //             for (let i = 0; i < 3; i++) {
+        //                 try {
+        //                     if (indices[i * 3 + 2] >= 0)
+        //                         mesh.normal3(normals[indices[i * 3 + 2]]);
+        //                     if (indices[i * 3 + 1] >= 0)
+        //                         mesh.texcoord3(texcoords[indices[i * 3 + 1]]);
+        //                     mesh.vertex3(positions[indices[i * 3 + 0]]);
+        //                     mesh.addIndex(-1);
+        //                     edgeIndices.push(indices[i * 3]);
+        //                 }
+        //                 catch (s) {
+        //                     hflog.debug(s);
+        //                 }
+        //                 mesh.edgeMesh.addFace(edgeIndices);
+        //             }
+        //         }
+        //     }
+        //     else if (tokens.length >= 2) {
+        //         if (tokens[0] == "mtllib") {
+        //             this.load(path + tokens[1]);
+        //             mesh.mtllib(TextParser.ParseIdentifier(tokens));
+        //             mesh.begin(gl.TRIANGLES);
+        //         } else if (tokens[0] == "usemtl") {
+        //             mesh.usemtl(TextParser.ParseIdentifier(tokens));
+        //             mesh.begin(gl.TRIANGLES);
+        //         } else if (tokens[0] == "o") {
+        //             mesh.begin(gl.TRIANGLES);
+        //         } else if (tokens[0] == "g") {
+        //             mesh.begin(gl.TRIANGLES);
+        //         } else if (tokens[0] == "s") {
+        //             mesh.begin(gl.TRIANGLES);
+        //         }
+        //     }
+        // }
+
+        mesh.loadOBJ(lines, this, path);
         mesh.build();
         this._meshes.set(name, mesh);
     }
@@ -780,21 +854,21 @@ class Scenegraph {
                         curmtl.map_Kd = Utils.GetURLResource(tokens[1]);
                         curmtl.map_Kd_mix = 1.0;
                     }
-                    this.Load(path + tokens[1]);
+                    this.load(path + tokens[1]);
                 }
                 else if (tokens[0] == "map_Ks") {
                     if (curmtl) {
                         curmtl.map_Ks = Utils.GetURLResource(tokens[1]);
                         curmtl.map_Ks_mix = 1.0;
                     }
-                    this.Load(path + tokens[1]);
+                    this.load(path + tokens[1]);
                 }
                 else if (tokens[0] == "map_normal") {
                     if (curmtl) {
                         curmtl.map_normal = Utils.GetURLResource(tokens[1]);
                         curmtl.map_normal_mix = 1.0;
                     }
-                    this.Load(path + tokens[1]);
+                    this.load(path + tokens[1]);
                 } else if (tokens[0] == "Kd") {
                     if (curmtl) {
                         curmtl.Kd = TextParser.ParseVector(tokens);

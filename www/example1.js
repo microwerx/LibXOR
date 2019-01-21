@@ -77,7 +77,7 @@ void main() {
 
 class App {
     constructor() {
-        this.xor = new LibXOR("game");
+        this.xor = new LibXOR("project");
     }
 
     init() {
