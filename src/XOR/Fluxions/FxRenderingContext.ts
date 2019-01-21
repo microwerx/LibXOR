@@ -20,14 +20,21 @@ class FxRenderingContext {
             hflog.log(vendor);
             hflog.log(renderer);
         }
+
         this.enableExtensions([
-            "OES_standard_derivatives",
-            "WEBGL_depth_texture",
-            "OES_element_index_uint",
             "EXT_texture_filter_anisotropic",
+            "WEBGL_depth_texture",
+            "WEBGL_debug_renderer_info",
+            "OES_element_index_uint",
+            "OES_standard_derivatives",
+            "OES_texture_float_linear",
             "OES_texture_float",
-            "OES_texture_float_linear"
         ]);
+
+        let standardDerivatives = this.gl.getExtension('OES_standard_derivatives');
+        if (standardDerivatives) {
+            this.gl.hint(standardDerivatives.FRAGMENT_SHADER_DERIVATIVE_HINT_OES, this.gl.NICEST);
+        }
 
         this.scenegraph = new Scenegraph(this);
     }

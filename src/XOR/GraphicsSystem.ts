@@ -85,10 +85,14 @@ class GraphicsSystem {
 
     clear(index: number) {
         let c = this.xor.palette.getColor(index);
-        this.clearRgba(c.r, c.g, c.b, 1.0);
+        this.clearrgba(c.r, c.g, c.b, 1.0);
     }
 
-    clearRgba(r: number, g: number, b: number, a: number) {
+    clear3(color: Vector3) {
+        this.clearrgba(color.x, color.y, color.z, 1.0);        
+    }
+
+    clearrgba(r: number, g: number, b: number, a: number) {
         if (!this.gl) return;
         let gl = this.gl;
         gl.clearColor(r, g, b, a);

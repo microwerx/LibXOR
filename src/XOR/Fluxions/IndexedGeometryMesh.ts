@@ -228,16 +228,36 @@ class IndexedGeometryMesh {
         this.normal(0, 0, 1);
         this.texcoord(0, 0, 0);
         this.position(x1, y1, 0);
+        this.addIndex(-1);
         this.texcoord(0, 1, 0);
         this.position(x1, y2, 0);
+        this.addIndex(-1);
         this.texcoord(1, 1, 0);
         this.position(x2, y2, 0);
+        this.addIndex(-1);
         this.texcoord(1, 0, 0);
         this.position(x2, y1, 0);
-        this.addIndex(0);
-        this.addIndex(1);
-        this.addIndex(2);
-        this.addIndex(3);
+        this.addIndex(-1);
+    }
+
+    circle(ox: number, oy: number, radius: number = 0.5, segments: number = 32) {
+        this.begin(WebGLRenderingContext.TRIANGLE_FAN);
+        this.normal(0, 0, 1);
+        let theta = 0;
+        let dtheta = GTE.radians(360.0 / segments);
+        // this.texcoord(0, 0, 0);
+        // this.position(ox, oy, 0);
+        // this.addIndex(-1);
+        for (let i = 0; i < segments; i++) {
+            let x = Math.cos(theta);
+            let y = Math.sin(theta);
+            let u = x * 0.5 + 0.5;
+            let v = y * 0.5 + 0.5;
+            this.texcoord(u, v, 0);
+            this.position(radius * x + ox, radius * y + oy, 0);
+            this.addIndex(-1);
+            theta += dtheta;
+        }
     }
 
     begin(mode: number) {

@@ -43,7 +43,7 @@ class Scenegraph {
     private imagefiles: Utils.ImageFileLoader[] = [];
     private shaderSrcFiles: Utils.ShaderLoader[] = [];
 
-    private _defaultFBO: FBO;
+    // private _defaultFBO: FBO | null;
     private _scenegraphs: Map<string, boolean> = new Map<string, boolean>();
     private _fbo: Map<string, FBO> = new Map<string, FBO>();
     private _deferredMesh: IndexedGeometryMesh;
@@ -68,9 +68,9 @@ class Scenegraph {
 
     private _defaultRenderConfig: RenderConfig;
 
-    get shadowFBO(): FBO { return this.getFBO("sunshadow"); }
-    get gbufferFBO(): FBO { return this.getFBO("gbuffer") }
-    get imageFBO(): FBO { return this.getFBO("image"); }
+    // get shadowFBO(): FBO { return this.getFBO("sunshadow"); }
+    // get gbufferFBO(): FBO { return this.getFBO("gbuffer") }
+    // get imageFBO(): FBO { return this.getFBO("image"); }
 
     get width(): number { return this.fx.width; }
     get height(): number { return this.fx.height; }
@@ -88,10 +88,10 @@ class Scenegraph {
             }`);
         const width = this.fx.width;
         const height = this.fx.height;
-        this._defaultFBO = new FBO(this.fx, true, true, 1024, 1024, 0, true);
-        this._fbo.set("sunshadow", new FBO(this.fx, true, true, 512, 512, 0));
-        this._fbo.set("gbuffer", new FBO(this.fx, true, true, width, height, 1, true));
-        this._fbo.set("image", new FBO(this.fx, true, true, width, height, 1, true));
+        // this._defaultFBO = new FBO(this.fx, true, true, 1024, 1024, 0, true);
+        // this._fbo.set("sunshadow", new FBO(this.fx, true, true, 512, 512, 0));
+        // this._fbo.set("gbuffer", new FBO(this.fx, true, true, width, height, 1, true));
+        // this._fbo.set("image", new FBO(this.fx, true, true, width, height, 1, true));
 
         let gl = this.fx.gl;
         this._deferredMesh = new IndexedGeometryMesh(this.fx);
@@ -493,49 +493,39 @@ class Scenegraph {
             rc.uniform3f("CameraPosition", this.camera.eye);
             this.useTexture("enviroCube", 10);
             rc.uniform1i("EnviroCube", 10);
-            rc.uniform1i("UsingGBuffer", 0);
             if (!rc.usesFBO) {
-                if (this.shadowFBO.complete) {
-                    this.shadowFBO.bindTextures(11, 12);
-                    if (this.shadowFBO.color) rc.uniform1i("SunShadowColorMap", 11);
-                    if (this.shadowFBO.depth) rc.uniform1i("SunShadowDepthMap", 12);
-                    rc.uniformMatrix4f("SunShadowBiasMatrix", Matrix4.makeShadowBias());
-                    rc.uniformMatrix4f("SunShadowProjectionMatrix", this.sunlight.projectionMatrix);
-                    rc.uniformMatrix4f("SunShadowViewMatrix", this.sunlight.lightMatrix);
-                    rc.uniform2f("iResolutionSunShadow", this.shadowFBO.dimensions);
-                    rc.uniform1i("UsingSunShadow", 1);
-                }
-
-                if (this.gbufferFBO.complete) {
-                    this.gbufferFBO.bindTextures(13, 14);
-                    if (this.gbufferFBO.color) rc.uniform1i("GBufferColor0", 13);
-                    if (this.gbufferFBO.depth) rc.uniform1i("GBufferDepth", 14);
-                    rc.uniform2f("iResolutionGBuffer", this.gbufferFBO.dimensions);
-                    rc.uniform1i("UsingGBuffer", 1);
-                }
-
-                if (this.imageFBO.complete) {
-                    this.imageFBO.bindTextures(15, 16);
-                    if (this.imageFBO.color) rc.uniform1i("ImageColor0", 15);
-                    if (this.imageFBO.depth) rc.uniform1i("ImageDepth", 16);
-                    rc.uniform2f("iResolutionImage", this.imageFBO.dimensions);
-                    rc.uniform1i("UsingImage", 1);
-                }
+                rc.uniformMatrix4f("SunShadowBiasMatrix", Matrix4.makeShadowBias());
+                rc.uniformMatrix4f("SunShadowProjectionMatrix", this.sunlight.projectionMatrix);
+                rc.uniformMatrix4f("SunShadowViewMatrix", this.sunlight.lightMatrix);
             }
-            else {
-                if (this.shadowFBO.color) rc.uniform1i("SunShadowColorMap", 0);
-                if (this.shadowFBO.depth) rc.uniform1i("SunShadowDepthMap", 0);
-                if (this.gbufferFBO.color) rc.uniform1i("GBufferColor0", 0);
-                if (this.gbufferFBO.depth) rc.uniform1i("GBufferDepth", 0);
-                if (this.imageFBO.color) rc.uniform1i("ImageColor0", 0);
-                if (this.imageFBO.depth) rc.uniform1i("ImageDepth", 0);
-                rc.uniform1i("UsingSunShadow", 0);
-                rc.uniform1i("UsingGBuffer", 0);
-                rc.uniform1i("UsingImage", 0);
+
+            let unit = 11;
+            for (let fbo of rc.fbos) {
+                this.configureFBO(rc, fbo, unit, unit + 1);
+                unit += 2;
             }
         }
         let gl = this.fx.gl;
         gl.viewport(0, 0, this.width, this.height);
+    }
+
+    configureFBO(rc: RenderConfig, name: string, colorUnit: number, depthUnit: number) {
+        const colorUniform = name + "Color";
+        const depthUniform = name + "Depth";
+        const resolutionUnifom = name + "Resolution";
+        const usingUniform = "Using" + name;
+        let fbo = this._fbo.get(name) || null;
+        if (!fbo) return;
+        rc.uniform2f(resolutionUnifom, fbo.dimensions);
+        rc.uniform1i(usingUniform, rc.usesFBO ? 1 : 0);
+        if (rc.usesFBO && fbo.complete) {
+            fbo.bindTextures(colorUnit, depthUnit);
+            if (fbo.color) rc.uniform1i(colorUniform, colorUnit);
+            if (fbo.depth) rc.uniform1i(depthUniform, depthUnit);
+        } else {
+            rc.uniform1i(colorUniform, 0);
+            rc.uniform1i(depthUniform, 0);
+        }
     }
 
     Restore() {
@@ -545,11 +535,8 @@ class Scenegraph {
             gl.bindTexture(gl.TEXTURE_2D, null);
         }
         this.useTexture("enviroCube", 10, false);
-        if (this.shadowFBO.complete) {
-            this.shadowFBO.unbindTextures();
-        }
-        if (this.gbufferFBO.complete) {
-            this.gbufferFBO.unbindTextures();
+        for (let fbo of this._fbo) {
+            if (fbo[1].complete) fbo[1].unbindTextures()
         }
     }
 
@@ -560,7 +547,6 @@ class Scenegraph {
                 fbo.autoResize(this.width, this.height);
             }
         });
-        this._defaultFBO.autoResize(this.width, this.height);
     }
 
     RenderScene(shaderName: string, sceneName: string = "") {
@@ -909,10 +895,7 @@ class Scenegraph {
         }
     }
 
-    getFBO(name: string): FBO {
-        let fbo = this._fbo.get(name);
-        if (!fbo)
-            return this._defaultFBO;
-        return fbo;
+    getFBO(name: string): FBO | null {
+        return this._fbo.get(name) || null;
     }
 }

@@ -21,6 +21,8 @@ class FBO {
         public width: number = 512,
         public height: number = 512,
         private colorType: number = 0,
+        public colorUnit: number = 11,
+        public depthUnit: number = 12,
         readonly shouldAutoResize: boolean = false
     ) {
         let gl = _renderingContext.gl;

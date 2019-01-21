@@ -3,8 +3,17 @@
 class MemorySystem {
     private mem: Int32Array = new Int32Array(65536);
 
-    readonly PALETTESTART = 0x1000;
+    // handy reminders
+    // 0x1000 = 4096
+    // 0x100 = 256
+    // 0x10 = 16
+    // Start of VIC memory
+    readonly VICSTART = 0x1000;
+    readonly VICCOUNT = 256;
+    readonly PALETTESTART = 0x1100;
     readonly PALETTECOUNT = 16 * 16;
+    readonly SPRITESHEETSTART = 0x2000;
+    readonly SPRITESHEETCOUNT = 0x1000;
 
     constructor(private xor: LibXOR) {
 

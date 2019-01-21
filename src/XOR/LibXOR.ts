@@ -23,6 +23,7 @@ class LibXOR {
     public t1 = 0.0;
     public t0 = 0.0;
     public dt = 0.0;
+    public frameCount = 0;
 
     public oninit = () => { };
     public onupdate = (dt: number) => { };
@@ -34,6 +35,10 @@ class LibXOR {
     }
 
     start() {
+        this.t0 = 0;
+        this.t1 = 0;
+        this.dt = 0;
+        this.frameCount = 0;
         this.memory.init();
         this.graphics.init();
         this.sound.init();
@@ -46,9 +51,9 @@ class LibXOR {
         this.t0 = this.t1;
         this.t1 = t / 1000.0;
         this.dt = this.t1 - this.t0;
+        this.frameCount++;
     }
 
-    frameCount = 0;
     mainloop() {
         let self = this;
         window.requestAnimationFrame((t) => {

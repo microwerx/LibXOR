@@ -57,6 +57,8 @@ class RenderConfig {
     public renderImage = false;
     public renderEdges = false;
 
+    public fbos: string[] = [];
+
     constructor(private fx: FxRenderingContext) { }
 
     get usable(): boolean { return this.isCompiledAndLinked(); }

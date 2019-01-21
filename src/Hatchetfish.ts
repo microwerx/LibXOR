@@ -14,6 +14,7 @@ class Hatchetfish {
         if (el instanceof HTMLDivElement) {
             this._logElement = el;
             this._logElementId = id;
+            el.innerHTML = "";
         }
     }
 

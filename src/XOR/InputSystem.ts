@@ -73,6 +73,7 @@ class InputSystem {
         } else {
             this.codes.set(this.translateKeyToCode(e.key), 1);
         }
+        if (e.key == "F12") return;
         e.preventDefault();
     }
 
@@ -86,6 +87,7 @@ class InputSystem {
         } else {
             this.codes.set(this.translateKeyToCode(e.key), 0);
         }
+        if (e.key == "F12") return;
         e.preventDefault();
     }
 }

@@ -11,6 +11,7 @@ class Hatchetfish {
         if (el instanceof HTMLDivElement) {
             this._logElement = el;
             this._logElementId = id;
+            el.innerHTML = "";
         }
     }
     clear() {
@@ -1166,13 +1167,18 @@ class FxRenderingContext {
             hflog.log(renderer);
         }
         this.enableExtensions([
-            "OES_standard_derivatives",
-            "WEBGL_depth_texture",
-            "OES_element_index_uint",
             "EXT_texture_filter_anisotropic",
+            "WEBGL_depth_texture",
+            "WEBGL_debug_renderer_info",
+            "OES_element_index_uint",
+            "OES_standard_derivatives",
+            "OES_texture_float_linear",
             "OES_texture_float",
-            "OES_texture_float_linear"
         ]);
+        let standardDerivatives = this.gl.getExtension('OES_standard_derivatives');
+        if (standardDerivatives) {
+            this.gl.hint(standardDerivatives.FRAGMENT_SHADER_DERIVATIVE_HINT_OES, this.gl.NICEST);
+        }
         this.scenegraph = new Scenegraph(this);
     }
     get width() { return this.xor.graphics.width; }
@@ -1244,6 +1250,7 @@ class RenderConfig {
         this.renderGBuffer = false;
         this.renderImage = false;
         this.renderEdges = false;
+        this.fbos = [];
     }
     get usable() { return this.isCompiledAndLinked(); }
     isCompiledAndLinked() {
@@ -2082,16 +2089,32 @@ class IndexedGeometryMesh {
         this.normal(0, 0, 1);
         this.texcoord(0, 0, 0);
         this.position(x1, y1, 0);
+        this.addIndex(-1);
         this.texcoord(0, 1, 0);
         this.position(x1, y2, 0);
+        this.addIndex(-1);
         this.texcoord(1, 1, 0);
         this.position(x2, y2, 0);
+        this.addIndex(-1);
         this.texcoord(1, 0, 0);
         this.position(x2, y1, 0);
-        this.addIndex(0);
-        this.addIndex(1);
-        this.addIndex(2);
-        this.addIndex(3);
+        this.addIndex(-1);
+    }
+    circle(ox, oy, radius = 0.5, segments = 32) {
+        this.begin(WebGLRenderingContext.TRIANGLE_FAN);
+        this.normal(0, 0, 1);
+        let theta = 0;
+        let dtheta = GTE.radians(360.0 / segments);
+        for (let i = 0; i < segments; i++) {
+            let x = Math.cos(theta);
+            let y = Math.sin(theta);
+            let u = x * 0.5 + 0.5;
+            let v = y * 0.5 + 0.5;
+            this.texcoord(u, v, 0);
+            this.position(radius * x + ox, radius * y + oy, 0);
+            this.addIndex(-1);
+            theta += dtheta;
+        }
     }
     begin(mode) {
         if (this.surfaces.length == 0) {
@@ -2343,13 +2366,15 @@ class IndexedGeometryMesh {
     }
 }
 class FBO {
-    constructor(_renderingContext, depth, color, width = 512, height = 512, colorType = 0, shouldAutoResize = false) {
+    constructor(_renderingContext, depth, color, width = 512, height = 512, colorType = 0, colorUnit = 11, depthUnit = 12, shouldAutoResize = false) {
         this._renderingContext = _renderingContext;
         this.depth = depth;
         this.color = color;
         this.width = width;
         this.height = height;
         this.colorType = colorType;
+        this.colorUnit = colorUnit;
+        this.depthUnit = depthUnit;
         this.shouldAutoResize = shouldAutoResize;
         this._colorTexture = null;
         this._depthTexture = null;
@@ -2779,10 +2804,6 @@ class Scenegraph {
             }`);
         const width = this.fx.width;
         const height = this.fx.height;
-        this._defaultFBO = new FBO(this.fx, true, true, 1024, 1024, 0, true);
-        this._fbo.set("sunshadow", new FBO(this.fx, true, true, 512, 512, 0));
-        this._fbo.set("gbuffer", new FBO(this.fx, true, true, width, height, 1, true));
-        this._fbo.set("image", new FBO(this.fx, true, true, width, height, 1, true));
         let gl = this.fx.gl;
         this._deferredMesh = new IndexedGeometryMesh(this.fx);
         this._deferredMesh.texcoord3(Vector3.make(0.0, 0.0, 0.0));
@@ -2803,9 +2824,6 @@ class Scenegraph {
         this._deferredMesh.addIndex(2);
         this._deferredMesh.addIndex(3);
     }
-    get shadowFBO() { return this.getFBO("sunshadow"); }
-    get gbufferFBO() { return this.getFBO("gbuffer"); }
-    get imageFBO() { return this.getFBO("image"); }
     get width() { return this.fx.width; }
     get height() { return this.fx.height; }
     get aspectRatio() { return this.width / this.height; }
@@ -3118,59 +3136,41 @@ class Scenegraph {
             rc.uniform3f("CameraPosition", this.camera.eye);
             this.useTexture("enviroCube", 10);
             rc.uniform1i("EnviroCube", 10);
-            rc.uniform1i("UsingGBuffer", 0);
             if (!rc.usesFBO) {
-                if (this.shadowFBO.complete) {
-                    this.shadowFBO.bindTextures(11, 12);
-                    if (this.shadowFBO.color)
-                        rc.uniform1i("SunShadowColorMap", 11);
-                    if (this.shadowFBO.depth)
-                        rc.uniform1i("SunShadowDepthMap", 12);
-                    rc.uniformMatrix4f("SunShadowBiasMatrix", Matrix4.makeShadowBias());
-                    rc.uniformMatrix4f("SunShadowProjectionMatrix", this.sunlight.projectionMatrix);
-                    rc.uniformMatrix4f("SunShadowViewMatrix", this.sunlight.lightMatrix);
-                    rc.uniform2f("iResolutionSunShadow", this.shadowFBO.dimensions);
-                    rc.uniform1i("UsingSunShadow", 1);
-                }
-                if (this.gbufferFBO.complete) {
-                    this.gbufferFBO.bindTextures(13, 14);
-                    if (this.gbufferFBO.color)
-                        rc.uniform1i("GBufferColor0", 13);
-                    if (this.gbufferFBO.depth)
-                        rc.uniform1i("GBufferDepth", 14);
-                    rc.uniform2f("iResolutionGBuffer", this.gbufferFBO.dimensions);
-                    rc.uniform1i("UsingGBuffer", 1);
-                }
-                if (this.imageFBO.complete) {
-                    this.imageFBO.bindTextures(15, 16);
-                    if (this.imageFBO.color)
-                        rc.uniform1i("ImageColor0", 15);
-                    if (this.imageFBO.depth)
-                        rc.uniform1i("ImageDepth", 16);
-                    rc.uniform2f("iResolutionImage", this.imageFBO.dimensions);
-                    rc.uniform1i("UsingImage", 1);
-                }
+                rc.uniformMatrix4f("SunShadowBiasMatrix", Matrix4.makeShadowBias());
+                rc.uniformMatrix4f("SunShadowProjectionMatrix", this.sunlight.projectionMatrix);
+                rc.uniformMatrix4f("SunShadowViewMatrix", this.sunlight.lightMatrix);
             }
-            else {
-                if (this.shadowFBO.color)
-                    rc.uniform1i("SunShadowColorMap", 0);
-                if (this.shadowFBO.depth)
-                    rc.uniform1i("SunShadowDepthMap", 0);
-                if (this.gbufferFBO.color)
-                    rc.uniform1i("GBufferColor0", 0);
-                if (this.gbufferFBO.depth)
-                    rc.uniform1i("GBufferDepth", 0);
-                if (this.imageFBO.color)
-                    rc.uniform1i("ImageColor0", 0);
-                if (this.imageFBO.depth)
-                    rc.uniform1i("ImageDepth", 0);
-                rc.uniform1i("UsingSunShadow", 0);
-                rc.uniform1i("UsingGBuffer", 0);
-                rc.uniform1i("UsingImage", 0);
+            let unit = 11;
+            for (let fbo of rc.fbos) {
+                this.configureFBO(rc, fbo, unit, unit + 1);
+                unit += 2;
             }
         }
         let gl = this.fx.gl;
         gl.viewport(0, 0, this.width, this.height);
+    }
+    configureFBO(rc, name, colorUnit, depthUnit) {
+        const colorUniform = name + "Color";
+        const depthUniform = name + "Depth";
+        const resolutionUnifom = name + "Resolution";
+        const usingUniform = "Using" + name;
+        let fbo = this._fbo.get(name) || null;
+        if (!fbo)
+            return;
+        rc.uniform2f(resolutionUnifom, fbo.dimensions);
+        rc.uniform1i(usingUniform, rc.usesFBO ? 1 : 0);
+        if (rc.usesFBO && fbo.complete) {
+            fbo.bindTextures(colorUnit, depthUnit);
+            if (fbo.color)
+                rc.uniform1i(colorUniform, colorUnit);
+            if (fbo.depth)
+                rc.uniform1i(depthUniform, depthUnit);
+        }
+        else {
+            rc.uniform1i(colorUniform, 0);
+            rc.uniform1i(depthUniform, 0);
+        }
     }
     Restore() {
         let gl = this.fx.gl;
@@ -3179,11 +3179,9 @@ class Scenegraph {
             gl.bindTexture(gl.TEXTURE_2D, null);
         }
         this.useTexture("enviroCube", 10, false);
-        if (this.shadowFBO.complete) {
-            this.shadowFBO.unbindTextures();
-        }
-        if (this.gbufferFBO.complete) {
-            this.gbufferFBO.unbindTextures();
+        for (let fbo of this._fbo) {
+            if (fbo[1].complete)
+                fbo[1].unbindTextures();
         }
     }
     Update() {
@@ -3192,7 +3190,6 @@ class Scenegraph {
                 fbo.autoResize(this.width, this.height);
             }
         });
-        this._defaultFBO.autoResize(this.width, this.height);
     }
     RenderScene(shaderName, sceneName = "") {
         let rc = this.userc(shaderName);
@@ -3437,18 +3434,19 @@ class Scenegraph {
         }
     }
     getFBO(name) {
-        let fbo = this._fbo.get(name);
-        if (!fbo)
-            return this._defaultFBO;
-        return fbo;
+        return this._fbo.get(name) || null;
     }
 }
 class MemorySystem {
     constructor(xor) {
         this.xor = xor;
         this.mem = new Int32Array(65536);
-        this.PALETTESTART = 0x1000;
+        this.VICSTART = 0x1000;
+        this.VICCOUNT = 256;
+        this.PALETTESTART = 0x1100;
         this.PALETTECOUNT = 16 * 16;
+        this.SPRITESHEETSTART = 0x2000;
+        this.SPRITESHEETCOUNT = 0x1000;
     }
     init() {
         for (let i = 0; i < 65536; i++) {
@@ -3599,9 +3597,12 @@ class GraphicsSystem {
     }
     clear(index) {
         let c = this.xor.palette.getColor(index);
-        this.clearRgba(c.r, c.g, c.b, 1.0);
+        this.clearrgba(c.r, c.g, c.b, 1.0);
     }
-    clearRgba(r, g, b, a) {
+    clear3(color) {
+        this.clearrgba(color.x, color.y, color.z, 1.0);
+    }
+    clearrgba(r, g, b, a) {
         if (!this.gl)
             return;
         let gl = this.gl;
@@ -3971,6 +3972,8 @@ class InputSystem {
         else {
             this.codes.set(this.translateKeyToCode(e.key), 1);
         }
+        if (e.key == "F12")
+            return;
         e.preventDefault();
     }
     onkeyup(e) {
@@ -3987,28 +3990,30 @@ class InputSystem {
         else {
             this.codes.set(this.translateKeyToCode(e.key), 0);
         }
+        if (e.key == "F12")
+            return;
         e.preventDefault();
     }
 }
 class PaletteSystem {
     constructor(xor) {
         this.xor = xor;
-        this.BLACK = GTE.vec3(0.000, 0.000, 0.000);
-        this.GRAY33 = GTE.vec3(0.333, 0.333, 0.333);
-        this.GRAY67 = GTE.vec3(0.667, 0.667, 0.667);
-        this.WHITE = GTE.vec3(1.000, 1.000, 1.000);
-        this.RED = GTE.vec3(1.000, 0.000, 0.000);
-        this.ORANGE = GTE.vec3(0.894, 0.447, 0.000);
-        this.YELLOW = GTE.vec3(0.894, 0.894, 0.000);
-        this.GREEN = GTE.vec3(0.000, 1.000, 0.000);
-        this.CYAN = GTE.vec3(0.000, 0.707, 0.707);
-        this.AZURE = GTE.vec3(0.000, 0.447, 0.894);
-        this.BLUE = GTE.vec3(0.000, 0.000, 1.000);
-        this.VIOLET = GTE.vec3(0.447, 0.000, 0.894);
-        this.ROSE = GTE.vec3(0.894, 0.000, 0.447);
-        this.BROWN = GTE.vec3(0.500, 0.250, 0.000);
-        this.GOLD = GTE.vec3(0.830, 0.670, 0.220);
-        this.FORESTGREEN = GTE.vec3(0.250, 0.500, 0.250);
+        this.BLACK = 0;
+        this.GRAY33 = 1;
+        this.GRAY67 = 2;
+        this.WHITE = 3;
+        this.RED = 4;
+        this.ORANGE = 5;
+        this.YELLOW = 6;
+        this.GREEN = 7;
+        this.CYAN = 8;
+        this.AZURE = 9;
+        this.BLUE = 10;
+        this.VIOLET = 11;
+        this.ROSE = 12;
+        this.BROWN = 13;
+        this.GOLD = 14;
+        this.FORESTGREEN = 15;
     }
     getColor(index) {
         if (index == 0)
@@ -4289,15 +4294,19 @@ class LibXOR {
         this.t1 = 0.0;
         this.t0 = 0.0;
         this.dt = 0.0;
+        this.frameCount = 0;
         this.oninit = () => { };
         this.onupdate = (dt) => { };
-        this.frameCount = 0;
         let n = document.getElementById(parentId);
         if (!n)
             throw "Unable to initialize LibXOR due to bad parentId '" + parentId.toString() + "'";
         this.parentElement = n;
     }
     start() {
+        this.t0 = 0;
+        this.t1 = 0;
+        this.dt = 0;
+        this.frameCount = 0;
         this.memory.init();
         this.graphics.init();
         this.sound.init();
@@ -4309,6 +4318,7 @@ class LibXOR {
         this.t0 = this.t1;
         this.t1 = t / 1000.0;
         this.dt = this.t1 - this.t0;
+        this.frameCount++;
     }
     mainloop() {
         let self = this;

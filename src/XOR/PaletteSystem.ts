@@ -1,22 +1,22 @@
 /// <reference path="LibXOR.ts" />
 
 class PaletteSystem {
-    readonly BLACK = GTE.vec3(0.000, 0.000, 0.000);
-    readonly GRAY33 = GTE.vec3(0.333, 0.333, 0.333);
-    readonly GRAY67 = GTE.vec3(0.667, 0.667, 0.667);
-    readonly WHITE = GTE.vec3(1.000, 1.000, 1.000);
-    readonly RED = GTE.vec3(1.000, 0.000, 0.000);
-    readonly ORANGE = GTE.vec3(0.894, 0.447, 0.000);
-    readonly YELLOW = GTE.vec3(0.894, 0.894, 0.000);
-    readonly GREEN = GTE.vec3(0.000, 1.000, 0.000);
-    readonly CYAN = GTE.vec3(0.000, 0.707, 0.707);
-    readonly AZURE = GTE.vec3(0.000, 0.447, 0.894);
-    readonly BLUE = GTE.vec3(0.000, 0.000, 1.000);
-    readonly VIOLET = GTE.vec3(0.447, 0.000, 0.894);
-    readonly ROSE = GTE.vec3(0.894, 0.000, 0.447);
-    readonly BROWN = GTE.vec3(0.500, 0.250, 0.000);
-    readonly GOLD = GTE.vec3(0.830, 0.670, 0.220);
-    readonly FORESTGREEN = GTE.vec3(0.250, 0.500, 0.250);
+    readonly BLACK = 0;
+    readonly GRAY33 = 1;
+    readonly GRAY67 = 2;
+    readonly WHITE = 3;
+    readonly RED = 4;
+    readonly ORANGE = 5;
+    readonly YELLOW = 6;
+    readonly GREEN = 7;
+    readonly CYAN = 8;
+    readonly AZURE = 9;
+    readonly BLUE = 10;
+    readonly VIOLET = 11;
+    readonly ROSE = 12;
+    readonly BROWN = 13;
+    readonly GOLD = 14;
+    readonly FORESTGREEN = 15;
 
     constructor(public xor: LibXOR) { }
 
