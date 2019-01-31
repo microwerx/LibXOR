@@ -33,7 +33,7 @@ class Matrix4 {
 	) { }
 
 	copy(m: Matrix4): Matrix4 {
-		return this.LoadMatrix(m);
+		return this.loadMatrix(m);
 	}
 
 	clone(): Matrix4 {
@@ -117,7 +117,7 @@ class Matrix4 {
 		return new Vector3(this.m11, this.m22, this.m33);
 	}
 
-	LoadRowMajor(
+	loadRowMajor(
 		m11: number, m12: number, m13: number, m14: number,
 		m21: number, m22: number, m23: number, m24: number,
 		m31: number, m32: number, m33: number, m34: number,
@@ -129,7 +129,7 @@ class Matrix4 {
 		return this;
 	}
 
-	LoadColMajor(
+	loadColMajor(
 		m11: number, m21: number, m31: number, m41: number,
 		m12: number, m22: number, m32: number, m42: number,
 		m13: number, m23: number, m33: number, m43: number,
@@ -141,52 +141,52 @@ class Matrix4 {
 		return this;
 	}
 
-	LoadIdentity(): Matrix4 {
-		return this.LoadMatrix(Matrix4.makeIdentity());
+	loadIdentity(): Matrix4 {
+		return this.loadMatrix(Matrix4.makeIdentity());
 	}
 
-	Translate(x: number, y: number, z: number): Matrix4 {
-		return this.MultMatrix(Matrix4.makeTranslation(x, y, z));
+	translate(x: number, y: number, z: number): Matrix4 {
+		return this.multMatrix(Matrix4.makeTranslation(x, y, z));
 	}
 
-	Rotate(angleInDegrees: number, x: number, y: number, z: number): Matrix4 {
-		return this.MultMatrix(Matrix4.makeRotation(angleInDegrees, x, y, z));
+	rotate(angleInDegrees: number, x: number, y: number, z: number): Matrix4 {
+		return this.multMatrix(Matrix4.makeRotation(angleInDegrees, x, y, z));
 	}
 
-	Scale(sx: number, sy: number, sz: number): Matrix4 {
-		return this.MultMatrix(Matrix4.makeScale(sx, sy, sz));
+	scale(sx: number, sy: number, sz: number): Matrix4 {
+		return this.multMatrix(Matrix4.makeScale(sx, sy, sz));
 	}
 
-	LookAt(eye: Vector3, center: Vector3, up: Vector3): Matrix4 {
-		return this.MultMatrix(Matrix4.makeLookAt2(eye, center, up));
+	lookAt(eye: Vector3, center: Vector3, up: Vector3): Matrix4 {
+		return this.multMatrix(Matrix4.makeLookAt2(eye, center, up));
 	}
 
-	Frustum(left: number, right: number, bottom: number, top: number, near: number, far: number): Matrix4 {
-		return this.MultMatrix(Matrix4.makeFrustum(left, right, bottom, top, near, far));
+	frustum(left: number, right: number, bottom: number, top: number, near: number, far: number): Matrix4 {
+		return this.multMatrix(Matrix4.makeFrustum(left, right, bottom, top, near, far));
 	}
 
-	Ortho(left: number, right: number, bottom: number, top: number, near: number, far: number) {
-		return this.MultMatrix(Matrix4.makeOrtho(left, right, bottom, top, near, far));
+	ortho(left: number, right: number, bottom: number, top: number, near: number, far: number) {
+		return this.multMatrix(Matrix4.makeOrtho(left, right, bottom, top, near, far));
 	}
 
-	Ortho2D(left: number, right: number, bottom: number, top: number): Matrix4 {
-		return this.MultMatrix(Matrix4.makeOrtho2D(left, right, bottom, top));
+	ortho2D(left: number, right: number, bottom: number, top: number): Matrix4 {
+		return this.multMatrix(Matrix4.makeOrtho2D(left, right, bottom, top));
 	}
 
-	PerspectiveX(fovx: number, aspect: number, near: number, far: number): Matrix4 {
-		return this.MultMatrix(Matrix4.makePerspectiveX(fovx, aspect, near, far));
+	perspectiveX(fovx: number, aspect: number, near: number, far: number): Matrix4 {
+		return this.multMatrix(Matrix4.makePerspectiveX(fovx, aspect, near, far));
 	}
 
-	PerspectiveY(fovy: number, aspect: number, near: number, far: number): Matrix4 {
-		return this.MultMatrix(Matrix4.makePerspectiveY(fovy, aspect, near, far));
+	perspectiveY(fovy: number, aspect: number, near: number, far: number): Matrix4 {
+		return this.multMatrix(Matrix4.makePerspectiveY(fovy, aspect, near, far));
 	}
 
-	ShadowBias(): Matrix4 {
-		return this.MultMatrix(Matrix4.makeShadowBias());
+	shadowBias(): Matrix4 {
+		return this.multMatrix(Matrix4.makeShadowBias());
 	}
 
-	CubeFaceMatrix(face: number): Matrix4 {
-		return this.MultMatrix(Matrix4.makeCubeFaceMatrix(face));
+	cubeFaceMatrix(face: number): Matrix4 {
+		return this.multMatrix(Matrix4.makeCubeFaceMatrix(face));
 	}
 
 	static makeIdentity(): Matrix4 {
@@ -492,7 +492,7 @@ class Matrix4 {
 		);
 	}
 
-	LoadMatrix(m: Matrix4): Matrix4 {
+	loadMatrix(m: Matrix4): Matrix4 {
 		this.m11 = m.m11; this.m21 = m.m21; this.m31 = m.m31; this.m41 = m.m41;
 		this.m12 = m.m12; this.m22 = m.m22; this.m32 = m.m32; this.m42 = m.m42;
 		this.m13 = m.m13; this.m23 = m.m23; this.m33 = m.m33; this.m43 = m.m43;
@@ -500,8 +500,8 @@ class Matrix4 {
 		return this;
 	}
 
-	MultMatrix(m: Matrix4): Matrix4 {
-		this.LoadMatrix(Matrix4.multiply(this, m));
+	multMatrix(m: Matrix4): Matrix4 {
+		this.loadMatrix(Matrix4.multiply(this, m));
 		return this;
 	}
 

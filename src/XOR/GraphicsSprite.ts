@@ -37,7 +37,7 @@ class GraphicsSprite {
         let M22 = mem.PEEK(offset + 14);
         let M23 = mem.PEEK(offset + 15);
 
-        this.matrix.LoadRowMajor(
+        this.matrix.loadRowMajor(
             M11, M12, 0, M13,
             M21, M22, 0, M23,
             0, 0, 1, 0,

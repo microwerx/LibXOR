@@ -54,10 +54,10 @@ class DirectionalLight {
     }
 
     setOrbit(azimuthInDegrees: number, pitchInDegrees: number, distance: number): Matrix4 {
-        this._transform.LoadIdentity();
-        this._transform.Rotate(azimuthInDegrees, 0.0, 1.0, 0.0);
-        this._transform.Rotate(pitchInDegrees, 1.0, 0.0, 0.0);
-        this._transform.Translate(0.0, 0.0, -distance);
+        this._transform.loadIdentity();
+        this._transform.rotate(azimuthInDegrees, 0.0, 1.0, 0.0);
+        this._transform.rotate(pitchInDegrees, 1.0, 0.0, 0.0);
+        this._transform.translate(0.0, 0.0, -distance);
         this._isOrbit = true;
         return this._transform.clone();
     }

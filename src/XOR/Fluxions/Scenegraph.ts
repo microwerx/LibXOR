@@ -22,9 +22,9 @@ class ScenegraphNode {
     private posttransform_: Matrix4 = Matrix4.makeIdentity();
 
     set worldMatrix(m: Matrix4) {
-        this.pretransform_.LoadIdentity();
+        this.pretransform_.loadIdentity();
         this.transform_.copy(m);
-        this.posttransform_.LoadIdentity();
+        this.posttransform_.loadIdentity();
     }
     get worldMatrix(): Matrix4 { return Matrix4.multiply3(this.pretransform_, this.transform_, this.posttransform_); }
     get pretransform(): Matrix4 { return this.pretransform_; }
@@ -677,21 +677,21 @@ class Scenegraph {
                 this.load(path + tokens[1]);
             }
             else if (tokens[0] == "transform") {
-                this._tempNode.transform.LoadMatrix(TextParser.ParseMatrix(tokens));
+                this._tempNode.transform.loadMatrix(TextParser.ParseMatrix(tokens));
             }
             else if (tokens[0] == "loadIdentity") {
-                this._tempNode.transform.LoadIdentity();
+                this._tempNode.transform.loadIdentity();
             }
             else if (tokens[0] == "translate") {
                 let t = TextParser.ParseVector(tokens);
-                this._tempNode.transform.Translate(t.x, t.y, t.z);
+                this._tempNode.transform.translate(t.x, t.y, t.z);
             }
             else if (tokens[0] == "rotate") {
                 let values = TextParser.ParseVector4(tokens);
-                this._tempNode.transform.Rotate(values.x, values.y, values.z, values.w);
+                this._tempNode.transform.rotate(values.x, values.y, values.z, values.w);
             } else if (tokens[0] == "scale") {
                 let values = TextParser.ParseVector4(tokens);
-                this._tempNode.transform.Scale(values.x, values.y, values.z);
+                this._tempNode.transform.scale(values.x, values.y, values.z);
             }
             else if (tokens[0] == "geometryGroup") {
                 // geometryGroup filename

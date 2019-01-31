@@ -92,7 +92,7 @@ class Camera {
 
     set center(p: Vector3) {
         this._center = p;
-        this._transform.LookAt(this._eye, this._center, this.up);
+        this._transform.lookAt(this._eye, this._center, this.up);
     }
 
     moveTo(position: Vector3) {
@@ -105,25 +105,25 @@ class Camera {
         let tx = this.right.mul(delta.x);
         let ty = this.up.mul(delta.y);
         let tz = this.forward.mul(delta.z);
-        this._transform.Translate(tx.x, tx.y, tx.z);
-        this._transform.Translate(ty.x, ty.y, ty.z);
-        this._transform.Translate(tz.x, tz.y, tz.z);
+        this._transform.translate(tx.x, tx.y, tx.z);
+        this._transform.translate(ty.x, ty.y, ty.z);
+        this._transform.translate(tz.x, tz.y, tz.z);
         return this.position;
     }
 
     turn(delta: Vector3): void {
         let m = Matrix4.makeIdentity();
-        m.Rotate(delta.x, 1, 0, 0);
-        m.Rotate(delta.y, 0, 1, 0);
-        m.Rotate(delta.z, 0, 0, 1);
-        this._transform.MultMatrix(m);
+        m.rotate(delta.x, 1, 0, 0);
+        m.rotate(delta.y, 0, 1, 0);
+        m.rotate(delta.z, 0, 0, 1);
+        this._transform.multMatrix(m);
     }
 
     setOrbit(azimuthInDegrees: number, pitchInDegrees: number, distance: number): Matrix4 {
-        this._transform.LoadIdentity();
-        this._transform.Rotate(azimuthInDegrees, 0.0, 1.0, 0.0);
-        this._transform.Rotate(pitchInDegrees, 1.0, 0.0, 0.0);
-        this._transform.Translate(0.0, 0.0, -distance);
+        this._transform.loadIdentity();
+        this._transform.rotate(azimuthInDegrees, 0.0, 1.0, 0.0);
+        this._transform.rotate(pitchInDegrees, 1.0, 0.0, 0.0);
+        this._transform.translate(0.0, 0.0, -distance);
         return this._transform.clone();
     }
 }
