@@ -1,0 +1,217 @@
+@import url('assets/fonts/stylesheet.css');
+
+@media screen and (min-width: 640px) {
+    body {
+        width: 640px;
+    }
+}
+
+html {
+    display: table;
+    height: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+body {
+    display: table-cell;
+    vertical-align: top;
+    font-family: linlibertine, Georgia, serif;
+    line-height: 1.62em;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 5px;
+    font-size: 1em;
+    background: #f7f7f7;
+    color: #444444;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    /* line-height: 1.0em; */
+    font-family: linbiolinum, Futura, 'Helvetica Neue', Helvetica, sans-serif;
+    margin: 0px;
+    margin-bottom: 0.25em;
+
+    color: #236192;
+}
+
+h1 {
+    margin-top: 2em;
+    margin-bottom: 1em;
+    font-size: 2em;
+    font-weight: bold;
+    font-style: normal;
+}
+
+h2 {
+    margin-top: 2em;
+    font-size: 2em;
+    font-weight: bold;
+    font-style: normal;
+}
+
+h3 {
+    margin-top: 1em;
+    margin-bottom: 0em;
+    font-size: 1em;
+    font-style: normal;
+    font-weight: bold;
+}
+
+h4 {
+    font-size: 1em;
+    font-style: italic;
+    font-weight: bold;
+}
+
+em {
+    font-style: italic;
+}
+
+/*
+ * #236192 Pantone Plus 647 C - Blue
+ * #ffcd00 Pantone Plus 116 C - Gold
+ * #ffffff White
+*/
+a {
+    color: #A00000;
+    color: #236192;
+
+    font-weight: inherit;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #efdbb2;
+}
+
+.equation {
+    font-size: 2em;
+}
+
+.keeptogether {
+    white-space: nowrap;
+}
+
+.uaf {
+    color: #ffcd00;
+    background: #236192;
+    border-radius: 5px;
+    margin: auto;
+    padding: 5px;
+    display: table;
+    width: 100%;
+    line-height: 1.5em;
+}
+
+.blue {
+    color: #236192;
+}
+
+.bluehr {
+    background: #236192;
+    height: 0.2em;
+    border: none;
+}
+
+.goldhr {
+    background: #236192;
+    /* background: #ffcd00; */
+    height: 0.2em;
+    border: none;
+}
+
+.centered {
+    text-align: center;
+    vertical-align: middle;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.centered-block {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.dropcapimage {
+    width: 1in;
+    border-radius: 4px;
+    image-rendering: pixelated;
+}
+
+.column {
+    float: left;
+    padding: 1em;
+}
+
+.left {
+    width: 20%;
+}
+
+.right {
+    width: 80%;
+}
+
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* table {
+    padding: 0px;
+    width: 100%;
+}
+
+td,
+th {
+    border-radius: 5px;
+    background: lightgrey;
+    padding: 5px;
+} */
+
+.log {
+    font-family: 'PragmataPro', epp, inconsolata, consolas, monospace;
+    font-size: 1em;
+    border-radius: 5px;
+    padding: 5px;
+    background: #efdbb2;
+}
+
+pre {
+    font-family: epp, inconsolata, consolas, monospace;
+    border-radius: 5px;
+    padding: 5px;
+    font-size: 1em;
+}
+
+.center-middle {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.middle {
+    vertical-align: middle;
+}
+
+.rtitle {
+    font-weight: bold;
+}
+
+.rauthor {}
+
+.rjournal {
+    font-style: italic;
+}
+
+.rpaper {}

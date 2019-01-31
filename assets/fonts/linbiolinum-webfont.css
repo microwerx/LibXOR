@@ -1,0 +1,25 @@
+@font-face {
+    font-family: 'linbiolinum';
+    src: url('linbiolinum_r-webfont.woff2') format('woff2'),
+        url('linbiolinum_r-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'linbiolinum';
+    src: url('linbiolinum_rb-webfont.woff2') format('woff2'),
+        url('linbiolinum_rb-webfont.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'linbiolinum';
+    src: url('linbiolinum_ri-webfont.woff2') format('woff2'),
+        url('linbiolinum_ri-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: italic;
+}
