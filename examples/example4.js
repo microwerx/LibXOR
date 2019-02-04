@@ -22,7 +22,6 @@ class App {
         let screen = this.xor.meshes.create('fullscreenquad');
         screen.color3(pal.getColor(pal.WHITE));
         screen.rect(0, 0, this.xor.graphics.width, this.xor.graphics.height);
-        this.sim.reset();
     }
 
     start() {
@@ -31,16 +30,8 @@ class App {
 
     update(dt) {
         let xor = this.xor;
-        let resetSim = false;
         if (xor.input.checkKeys([" ", "Space"])) {
-            resetSim = true;
         }
-
-        if (resetSim) {
-            this.sim.reset();
-        }
-
-        this.sim.update(dt);
     }
 
     render() {
