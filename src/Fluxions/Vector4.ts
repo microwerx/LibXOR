@@ -88,7 +88,15 @@ class Vector4 {
         )
     }
 
-    neg(): Vector4 {
+    accum(b: Vector4, bscale: number): Vector4 {
+        this.x += b.x * bscale;
+        this.y += b.y * bscale;
+        this.z += b.z * bscale;
+        this.w += b.w * bscale;
+        return this;
+    }    
+
+    negate(): Vector4 {
         return new Vector4(-this.x, -this.y, -this.z, -this.w);
     }
 

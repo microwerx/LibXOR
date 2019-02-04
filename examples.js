@@ -17,6 +17,7 @@ class ExampleMetadata {
             "Ray Tracer",
             "Windy Blocks",
             "Ray Tracing Miss Shader",
+            "Windy Collisiony Tumbleweeds"
         ];
         this.numExamples = this.exampleDescs.length;
         this.courseNumber = "LibXOR";

@@ -172,6 +172,13 @@ class Vector3 {
         );
     }
 
+    accum(b: Vector3, bscale: number): Vector3 {
+        this.x += b.x * bscale;
+        this.y += b.y * bscale;
+        this.z += b.z * bscale;
+        return this;
+    }    
+
     compMul(b: Vector3): Vector3 {
         return new Vector3(
             this.x * b.x,

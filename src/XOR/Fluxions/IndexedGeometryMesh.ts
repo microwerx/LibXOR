@@ -260,6 +260,24 @@ class IndexedGeometryMesh {
         }
     }
 
+    spiral(radius: number, spirality = 4.0, segments = 32) {
+        this.begin(WebGLRenderingContext.LINE_STRIP);
+        this.normal(0, 0, 1);
+        let theta = 0;
+        let dtheta = GTE.radians(spirality * 360.0 / segments);
+        for (let i = 0; i < segments; i++) {
+            let x = Math.cos(theta);
+            let y = Math.sin(theta);
+            let u = x * 0.5 + 0.5;
+            let v = y * 0.5 + 0.5;
+            this.texcoord(u, v, 0);
+            let r = (i / segments) * radius;
+            this.position(r * x, r * y, 0);
+            this.addIndex(-1);
+            theta += dtheta;
+        }
+    }
+
     begin(mode: number) {
         if (this.surfaces.length == 0) {
             // if no surfaces exist, add one

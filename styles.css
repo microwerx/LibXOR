@@ -209,10 +209,14 @@ pre {
     font-weight: bold;
 }
 
-.rauthor {}
+.rauthor {
+    color: inherit;
+}
 
 .rjournal {
     font-style: italic;
 }
 
-.rpaper {}
+.rpaper {
+    color: inherit;
+}

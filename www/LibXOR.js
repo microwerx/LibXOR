@@ -95,6 +95,11 @@ class Vector2 {
     negate() {
         return new Vector2(-this.x, -this.y);
     }
+    accum(b, bscale) {
+        this.x += b.x * bscale;
+        this.y += b.y * bscale;
+        return this;
+    }
     toFloat32Array() {
         return new Float32Array([this.x, this.y]);
     }
@@ -234,6 +239,12 @@ class Vector3 {
     }
     scale(scalar) {
         return new Vector3(this.x * scalar, this.y * scalar, this.z * scalar);
+    }
+    accum(b, bscale) {
+        this.x += b.x * bscale;
+        this.y += b.y * bscale;
+        this.z += b.z * bscale;
+        return this;
     }
     compMul(b) {
         return new Vector3(this.x * b.x, this.y * b.y, this.z * b.z);
@@ -400,7 +411,14 @@ class Vector4 {
             return new Vector4();
         return new Vector4(this.x / divisor, this.y / divisor, this.z / divisor, this.w / divisor);
     }
-    neg() {
+    accum(b, bscale) {
+        this.x += b.x * bscale;
+        this.y += b.y * bscale;
+        this.z += b.z * bscale;
+        this.w += b.w * bscale;
+        return this;
+    }
+    negate() {
         return new Vector4(-this.x, -this.y, -this.z, -this.w);
     }
     toFloat32Array() {
@@ -2112,6 +2130,23 @@ class IndexedGeometryMesh {
             let v = y * 0.5 + 0.5;
             this.texcoord(u, v, 0);
             this.position(radius * x + ox, radius * y + oy, 0);
+            this.addIndex(-1);
+            theta += dtheta;
+        }
+    }
+    spiral(radius, spirality = 4.0, segments = 32) {
+        this.begin(WebGLRenderingContext.LINE_STRIP);
+        this.normal(0, 0, 1);
+        let theta = 0;
+        let dtheta = GTE.radians(spirality * 360.0 / segments);
+        for (let i = 0; i < segments; i++) {
+            let x = Math.cos(theta);
+            let y = Math.sin(theta);
+            let u = x * 0.5 + 0.5;
+            let v = y * 0.5 + 0.5;
+            this.texcoord(u, v, 0);
+            let r = (i / segments) * radius;
+            this.position(r * x, r * y, 0);
             this.addIndex(-1);
             theta += dtheta;
         }

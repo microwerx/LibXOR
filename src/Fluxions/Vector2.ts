@@ -80,6 +80,12 @@ class Vector2 {
         return new Vector2(-this.x, -this.y);
     }
 
+    accum(b: Vector2, bscale: number): Vector2 {
+        this.x += b.x * bscale;
+        this.y += b.y * bscale;
+        return this;
+    }    
+
     toFloat32Array(): Float32Array {
         return new Float32Array([this.x, this.y]);
     }

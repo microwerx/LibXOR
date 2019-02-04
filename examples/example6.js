@@ -59,7 +59,7 @@ function getRangeVector3(id) {
     return Vector3.make(
         getRangeValue(id + "1"),
         getRangeValue(id + "2"),
-        getRangeValue(id + "3"),
+        getRangeValue(id + "3")
     );
 }
 
