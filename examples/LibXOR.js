@@ -616,7 +616,7 @@ class Matrix4 {
         this.m44 = m44;
     }
     copy(m) {
-        return this.LoadMatrix(m);
+        return this.loadMatrix(m);
     }
     clone() {
         return new Matrix4(this.m11, this.m21, this.m31, this.m41, this.m12, this.m22, this.m32, this.m42, this.m13, this.m23, this.m33, this.m43, this.m14, this.m24, this.m34, this.m44);
@@ -703,7 +703,7 @@ class Matrix4 {
     diag3() {
         return new Vector3(this.m11, this.m22, this.m33);
     }
-    LoadRowMajor(m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44) {
+    loadRowMajor(m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44) {
         this.m11 = m11;
         this.m12 = m12;
         this.m13 = m13;
@@ -722,7 +722,7 @@ class Matrix4 {
         this.m44 = m44;
         return this;
     }
-    LoadColMajor(m11, m21, m31, m41, m12, m22, m32, m42, m13, m23, m33, m43, m14, m24, m34, m44) {
+    loadColMajor(m11, m21, m31, m41, m12, m22, m32, m42, m13, m23, m33, m43, m14, m24, m34, m44) {
         this.m11 = m11;
         this.m12 = m12;
         this.m13 = m13;
@@ -741,41 +741,41 @@ class Matrix4 {
         this.m44 = m44;
         return this;
     }
-    LoadIdentity() {
-        return this.LoadMatrix(Matrix4.makeIdentity());
+    loadIdentity() {
+        return this.loadMatrix(Matrix4.makeIdentity());
     }
-    Translate(x, y, z) {
-        return this.MultMatrix(Matrix4.makeTranslation(x, y, z));
+    translate(x, y, z) {
+        return this.multMatrix(Matrix4.makeTranslation(x, y, z));
     }
-    Rotate(angleInDegrees, x, y, z) {
-        return this.MultMatrix(Matrix4.makeRotation(angleInDegrees, x, y, z));
+    rotate(angleInDegrees, x, y, z) {
+        return this.multMatrix(Matrix4.makeRotation(angleInDegrees, x, y, z));
     }
-    Scale(sx, sy, sz) {
-        return this.MultMatrix(Matrix4.makeScale(sx, sy, sz));
+    scale(sx, sy, sz) {
+        return this.multMatrix(Matrix4.makeScale(sx, sy, sz));
     }
-    LookAt(eye, center, up) {
-        return this.MultMatrix(Matrix4.makeLookAt2(eye, center, up));
+    lookAt(eye, center, up) {
+        return this.multMatrix(Matrix4.makeLookAt2(eye, center, up));
     }
-    Frustum(left, right, bottom, top, near, far) {
-        return this.MultMatrix(Matrix4.makeFrustum(left, right, bottom, top, near, far));
+    frustum(left, right, bottom, top, near, far) {
+        return this.multMatrix(Matrix4.makeFrustum(left, right, bottom, top, near, far));
     }
-    Ortho(left, right, bottom, top, near, far) {
-        return this.MultMatrix(Matrix4.makeOrtho(left, right, bottom, top, near, far));
+    ortho(left, right, bottom, top, near, far) {
+        return this.multMatrix(Matrix4.makeOrtho(left, right, bottom, top, near, far));
     }
-    Ortho2D(left, right, bottom, top) {
-        return this.MultMatrix(Matrix4.makeOrtho2D(left, right, bottom, top));
+    ortho2D(left, right, bottom, top) {
+        return this.multMatrix(Matrix4.makeOrtho2D(left, right, bottom, top));
     }
-    PerspectiveX(fovx, aspect, near, far) {
-        return this.MultMatrix(Matrix4.makePerspectiveX(fovx, aspect, near, far));
+    perspectiveX(fovx, aspect, near, far) {
+        return this.multMatrix(Matrix4.makePerspectiveX(fovx, aspect, near, far));
     }
-    PerspectiveY(fovy, aspect, near, far) {
-        return this.MultMatrix(Matrix4.makePerspectiveY(fovy, aspect, near, far));
+    perspectiveY(fovy, aspect, near, far) {
+        return this.multMatrix(Matrix4.makePerspectiveY(fovy, aspect, near, far));
     }
-    ShadowBias() {
-        return this.MultMatrix(Matrix4.makeShadowBias());
+    shadowBias() {
+        return this.multMatrix(Matrix4.makeShadowBias());
     }
-    CubeFaceMatrix(face) {
-        return this.MultMatrix(Matrix4.makeCubeFaceMatrix(face));
+    cubeFaceMatrix(face) {
+        return this.multMatrix(Matrix4.makeCubeFaceMatrix(face));
     }
     static makeIdentity() {
         return new Matrix4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
@@ -903,7 +903,7 @@ class Matrix4 {
         return Matrix4.makeRowMajor(a.m11 * b.m11 + a.m12 * b.m21 + a.m13 * b.m31 + a.m14 * b.m41, a.m11 * b.m12 + a.m12 * b.m22 + a.m13 * b.m32 + a.m14 * b.m42, a.m11 * b.m13 + a.m12 * b.m23 + a.m13 * b.m33 + a.m14 * b.m43, a.m11 * b.m14 + a.m12 * b.m24 + a.m13 * b.m34 + a.m14 * b.m44, a.m21 * b.m11 + a.m22 * b.m21 + a.m23 * b.m31 + a.m24 * b.m41, a.m21 * b.m12 + a.m22 * b.m22 + a.m23 * b.m32 + a.m24 * b.m42, a.m21 * b.m13 + a.m22 * b.m23 + a.m23 * b.m33 + a.m24 * b.m43, a.m21 * b.m14 + a.m22 * b.m24 + a.m23 * b.m34 + a.m24 * b.m44, a.m31 * b.m11 + a.m32 * b.m21 + a.m33 * b.m31 + a.m34 * b.m41, a.m31 * b.m12 + a.m32 * b.m22 + a.m33 * b.m32 + a.m34 * b.m42, a.m31 * b.m13 + a.m32 * b.m23 + a.m33 * b.m33 + a.m34 * b.m43, a.m31 * b.m14 + a.m32 * b.m24 + a.m33 * b.m34 + a.m34 * b.m44, a.m41 * b.m11 + a.m42 * b.m21 + a.m43 * b.m31 + a.m44 * b.m41, a.m41 * b.m12 + a.m42 * b.m22 + a.m43 * b.m32 + a.m44 * b.m42, a.m41 * b.m13 + a.m42 * b.m23 + a.m43 * b.m33 + a.m44 * b.m43, a.m41 * b.m14 + a.m42 * b.m24 + a.m43 * b.m34 + a.m44 * b.m44);
         return new Matrix4(a.m11 * b.m11 + a.m21 * b.m12 + a.m31 * b.m13 + a.m41 * b.m14, a.m11 * b.m21 + a.m21 * b.m22 + a.m31 * b.m23 + a.m41 * b.m24, a.m11 * b.m31 + a.m21 * b.m32 + a.m31 * b.m33 + a.m41 * b.m34, a.m11 * b.m41 + a.m21 * b.m42 + a.m31 * b.m43 + a.m41 * b.m44, a.m12 * b.m11 + a.m22 * b.m12 + a.m32 * b.m13 + a.m42 * b.m14, a.m12 * b.m21 + a.m22 * b.m22 + a.m32 * b.m23 + a.m42 * b.m24, a.m12 * b.m31 + a.m22 * b.m32 + a.m32 * b.m33 + a.m42 * b.m34, a.m12 * b.m41 + a.m22 * b.m42 + a.m32 * b.m43 + a.m42 * b.m44, a.m13 * b.m11 + a.m23 * b.m12 + a.m33 * b.m13 + a.m43 * b.m14, a.m13 * b.m21 + a.m23 * b.m22 + a.m33 * b.m23 + a.m43 * b.m24, a.m13 * b.m31 + a.m23 * b.m32 + a.m33 * b.m33 + a.m43 * b.m34, a.m13 * b.m41 + a.m23 * b.m42 + a.m33 * b.m43 + a.m43 * b.m44, a.m14 * b.m11 + a.m24 * b.m12 + a.m34 * b.m13 + a.m44 * b.m14, a.m14 * b.m21 + a.m24 * b.m22 + a.m34 * b.m23 + a.m44 * b.m24, a.m14 * b.m31 + a.m24 * b.m32 + a.m34 * b.m33 + a.m44 * b.m34, a.m14 * b.m41 + a.m24 * b.m42 + a.m34 * b.m43 + a.m44 * b.m44);
     }
-    LoadMatrix(m) {
+    loadMatrix(m) {
         this.m11 = m.m11;
         this.m21 = m.m21;
         this.m31 = m.m31;
@@ -922,8 +922,8 @@ class Matrix4 {
         this.m44 = m.m44;
         return this;
     }
-    MultMatrix(m) {
-        this.LoadMatrix(Matrix4.multiply(this, m));
+    multMatrix(m) {
+        this.loadMatrix(Matrix4.multiply(this, m));
         return this;
     }
     transform(v) {
@@ -1159,6 +1159,13 @@ class FxRenderingContext {
         if (!xor.graphics.gl)
             throw "Unable to start Fluxions without valid gl context";
         this.gl = xor.graphics.gl;
+        let debugInfo = this.gl.getExtension('WEBGL_debug_renderer_info');
+        if (debugInfo) {
+            let vendor = this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+            let renderer = this.gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+            hflog.log(vendor);
+            hflog.log(renderer);
+        }
         this.enableExtensions([
             "EXT_texture_filter_anisotropic",
             "WEBGL_depth_texture",
@@ -1168,13 +1175,6 @@ class FxRenderingContext {
             "OES_texture_float_linear",
             "OES_texture_float",
         ]);
-        let debugInfo = this.gl.getExtension('WEBGL_debug_renderer_info');
-        if (debugInfo) {
-            let vendor = this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
-            let renderer = this.gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-            hflog.log(vendor);
-            hflog.log(renderer);
-        }
         let standardDerivatives = this.gl.getExtension('OES_standard_derivatives');
         if (standardDerivatives) {
             this.gl.hint(standardDerivatives.FRAGMENT_SHADER_DERIVATIVE_HINT_OES, this.gl.NICEST);

@@ -194,9 +194,25 @@ function updateModel() {
     if (color1huecolor) color1huecolor.style.background = pal.getHtmlColor(ch1);
     if (color2huecolor) color2huecolor.style.background = pal.getHtmlColor(ch2);
     if (negativecolor) negativecolor.style.background = pal.getHtmlColor(cneg);
+
+    let rgbmix = [
+        Math.floor(cmix.r * 255.99),
+        Math.floor(cmix.g * 255.99),
+        Math.floor(cmix.b * 255.99)
+    ];
+    let rgbneg = [
+        Math.floor(cneg.r * 255.99),
+        Math.floor(cneg.g * 255.99),
+        Math.floor(cneg.b * 255.99)
+    ];
+
+    e = document.getElementById('actualrgbmix');
+    if (e) e.innerHTML = "<div class='column left'>RGB Color: (" + rgbmix[0] + " " + rgbmix[1] + " " + rgbmix[2] + ")</div><div class='column right'>HTML Color: " + pal.getHtmlColor(cmix) + "</div></div>";
+    e = document.getElementById('actualrgbneg');
+    if (e) e.innerHTML = "<div class='column left'>RGB Color: (" + rgbneg[0] + " " + rgbneg[1] + " " + rgbneg[2] + ")</div><div class='column right'>HTML Color: " + pal.getHtmlColor(cneg) + "</div></div>";
 }
 
-function addRange(parent, name, min, max, step, id) {
+function appendRange(parent, name, min, max, step, id) {
     let tr = document.createElement("tr");
     let td1 = document.createElement("td");
     let td2 = document.createElement("td");
@@ -243,27 +259,46 @@ function addRange(parent, name, min, max, step, id) {
     };
 }
 
+function appendDiv(parent, id, className) {
+    let e = document.createElement("div");
+    e.id = id;
+    e.className = className;
+    parent.appendChild(e);
+    return e;
+}
+
+function appendElement(parent, type, id, className) {
+    let e = document.createElement(type);
+    e.id = id;
+    e.className = className;
+    parent.appendChild(e);
+    return e;
+}
+
+function appendHeader(parent, level, text, className = "") {
+    let h = (level < 0 || level > 6) ? "h1" : ("h" + level.toString());
+    let e = document.createElement(h);
+    e.className = className;
+    e.textContent = text;
+    parent.appendChild(e);
+    return e;
+}
+
 // Palette Editor
-let pe = document.createElement("div");
-pe.id = "paletteEditor";
-document.body.appendChild(pe);
+let pe = appendElement(document.body, "div", "paletteEditor", "");
+let ph1 = appendHeader(pe, 1, "Palette Editor");
 let pt = document.createElement("table");
-let ph1 = document.createElement("h1");
-ph1.textContent = "Palette Editor";
-pe.appendChild(ph1);
 pe.appendChild(pt);
-addRange(pt, "Palette", 0, 15, 1, "palette");
-addRange(pt, "Index", 0, 3, 1, "paletteindex");
-addRange(pt, "Color 1", 0, 15, 1, "color1");
-addRange(pt, "Color 2", 0, 15, 1, "color2");
-addRange(pt, "Color Mix", 0, 7, 1, "colormix");
-addRange(pt, "Color 1 Hue", 0, 3, 1, "color1hue");
-addRange(pt, "Color 2 Hue", 0, 3, 1, "color2hue");
-addRange(pt, "Negative", 0, 1, 1, "negative");
-let colorValue = document.createElement("p");
-colorValue.id = "modelColorValue";
-pe.appendChild(colorValue);
-let memoryValue = document.createElement("p");
-memoryValue.id = "modelMemoryValue";
-pe.appendChild(memoryValue);
+appendRange(pt, "Palette", 0, 15, 1, "palette");
+appendRange(pt, "Index", 0, 3, 1, "paletteindex");
+appendRange(pt, "Color 1", 0, 15, 1, "color1");
+appendRange(pt, "Color 2", 0, 15, 1, "color2");
+appendRange(pt, "Color Mix", 0, 7, 1, "colormix");
+appendRange(pt, "Color 1 Hue", 0, 3, 1, "color1hue");
+appendRange(pt, "Color 2 Hue", 0, 3, 1, "color2hue");
+appendRange(pt, "Negative", 0, 1, 1, "negative");
+appendElement(pe, "p", "modelColorValue", "");
+appendElement(pe, "p", "modelMemoryValue", "");
+appendDiv(pe, "actualrgbmix", "row monospace");
+appendDiv(pe, "actualrgbneg", "row monospace");
 updateModel();

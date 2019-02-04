@@ -2616,7 +2616,7 @@ class Camera {
     }
     set center(p) {
         this._center = p;
-        this._transform.LookAt(this._eye, this._center, this.up);
+        this._transform.lookAt(this._eye, this._center, this.up);
     }
     moveTo(position) {
         this._transform.m14 = position.x;
@@ -2627,23 +2627,23 @@ class Camera {
         let tx = this.right.mul(delta.x);
         let ty = this.up.mul(delta.y);
         let tz = this.forward.mul(delta.z);
-        this._transform.Translate(tx.x, tx.y, tx.z);
-        this._transform.Translate(ty.x, ty.y, ty.z);
-        this._transform.Translate(tz.x, tz.y, tz.z);
+        this._transform.translate(tx.x, tx.y, tx.z);
+        this._transform.translate(ty.x, ty.y, ty.z);
+        this._transform.translate(tz.x, tz.y, tz.z);
         return this.position;
     }
     turn(delta) {
         let m = Matrix4.makeIdentity();
-        m.Rotate(delta.x, 1, 0, 0);
-        m.Rotate(delta.y, 0, 1, 0);
-        m.Rotate(delta.z, 0, 0, 1);
-        this._transform.MultMatrix(m);
+        m.rotate(delta.x, 1, 0, 0);
+        m.rotate(delta.y, 0, 1, 0);
+        m.rotate(delta.z, 0, 0, 1);
+        this._transform.multMatrix(m);
     }
     setOrbit(azimuthInDegrees, pitchInDegrees, distance) {
-        this._transform.LoadIdentity();
-        this._transform.Rotate(azimuthInDegrees, 0.0, 1.0, 0.0);
-        this._transform.Rotate(pitchInDegrees, 1.0, 0.0, 0.0);
-        this._transform.Translate(0.0, 0.0, -distance);
+        this._transform.loadIdentity();
+        this._transform.rotate(azimuthInDegrees, 0.0, 1.0, 0.0);
+        this._transform.rotate(pitchInDegrees, 1.0, 0.0, 0.0);
+        this._transform.translate(0.0, 0.0, -distance);
         return this._transform.clone();
     }
 }
@@ -2723,10 +2723,10 @@ class DirectionalLight {
         return this._E0.clone();
     }
     setOrbit(azimuthInDegrees, pitchInDegrees, distance) {
-        this._transform.LoadIdentity();
-        this._transform.Rotate(azimuthInDegrees, 0.0, 1.0, 0.0);
-        this._transform.Rotate(pitchInDegrees, 1.0, 0.0, 0.0);
-        this._transform.Translate(0.0, 0.0, -distance);
+        this._transform.loadIdentity();
+        this._transform.rotate(azimuthInDegrees, 0.0, 1.0, 0.0);
+        this._transform.rotate(pitchInDegrees, 1.0, 0.0, 0.0);
+        this._transform.translate(0.0, 0.0, -distance);
         this._isOrbit = true;
         return this._transform.clone();
     }
@@ -2763,9 +2763,9 @@ class ScenegraphNode {
         this.posttransform_ = Matrix4.makeIdentity();
     }
     set worldMatrix(m) {
-        this.pretransform_.LoadIdentity();
+        this.pretransform_.loadIdentity();
         this.transform_.copy(m);
-        this.posttransform_.LoadIdentity();
+        this.posttransform_.loadIdentity();
     }
     get worldMatrix() { return Matrix4.multiply3(this.pretransform_, this.transform_, this.posttransform_); }
     get pretransform() { return this.pretransform_; }
@@ -3298,22 +3298,22 @@ class Scenegraph {
                 this.load(path + tokens[1]);
             }
             else if (tokens[0] == "transform") {
-                this._tempNode.transform.LoadMatrix(TextParser.ParseMatrix(tokens));
+                this._tempNode.transform.loadMatrix(TextParser.ParseMatrix(tokens));
             }
             else if (tokens[0] == "loadIdentity") {
-                this._tempNode.transform.LoadIdentity();
+                this._tempNode.transform.loadIdentity();
             }
             else if (tokens[0] == "translate") {
                 let t = TextParser.ParseVector(tokens);
-                this._tempNode.transform.Translate(t.x, t.y, t.z);
+                this._tempNode.transform.translate(t.x, t.y, t.z);
             }
             else if (tokens[0] == "rotate") {
                 let values = TextParser.ParseVector4(tokens);
-                this._tempNode.transform.Rotate(values.x, values.y, values.z, values.w);
+                this._tempNode.transform.rotate(values.x, values.y, values.z, values.w);
             }
             else if (tokens[0] == "scale") {
                 let values = TextParser.ParseVector4(tokens);
-                this._tempNode.transform.Scale(values.x, values.y, values.z);
+                this._tempNode.transform.scale(values.x, values.y, values.z);
             }
             else if (tokens[0] == "geometryGroup") {
                 let parentName = "";
@@ -3500,7 +3500,7 @@ class GraphicsSprite {
         let M21 = mem.PEEK(offset + 13);
         let M22 = mem.PEEK(offset + 14);
         let M23 = mem.PEEK(offset + 15);
-        this.matrix.LoadRowMajor(M11, M12, 0, M13, M21, M22, 0, M23, 0, 0, 1, 0, 0, 0, 0, 1);
+        this.matrix.loadRowMajor(M11, M12, 0, M13, M21, M22, 0, M23, 0, 0, 1, 0, 0, 0, 0, 1);
     }
 }
 class GraphicsTileLayer {

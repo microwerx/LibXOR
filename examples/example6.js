@@ -1,11 +1,38 @@
+/**
+ * Creates a row div with a left and right column. It expects CSS class row, column, left, and right.
+ * @param {string} leftContent 
+ * @param {string} rightContent 
+ */
+function createRow(leftContent = "", rightContent = "") {
+    let row = document.createElement('div');
+    row.className = 'row';
+    let left = document.createElement('div');
+    left.className = 'column left';
+    left.innerHTML = leftContent;
+    let right = document.createElement('div');
+    right.className = 'column right';
+    right.innerHTML = rightContent;
+    row.appendChild(left);
+    row.appendChild(right);
+    return row;
+}
+
+function getRangeValue(id) {
+    let e = document.getElementById(id);
+    if (!e) return 0;
+    return e.value;
+}
+
 class App {
     constructor() {
         this.xor = new LibXOR("project");
 
         let p = document.getElementById('desc');
         p.innerHTML = `This graphics demonstration of a simple ray tracer demonstrates
-        a miss shader used to render the sky and a closest hit shader to render the normal
-        of the sphere in the center of the screen.`;
+        a miss shader used to render the sky.`;
+        
+        let c = document.getElementById('controls');
+        c.appendChild(createRow('iSkyMode', '<input id="iSkyMode" type="range" min="0", max="5", value="1" />'));
     }
 
     init() {
@@ -14,7 +41,7 @@ class App {
         this.xor.input.init();
         let gl = this.xor.graphics.gl;
 
-        let rc = this.xor.renderconfigs.load('default', 'raytracer.vert', 'raytracer.frag');
+        let rc = this.xor.renderconfigs.load('default', 'raytracer.vert', 'raytracer-miss.frag');
         rc.useDepthTest = false;
 
         let pal = this.xor.palette;
@@ -22,7 +49,6 @@ class App {
         let screen = this.xor.meshes.create('fullscreenquad');
         screen.color3(pal.getColor(pal.WHITE));
         screen.rect(0, 0, this.xor.graphics.width, this.xor.graphics.height);
-        this.sim.reset();
     }
 
     start() {
@@ -31,16 +57,9 @@ class App {
 
     update(dt) {
         let xor = this.xor;
-        let resetSim = false;
         if (xor.input.checkKeys([" ", "Space"])) {
             resetSim = true;
         }
-
-        if (resetSim) {
-            this.sim.reset();
-        }
-
-        this.sim.update(dt);
     }
 
     render() {
@@ -57,6 +76,7 @@ class App {
             rc.uniform1f('iTime', xor.t1);
             rc.uniform1f('iTimeDelta', xor.dt);
             rc.uniform1i('iFrame', xor.frameCount);
+            rc.uniform1i('iSkyMode', getRangeValue('iSkyMode'));
 
             rc.uniformMatrix4f('WorldMatrix', Matrix4.makeIdentity());
             xor.meshes.render('fullscreenquad', rc);

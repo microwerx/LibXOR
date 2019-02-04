@@ -15,7 +15,8 @@ class ExampleMetadata {
             "LibXOR Basic Code",
             "Popping Blocks",
             "Ray Tracer",
-            "Windy Blocks"
+            "Windy Blocks",
+            "Ray Tracing Miss Shader",
         ];
         this.numExamples = this.exampleDescs.length;
         this.courseNumber = "LibXOR";

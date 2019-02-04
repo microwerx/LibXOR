@@ -1,5 +1,9 @@
 @import url("https://fonts.googleapis.com/css?family=Inconsolata");
 
+* {
+    box-sizing: border-box;
+}
+
 html {
     display: table;
     height: 80%;
@@ -10,14 +14,14 @@ html {
 body {
     width: 768px;
     display: block;
-    font-family: 'Times New Roman', Times, serif;
+    font-family: 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
     margin-left: auto;
     margin-right: auto;
     padding: 4px;
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: 'URW Geometric', 'Segoe UI Light', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 h1 {
@@ -46,4 +50,31 @@ pre {
 .project {
     display: block;
     margin: auto;
+}
+
+.column {
+    float: left;
+    padding: 1em;
+}
+
+.left {
+    width: 40%;
+}
+
+.right {
+    width: 60%;
+}
+
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.serif {
+    font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.monospace {
+    font-family: 'PragmataPro', 'Inconsolata', Consolas, monospace;
 }
