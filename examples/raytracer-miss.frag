@@ -13,6 +13,20 @@ uniform vec3 iChannelResolution[4]; // TODO for textures
 uniform vec4 iMouse; // (xy: current (where Left Mouse Button is), zw: (last click))
 uniform vec4 iDate; // (year, month, day, time in seconds)
 
+// LibXOR Standard Uniforms
+
+uniform sampler2D map_kd;
+uniform sampler2D map_ks;
+uniform sampler2D map_normal;
+uniform float map_kd_mix;
+uniform float map_ks_mix;
+uniform float map_normal_mix;
+uniform vec3 kd;
+uniform vec3 ks;
+
+uniform vec3 uSunDirTo;
+uniform vec3 uSunE0;
+
 // SUNFISH CONSTANTS /////////////////////////////////////////////////
 const int SOLVER_MAX_ITERATIONS = 10;
 const float SOLVER_MAX_ERROR = 0.01;
@@ -46,6 +60,7 @@ const vec3 Rose = vec3(0.894, 0.000, 0.447); //Rose
 const vec3 Brown = vec3(0.500, 0.250, 0.000); //Brown
 const vec3 Gold = vec3(0.830, 0.670, 0.220); //Gold
 const vec3 ForestGreen = vec3(0.250, 0.500, 0.250); //ForestGreen
+const vec3 UglyMagenta = vec3(1.0, 0.0, 1.0); // Ugly Magenta
 
 const int RAY_CAST = 0;
 const int RAY_TRACE = 1;
@@ -141,7 +156,7 @@ struct Ray {
     
 struct HitRecord {
     int i;    // which Hitable object
-    float t;  // Ray = x0 + t*x1
+    float t;  // Ray = O + tD
     vec3 P;   // Point where ray intersects object
     vec3 N;   // Geometric normal
     vec3 UVW; // Texture Coordinates
@@ -149,8 +164,16 @@ struct HitRecord {
     int isEmissive;
 };
 
+struct Payload {
+    int count;
+    int anyhit;
+    Ray rays[MAX_PATH_DEPTH];
+    HitRecord hitRecords[MAX_PATH_DEPTH];
+};
+
 Hitable Hitables[MAX_HITABLES];
 Light Lights[MAX_LIGHTS];
+Payload payload;
 int HitableCount = 0;    
 int LightCount = 0;
 
@@ -199,19 +222,16 @@ float rand() {
     seed = fract(sin(seed) * 43758.5453);
     return seed;
 }
-
     
 vec3 sfRayOffset(Ray r, float t)
 {
     return r.origin + t * r.direction;
 }
 
-
 vec3 sfRandomDirection(vec3 N)
 {
     return normalize(vec3(rand(), rand(), rand()) * N);
 }
-
 
 bool sfSolveQuadratic(in float a, in float b, in float c, out float t1, out float t2)
 {
@@ -307,7 +327,6 @@ bool sfRayIntersect(Hitable s, Ray r, float tMin, float tMax, out HitRecord h)
 // F A C T O R Y /////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
     
-
 Material sfCreateMaterial(vec3 Kd, vec3 Ks, float roughness)
 {
     Material m;
@@ -319,7 +338,6 @@ Material sfCreateMaterial(vec3 Kd, vec3 Ks, float roughness)
     m.type = MATERIAL_DIFFUSE;
     return m;
 }
-
 
 Material sfCreateDiffuseMaterial(vec3 Kd, float roughness)
 {
@@ -333,7 +351,6 @@ Material sfCreateDiffuseMaterial(vec3 Kd, float roughness)
     return m;
 }
 
-
 Material sfCreateSpecularMaterial(vec3 Ks, float roughness)
 {
     Material m;
@@ -345,7 +362,6 @@ Material sfCreateSpecularMaterial(vec3 Ks, float roughness)
     m.type = MATERIAL_SPECULAR;
     return m;
 }
-
 
 Material sfCreateDielectricMaterial(vec3 Kd, float indexOfRefraction)
 {
@@ -359,7 +375,6 @@ Material sfCreateDielectricMaterial(vec3 Kd, float indexOfRefraction)
     return m;
 }
 
-
 Material sfCreateEmissionMaterial(vec3 Ke)
 {
     Material m;
@@ -372,7 +387,6 @@ Material sfCreateEmissionMaterial(vec3 Ke)
     return m;
 }
 
-
 Ray sfCreateRay(vec3 origin, vec3 dir)
 {
     Ray r;
@@ -380,7 +394,6 @@ Ray sfCreateRay(vec3 origin, vec3 dir)
     r.direction = normalize(dir);
     return r;
 }
-
 
 Light sfCreateLight(int type, vec3 position, vec3 direction, vec3 color)
 {
@@ -392,7 +405,6 @@ Light sfCreateLight(int type, vec3 position, vec3 direction, vec3 color)
     return l;
 }
 
-
 HitRecord sfCreateHitRecord(float t, vec3 P, vec3 N)
 {
     HitRecord h;
@@ -401,7 +413,6 @@ HitRecord sfCreateHitRecord(float t, vec3 P, vec3 N)
     h.N = N;
     return h;
 }
-
 
 Hitable sfCreateSphere(vec3 position, float radius, Material material)
 {
@@ -412,7 +423,6 @@ Hitable sfCreateSphere(vec3 position, float radius, Material material)
     h.material = material;
     return h;
 }
-
 
 Hitable sfCreatePlane(vec3 position, vec3 normal, Material material)
 {
@@ -452,41 +462,11 @@ Ray sfCreateCameraRay(vec2 uv) {
 // S H A D E R S /////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 
-bool sfClosestHit(in Ray r, out HitRecord h)
-{		
-    int hit = -1;
-    float t_min = 0.0;
-    float t_max = 1e6;
-	for (int i = 0; i < MAX_HITABLES; i++)
-	{
-		if (i >= HitableCount) break;
-		if (sfRayIntersect(Hitables[i], r, t_min, t_max, h))
-		{
-            hit = i;
-			t_max = h.t;
-            if (Hitables[i].material.type == MATERIAL_EMISSION)
-            {
-                h.Kd = Hitables[i].material.Ke;
-                h.isEmissive = 1;
-            }
-            else
-            {
-                h.Kd = Hitables[i].material.Kd;
-                h.isEmissive = 0;
-            }
-		}
-	}
-    h.i = hit;
-    if (hit < 0) return false;
-    return true;
-}
-
 vec3 sfShadeSkyShirley(Ray r)
 {
 	float t = 0.5 * (r.direction.y + 1.0);
 	return (1.0 - t) * White + t * Azure;
 }
-
 
 vec3 sfShadeSkyDawn(Ray r)
 {
@@ -516,34 +496,116 @@ vec3 sfMissShader(Ray r)
     return Black;
 }
 
-vec3 sfRayCast(Ray r)
+bool sfTraverseRay(in Ray r, out HitRecord h);
+
+vec3 sfClosestHitShader(Hitable object, HitRecord h)
 {
-	HitRecord h = sfCreateHitRecord(1e6, vec3(0.0), vec3(0.0));
-	int hit = -1;
-	float t_min = 0.0;
-	float t_max = 1e6;
-	vec3 Kd;
-    if (!sfClosestHit(r, h))
-        return sfMissShader(r);    
-	for (int i = 0; i < MAX_HITABLES; i++)
-	{
-		if (h.i == i)
-		{
-            if (Hitables[i].material.type == MATERIAL_EMISSION) {
-                return Hitables[i].material.Ke;
-            }
-            
-            vec3 N = normalize(h.N);
-            return Hitables[i].material.Kd * 0.5 + (0.25 * N + 0.25);// + NdotL * color;// * NdotL * color;
-		}
-	}
-	return sfMissShader(r);
+    if (object.material.type == MATERIAL_EMISSION) {
+        return object.material.Ke;
+    }
+
+    vec3 N = normalize(h.N);
+
+    vec3 finalColor = vec3(0.0);
+
+    // diffuse ray
+    Ray sunRay = sfCreateRay(h.P, uSunDirTo);
+    if (!sfTraverseRay(sunRay, h)) {
+        vec3 L = normalize(uSunDirTo);
+        float NdotL = dot(N, L);
+        finalColor += object.material.Kd * NdotL * uSunDirTo.y;//0.5 + (0.25 * N + 0.25);// + NdotL * color;// * NdotL * color;
+    }
+
+
+    vec3 R = reflect(payload.rays[0].direction, N);
+    Ray reflectRay = sfCreateRay(h.P, R);
+    if (!sfTraverseRay(reflectRay, h)) {
+        vec3 sky = sfMissShader(reflectRay);
+        float NdotL = dot(N, R);
+        finalColor += sky * NdotL;//0.5 + (0.25 * N + 0.25);// + NdotL * color;// * NdotL * color;
+    }
+
+    return finalColor;
 }
 
+void sfAnyHitShader(Hitable object, HitRecord h)
+{
+    payload.anyhit++;
+}
+
+void sfCopyMaterialHitRecord(in Hitable object, inout HitRecord h)
+{
+    if (object.material.type == MATERIAL_EMISSION)
+    {
+        h.Kd = object.material.Ke;
+        h.isEmissive = 1;
+    }
+    else
+    {
+        h.Kd = object.material.Kd;
+        h.isEmissive = 0;
+    }
+}
+
+bool sfTraverseRay(in Ray r, out HitRecord h)
+{		
+    int hit = -1;
+    float t_min = 0.0;
+    float t_max = 1e6;
+	for (int i = 0; i < MAX_HITABLES; i++)
+	{
+		if (i >= HitableCount) break;
+
+        // sfRayIntersect acts like the Intersection Shader in the DXR pipeline
+		if (sfRayIntersect(Hitables[i], r, t_min, t_max, h))
+		{
+            hit = i;
+			t_max = h.t;
+            sfCopyMaterialHitRecord(Hitables[i], h);
+            sfAnyHitShader(Hitables[i], h);
+		}
+	}
+    h.i = hit;
+    return (hit < 0) ? false : true;
+}
+
+vec3 sfRayCast(Ray r)
+{
+    HitRecord h = sfCreateHitRecord(1e6, vec3(0.0), vec3(0.0));
+    int hit = -1;
+    float t_min = 0.0;
+    float t_max = 1e6;
+    vec3 Kd;
+
+    payload.anyhit = 0;
+    payload.rays[0] = r;
+
+    // If this is not the closest hit, then call the miss shader
+    if (!sfTraverseRay(r, h))
+        return sfMissShader(r);
+    
+    // In GLSL, we can't just call sfClosestHitShader(Hitables[h.i]) because
+    // indices have to be determined at compile time. So, we cheat here because
+    // the loop creates this case to be true        
+    for (int i = 0; i < MAX_HITABLES; i++)
+    {
+        if (h.i == i)
+        {
+            return sfClosestHitShader(Hitables[i], h);
+        }
+    }
+
+    // Uh oh, we should not get to this point, so return ugly magenta
+    return UglyMagenta;
+}
 
 void sfCreateScene() {
-    sfAddHitable(sfCreateSphere(vec3(0.0, 0.0, 0.0), 0.5,
+    sfAddHitable(sfCreateSphere(vec3(1.0, sin(iTime) + 0.0, 0.0), 0.5,
                                 sfCreateMaterial(Blue, White, 0.0)));
+    sfAddHitable(sfCreateSphere(vec3(-1.0, 0.0, 0.0), 0.5,
+                                sfCreateMaterial(Rose, White, 0.0)));
+    sfAddHitable(sfCreateSphere(vec3(0.0, -1001.0, 0.0), 1000.5,
+                                sfCreateMaterial(Brown, White, 0.0)));
 }
 
 vec3 Sunfish(in Ray r)
@@ -554,20 +616,7 @@ vec3 Sunfish(in Ray r)
     return sfMissShader(r);
 }
 
-
 // END SUNFISH RAY TRACER ////////////////////////////////////////////
-
-uniform sampler2D map_kd;
-uniform sampler2D map_ks;
-uniform sampler2D map_normal;
-uniform float map_kd_mix;
-uniform float map_ks_mix;
-uniform float map_normal_mix;
-uniform vec3 kd;
-uniform vec3 ks;
-
-uniform vec3 sunDirTo;
-uniform vec3 sunE0;
 
 // These MUST match the vertex shader
 varying vec3 vPosition;
@@ -577,11 +626,7 @@ varying vec3 vColor;
 
 void main() {
     sfCreateScene();
-    vec2 uv = vTexcoord.xy;//0.5 * vTexcoord.xy / iResolution.xy + 0.25;
+    vec2 uv = vTexcoord.xy;;
     Ray cameraRay = sfCreateCameraRay(uv);
    	gl_FragColor = vec4(Sunfish(cameraRay), 1.0);
-    //gl_FragColor = vec4(uv, 0.0, 1.0);
-
-    // set to white
-    //gl_FragColor = vec4(vTexcoord, 1.0);
 }

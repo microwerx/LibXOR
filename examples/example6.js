@@ -17,10 +17,50 @@ function createRow(leftContent = "", rightContent = "") {
     return row;
 }
 
+/**
+ * createRangeRow creates a row with a range control
+ * @param {HTMLElement} parent The element that should be appended to
+ * @param {string} id The name of the range variable
+ * @param {number} curValue The current value of the range
+ * @param {number} minValue The minimum value of the range
+ * @param {number} maxValue The maximum value of the range
+ * @param {number} stepValue The step of the range control (default 1)
+ * @returns {HTMLElement} The created HTMLElement div
+ */
+function createRangeRow(parent, id, curValue, minValue, maxValue, stepValue = 1, isvector = false) {
+    let lContent = "<div class='column left'><label for='" + id + "'>" + id + "<label></div>";
+    let rContent = "<div class='column right'>";
+    if (!isvector) {
+    rContent += "<input type='range' id='" + id + "' value='" + curValue + "' min='" + minValue + "' max='" + maxValue + "' step='" + stepValue + "' />";
+    } else {
+        rContent += "<input type='range' id='" + id + "1' value='" + curValue + "' min='" + minValue + "' max='" + maxValue + "' step='" + stepValue + "' />";
+        rContent += "<input type='range' id='" + id + "2' value='" + curValue + "' min='" + minValue + "' max='" + maxValue + "' step='" + stepValue + "' />";
+        rContent += "<input type='range' id='" + id + "3' value='" + curValue + "' min='" + minValue + "' max='" + maxValue + "' step='" + stepValue + "' />";
+    }
+    rContent += "</div>";
+    let row = createRow(lContent, rContent);
+    row.id = "row" + id;
+    row.className = "row";
+    parent.appendChild(row);
+}
+
+/**
+ * getRangeValue returns the number of a range control
+ * @param {number} id 
+ * @returns the value of the range control or 0
+ */
 function getRangeValue(id) {
     let e = document.getElementById(id);
     if (!e) return 0;
     return e.value;
+}
+
+function getRangeVector3(id) {
+    return Vector3.make(
+        getRangeValue(id + "1"),
+        getRangeValue(id + "2"),
+        getRangeValue(id + "3"),
+    );
 }
 
 class App {
@@ -33,6 +73,10 @@ class App {
         
         let c = document.getElementById('controls');
         c.appendChild(createRow('iSkyMode', '<input id="iSkyMode" type="range" min="0", max="5", value="1" />'));
+        createRangeRow(c, 'iTurbidity', 0, 1, 10, 1);
+        createRangeRow(c, 'iAlbedo', 0, 0, 10, 1, true);
+        createRangeRow(c, 'fSunInclination', 90, 0, 180, 1);
+        createRangeRow(c, 'fSunAzimuth', 0, -360, 360, 1);
     }
 
     init() {
@@ -77,6 +121,11 @@ class App {
             rc.uniform1f('iTimeDelta', xor.dt);
             rc.uniform1i('iFrame', xor.frameCount);
             rc.uniform1i('iSkyMode', getRangeValue('iSkyMode'));
+
+            let fSunInclination = getRangeValue('fSunInclination');
+            let fSunAzimuth = getRangeValue('fSunAzimuth');
+            let uSunDirTo = Vector3.makeFromSpherical(GTE.radians(fSunAzimuth), GTE.radians(fSunInclination));
+            rc.uniform3f('uSunDirTo', uSunDirTo);
 
             rc.uniformMatrix4f('WorldMatrix', Matrix4.makeIdentity());
             xor.meshes.render('fullscreenquad', rc);
