@@ -55,6 +55,11 @@ function getRangeValue(id) {
     return e.value;
 }
 
+/**
+ * getRangeVector3
+ * @param {string} id The id of the range controls ending with 1, 2, 3. Example: id="sky", we get "sky1", "sky2", etc.
+ * @returns {Vector3} A Vector3 with the values from controls id1, id2, and id3.
+ */
 function getRangeVector3(id) {
     return Vector3.make(
         getRangeValue(id + "1"),
