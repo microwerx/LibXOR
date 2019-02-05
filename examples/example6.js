@@ -78,7 +78,7 @@ class App {
         
         let c = document.getElementById('controls');
         c.appendChild(createRow('iSkyMode', '<input id="iSkyMode" type="range" min="0", max="5", value="1" />'));
-        createRangeRow(c, 'iTurbidity', 0, 1, 10, 1);
+        createRangeRow(c, 'iTurbidity', 1, 1, 10, 1);
         createRangeRow(c, 'iAlbedo', 0, 0, 10, 1, true);
         createRangeRow(c, 'fSunInclination', 90, 0, 180, 1);
         createRangeRow(c, 'fSunAzimuth', 0, -360, 360, 1);

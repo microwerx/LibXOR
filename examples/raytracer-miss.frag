@@ -516,7 +516,7 @@ vec3 sfClosestHitShader(Hitable object, HitRecord h)
         finalColor += object.material.Kd * NdotL * uSunDirTo.y;//0.5 + (0.25 * N + 0.25);// + NdotL * color;// * NdotL * color;
     }
 
-
+    // reflection ray
     vec3 R = reflect(payload.rays[0].direction, N);
     Ray reflectRay = sfCreateRay(h.P, R);
     if (!sfTraverseRay(reflectRay, h)) {
@@ -626,7 +626,7 @@ varying vec3 vColor;
 
 void main() {
     sfCreateScene();
-    vec2 uv = vTexcoord.xy;;
+    vec2 uv = vTexcoord.xy;
     Ray cameraRay = sfCreateCameraRay(uv);
    	gl_FragColor = vec4(Sunfish(cameraRay), 1.0);
 }
