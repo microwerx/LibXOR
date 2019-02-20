@@ -9,6 +9,7 @@ class ExampleMetadata {
             "example6.html",
             "example7.html",
             "example8.html",
+            "example9.html"
         ];
         this.exampleDescs = [
             "WebGL Basic Code",
@@ -17,11 +18,13 @@ class ExampleMetadata {
             "Ray Tracer",
             "Windy Blocks",
             "Ray Tracing Miss Shader",
-            "Windy Collisiony Tumbleweeds"
+            "Windy Collisiony Tumbleweeds",
+            "Hello, Operators",
+            "Oren-Nayer"
         ];
         this.numExamples = this.exampleDescs.length;
-        this.courseNumber = "LibXOR";
-        this.courseName = "LibXOR";
+        this.courseNumber = "Groovy Graphics Assignment";
+        this.courseName = "A Journey in Computer Graphics";
         this.courseSemester = "2019";
         this.pageAuthor = "Jonathan Metzgar";
         this.pageTitle = this.courseName;
