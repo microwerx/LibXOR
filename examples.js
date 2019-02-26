@@ -18,13 +18,13 @@ class ExampleMetadata {
             "Ray Tracer",
             "Windy Blocks",
             "Ray Tracing Miss Shader",
-            "Windy Collisiony Tumbleweeds",
+            "Windy Tumbleweeds",
             "Hello, Operators",
             "Oren-Nayer"
         ];
         this.numExamples = this.exampleDescs.length;
-        this.courseNumber = "Groovy Graphics Assignment";
-        this.courseName = "A Journey in Computer Graphics";
+        this.courseNumber = "Graphics Rendering, Animation, and Simulation";
+        this.courseName = "LibXOR";
         this.courseSemester = "2019";
         this.pageAuthor = "Jonathan Metzgar";
         this.pageTitle = this.courseName;
