@@ -22,6 +22,7 @@ class Hatchetfish {
         let errorElement = document.getElementById("errors");
         if (errorElement) {
             errorElement.remove();
+            //errorElement.innerHTML = "";
         }
     }
     writeToLog(prefix, message, ...optionalParams) {
@@ -37,6 +38,8 @@ class Hatchetfish {
         if (this._logElement) {
             let newHTML = "<br/>" + text + this._logElement.innerHTML;
             this._logElement.innerHTML = newHTML;
+            //this._logElement.appendChild(document.createElement("br"));
+            //this._logElement.appendChild(document.createTextNode(text));
         }
     }
     log(message, ...optionalParams) {
@@ -60,6 +63,31 @@ class Hatchetfish {
     }
 }
 var hflog = new Hatchetfish();
+// Fluxions WebGL Library
+// Copyright (c) 2017 - 2018 Jonathan Metzgar
+// All Rights Reserved.
+//
+// MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+/// <reference path="GTE.ts" />
 class Vector2 {
     constructor(x = 0.0, y = 0.0) {
         this.x = x;
@@ -87,6 +115,7 @@ class Vector2 {
     mul(multiplicand) {
         return new Vector2(this.x * multiplicand, this.y * multiplicand);
     }
+    // returns 0 if denominator is 0
     div(divisor) {
         if (divisor == 0.0)
             return new Vector2();
@@ -153,6 +182,31 @@ class Vector2 {
         return v;
     }
 }
+// Fluxions WebGL Library
+// Copyright (c) 2017 - 2018 Jonathan Metzgar
+// All Rights Reserved.
+//
+// MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+/// <reference path="./GTE.ts" />
 class Vector3 {
     constructor(x = 0.0, y = 0.0, z = 0.0) {
         this.x = x;
@@ -195,9 +249,15 @@ class Vector3 {
     static makeFromSpherical(theta, phi) {
         return new Vector3(Math.cos(phi) * Math.cos(theta), Math.sin(phi), -Math.cos(phi) * Math.sin(theta));
     }
+    // Converts (rho, theta, phi) so that rho is distance from origin,
+    // theta is inclination away from positive y-axis, and phi is azimuth
+    // from positive z-axis towards the positive x-axis.
     static makeFromSphericalISO(rho, thetaInRadians, phiInRadians) {
         return new Vector3(rho * Math.sin(thetaInRadians) * Math.cos(phiInRadians), rho * Math.cos(thetaInRadians), rho * Math.sin(thetaInRadians) * Math.sin(phiInRadians));
     }
+    // Converts (rho, theta, phi) so that rho is distance from origin,
+    // phi is inclination away from positive y-axis, and theta is azimuth
+    // from positive z-axis towards the positive x-axis.
     static makeFromSphericalMath(rho, thetaInRadians, phiInRadians) {
         return new Vector3(rho * Math.sin(phiInRadians) * Math.sin(thetaInRadians), rho * Math.cos(phiInRadians), rho * Math.sin(phiInRadians) * Math.cos(thetaInRadians));
     }
@@ -210,6 +270,8 @@ class Vector3 {
     static makeRandom(a, b) {
         return new Vector3(Math.random() * (b - a) + a, Math.random() * (b - a) + a, Math.random() * (b - a) + a);
     }
+    // theta represents angle from +x axis on xz plane going counterclockwise
+    // phi represents angle from xz plane going towards +y axis
     setFromSpherical(theta, phi) {
         this.x = Math.cos(theta) * Math.cos(phi);
         this.y = Math.sin(phi);
@@ -252,14 +314,19 @@ class Vector3 {
     compDiv(b) {
         return new Vector3(this.x / b.x, this.y / b.y, this.z / b.z);
     }
+    // returns 0 if denominator is 0
     div(divisor) {
         if (divisor == 0.0)
             return new Vector3();
         return new Vector3(this.x / divisor, this.y / divisor, this.z / divisor);
     }
+    // neg(): Vector3 {
+    //     return new Vector3(-this.x, -this.y, -this.z);
+    // }
     negate() {
         return new Vector3(-this.x, -this.y, -this.z);
     }
+    // multiplicative inverse (1/x)
     reciprocal() {
         return new Vector3(1.0 / this.x, 1.0 / this.y, 1.0 / this.z);
     }
@@ -373,6 +440,31 @@ class Vector3 {
         return new Vector3(Math.max(a.x, b.x), Math.max(a.y, b.y), Math.max(a.z, b.z));
     }
 }
+// Fluxions WebGL Library
+// Copyright (c) 2017 - 2018 Jonathan Metzgar
+// All Rights Reserved.
+//
+// MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+/// <reference path="GTE.ts" />
 class Vector4 {
     constructor(x = 0.0, y = 0.0, z = 0.0, w = 1.0) {
         this.x = x;
@@ -406,6 +498,7 @@ class Vector4 {
     mul(multiplicand) {
         return new Vector4(this.x * multiplicand, this.y * multiplicand, this.z * multiplicand, this.w * multiplicand);
     }
+    // returns 0 if denominator is 0
     div(divisor) {
         if (divisor == 0.0)
             return new Vector4();
@@ -470,6 +563,31 @@ class Vector4 {
         return (new Vector4(x, y, z, w)).norm();
     }
 }
+// Fluxions WebGL Library
+// Copyright (c) 2017 - 2018 Jonathan Metzgar
+// All Rights Reserved.
+//
+// MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+/// <reference path="GTE.ts"/>
 class Matrix3 {
     constructor(m11, m21, m31, m12, m22, m32, m13, m23, m33) {
         this.m11 = m11;
@@ -517,16 +635,22 @@ class Matrix3 {
         return Matrix3.makeRowMajor(x * x * (1 - c) + c, x * y * (1 - c) - z * s, x * z * (1 - c) + y * s, y * x * (1 - c) + z * s, y * y * (1 - c) + c, y * z * (1 - c) - x * s, x * z * (1 - c) - y * s, y * z * (1 - c) + x * s, z * z * (1 - c) + c);
     }
     static makeCubeFaceMatrix(face) {
+        // +X
         if (face == 0)
             return Matrix3.makeRotation(90.0, 0.0, 1.0, 0.0);
+        // -X
         if (face == 1)
             return Matrix3.makeRotation(270.0, 0.0, 1.0, 0.0);
+        // +Y
         if (face == 2)
             return Matrix3.makeRotation(90.0, 1.0, 0.0, 0.0);
+        // -Y
         if (face == 3)
             return Matrix3.makeRotation(270.0, 1.0, 0.0, 0.0);
+        // +Z
         if (face == 4)
             return Matrix3.makeIdentity();
+        // -Z
         if (face == 5)
             return Matrix3.makeRotation(180.0, 0.0, 1.0, 0.0);
         return new Matrix3(0, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -613,7 +737,32 @@ class Matrix3 {
     asTranspose() {
         return new Matrix3(this.m11, this.m12, this.m13, this.m21, this.m22, this.m23, this.m31, this.m32, this.m33);
     }
-}
+} // class Matrix3
+// Fluxions WebGL Library
+// Copyright (c) 2017 - 2018 Jonathan Metzgar
+// All Rights Reserved.
+//
+// MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+///<reference path="GTE.ts"/>
 class Matrix4 {
     constructor(m11 = 1, m21 = 0, m31 = 0, m41 = 0, m12 = 0, m22 = 1, m32 = 0, m42 = 0, m13 = 0, m23 = 0, m33 = 1, m43 = 0, m14 = 0, m24 = 0, m34 = 0, m44 = 1) {
         this.m11 = m11;
@@ -884,16 +1033,22 @@ class Matrix4 {
         return Matrix4.makeRowMajor(0.5, 0.0, 0.0, 0.5, 0.0, 0.5, 0.0, 0.5, 0.0, 0.0, 0.5, 0.5, 0.0, 0.0, 0.0, 1.0);
     }
     static makeCubeFaceMatrix(face) {
+        // +X
         if (face == 0)
             return Matrix4.makeRotation(90.0, 0.0, 1.0, 0.0);
+        // -X
         if (face == 1)
             return Matrix4.makeRotation(270.0, 0.0, 1.0, 0.0);
+        // +Y
         if (face == 2)
             return Matrix4.makeRotation(90.0, 1.0, 0.0, 0.0);
+        // -Y
         if (face == 3)
             return Matrix4.makeRotation(270.0, 1.0, 0.0, 0.0);
+        // +Z
         if (face == 4)
             return Matrix4.makeIdentity();
+        // -Z
         if (face == 5)
             return Matrix4.makeRotation(180.0, 0.0, 1.0, 0.0);
         return new Matrix4(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -982,7 +1137,32 @@ class Matrix4 {
     asTopLeft3x3() {
         return new Matrix3(this.m11, this.m21, this.m31, this.m12, this.m22, this.m32, this.m13, this.m23, this.m33);
     }
-}
+} // class Matrix4
+// Fluxions WebGL Library
+// Copyright (c) 2017 - 2018 Jonathan Metzgar
+// All Rights Reserved.
+//
+// MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+/// <reference path="GTE.ts"/>
 var GTE;
 (function (GTE) {
     class Sphere {
@@ -1000,12 +1180,15 @@ var GTE;
             this.center.copy(s.center);
             return this;
         }
+        // signed distance function
         sdf(p) {
             return (p.sub(this.center)).length() - this.radius;
         }
+        // support mapping
         support(n) {
             return n.mul(this.radius).add(this.center);
         }
+        // return shortest distance between another sphere
         distance(s) {
             return this.center.distance(s.center);
         }
@@ -1015,6 +1198,31 @@ var GTE;
     }
     GTE.Sphere = Sphere;
 })(GTE || (GTE = {}));
+// Fluxions WebGL Library
+// Copyright (c) 2017 - 2018 Jonathan Metzgar
+// All Rights Reserved.
+//
+// MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+/// <reference path="GTE.ts"/>
 var GTE;
 (function (GTE) {
     class BoundingBox {
@@ -1046,7 +1254,7 @@ var GTE;
         get front() { return this.minBounds.z; }
         get back() { return this.maxBounds.z; }
         get outsideSphere() {
-            let d = (0.5 * this.maxSize);
+            let d = (0.5 * this.maxSize); // distance from center to largest diagonal
             let r = Math.sqrt(d * d + d * d);
             return new GTE.Sphere(r, this.center);
         }
@@ -1082,6 +1290,7 @@ var GTE;
                 Zoverlap = false;
             return Xoverlap || Yoverlap || Zoverlap;
         }
+        // signed distance function
         sdf(p) {
             let c = this.center;
             return GTE.max3(Math.abs(p.x - c.x) - this.width * 0.5, Math.abs(p.y - c.y) - this.height * 0.5, Math.abs(p.z - c.z) - this.depth * 0.5);
@@ -1093,12 +1302,44 @@ var GTE;
     }
     GTE.BoundingBox = BoundingBox;
 })(GTE || (GTE = {}));
+// Fluxions WebGL Library
+// Copyright (c) 2017 - 2018 Jonathan Metzgar
+// All Rights Reserved.
+//
+// MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+/// <reference path="./Vector2.ts" />
+/// <reference path="./Vector3.ts" />
+/// <reference path="./Vector4.ts" />
+/// <reference path="./Matrix3.ts" />
+/// <reference path="./Matrix4.ts" />
+/// <reference path="./Sphere.ts" />
+/// <reference path="./BoundingBox.ts" />
 var GTE;
 (function (GTE) {
     function clamp(x, a, b) {
         return x < a ? a : x > b ? b : x;
     }
     GTE.clamp = clamp;
+    // 0 <= mix <= 1
     function lerp(a, b, mix) {
         return mix * a + (1 - mix) * b;
     }
@@ -1108,12 +1349,14 @@ var GTE;
         return ex / (ex + 1);
     }
     GTE.sigmoid = sigmoid;
+    // signzero(x) returns 1 if x >= 0 and -1 if x < 0
     function signzero(x) {
         if (x >= 0.0)
             return 1.0;
         return -1.0;
     }
     GTE.signzero = signzero;
+    // sign(x, epsilon) returns 1 if x > epsilon, -1 if x < -epsilon, and 0 otherwise
     function sign(x, epsilon = 1e-5) {
         if (x < -epsilon)
             return -1.0;
@@ -1122,9 +1365,17 @@ var GTE;
         return 0.0;
     }
     GTE.sign = sign;
+    // export function distancePointLine2(point: Vector2, linePoint1: Vector2, linePoint2: Vector2): number {
+    //     let v = linePoint2.sub(linePoint1);
+    //     let d = v.length();
+    //     let n = Math.abs(v.y * point.x - v.x * point.y + linePoint2.x * linePoint1.y - linePoint2.y * linePoint1.x);
+    //     if (d != 0.0) return n / d;
+    //     return 1e30;
+    // }
     function gaussian(x, center, sigma) {
         let t = (x - center) / sigma;
         return 1 / (sigma * Math.sqrt(2 * Math.PI)) * Math.exp(-0.5 * t * t);
+        //return 1 / (Math.sqrt(2.0 * sigma * sigma * Math.PI)) * Math.exp(-Math.pow(x - center, 2) / (2 * sigma * sigma));
     }
     GTE.gaussian = gaussian;
     function degrees(x) {
@@ -1168,6 +1419,7 @@ var GTE;
     }
     GTE.vec4 = vec4;
 })(GTE || (GTE = {}));
+/// <reference path="Fluxions.ts" />
 class FxRenderingContext {
     constructor(xor) {
         this.xor = xor;
@@ -1202,6 +1454,15 @@ class FxRenderingContext {
     get width() { return this.xor.graphics.width; }
     get height() { return this.xor.graphics.height; }
     get aspectRatio() { return this.width / this.height; }
+    // get visible(): boolean {
+    //     return this._visible;
+    // }
+    // get canvas(): HTMLCanvasElement {
+    //     if (!this.canvasElement_)
+    //         return new HTMLCanvasElement();
+    //     return this.canvasElement_;
+    // }
+    // ...
     enableExtensions(names) {
         let supportedExtensions = this.gl.getSupportedExtensions();
         if (!supportedExtensions)
@@ -1233,8 +1494,42 @@ class FxRenderingContext {
     }
     update() {
         return;
+        // if (this._resized) {
+        //     this._resized = false;
+        //     let w = (window.innerWidth) | 0;
+        //     let h = (w / this.aspectRatio) | 0;
+        //     this.canvas.width = w;
+        //     this.canvas.height = h;
+        //     this.width = w;
+        //     this.height = h;
+        // }
     }
 }
+// LibXOR Library
+// Copyright (c) 2017 - 2018 Jonathan Metzgar
+// All Rights Reserved.
+//
+// MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+/// <reference path="Fluxions.ts"/>
 class RenderConfig {
     constructor(fx) {
         this.fx = fx;
@@ -1508,6 +1803,7 @@ class RenderConfig {
 class TextParser {
     constructor(data) {
         this.lines = [];
+        // split using regex any sequence of 1 or more newlines or carriage returns
         let lines = data.split(/[\n\r]+/);
         for (let line of lines) {
             let unfilteredTokens = line.split(/\s+/);
@@ -1556,6 +1852,9 @@ class TextParser {
         return Matrix4.makeZero();
     }
     static ParseFaceIndices(_token) {
+        // index 0 is position
+        // index 1 is texcoord
+        // index 2 is normal
         let indices = [-1, -1, -1];
         let token = _token.replace("//", "/0/");
         let tokens = token.split("/");
@@ -1586,8 +1885,36 @@ class TextParser {
         return [...v1, ...v2, ...v3];
     }
 }
+// Fluxions WebGL Library
+// Copyright (c) 2017 - 2018 Jonathan Metzgar
+// All Rights Reserved.
+//
+// MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+/// <reference path="FxRenderingContext.ts" />
+/// <reference path="RenderConfig.ts" />
+/// <reference path="TextParser.ts" />
 var Utils;
 (function (Utils) {
+    // return last part of the url name ignoring possible ending slash
     function GetURLResource(url) {
         let parts = url.split('/');
         let lastSection = parts.pop() || parts.pop();
@@ -1747,6 +2074,7 @@ var Utils;
         if (image.width != 6 * image.height) {
             return;
         }
+        // images are laid out: +X, -X, +Y, -Y, +Z, -Z
         let canvas = document.createElement("canvas");
         if (canvas) {
             canvas.width = image.width;
@@ -1851,7 +2179,15 @@ var Utils;
         [WebGLRenderingContext.FLOAT_MAT2, new GLTypeInfo(WebGLRenderingContext.FLOAT_MAT2, WebGLRenderingContext.FLOAT, 4, 4)],
         [WebGLRenderingContext.FLOAT_MAT3, new GLTypeInfo(WebGLRenderingContext.FLOAT_MAT3, WebGLRenderingContext.FLOAT, 9, 4)],
         [WebGLRenderingContext.FLOAT_MAT4, new GLTypeInfo(WebGLRenderingContext.FLOAT_MAT4, WebGLRenderingContext.FLOAT, 16, 4)],
+        // [WebGLRenderingContext.FLOAT_MAT2x3, new GLTypeInfo(WebGLRenderingContext.FLOAT_MAT2x3, WebGLRenderingContext.FLOAT, 6, 4)],
+        // [WebGLRenderingContext.FLOAT_MAT2x4, new GLTypeInfo(WebGLRenderingContext.FLOAT_MAT2x4, WebGLRenderingContext.FLOAT, 8, 4)],
+        // [WebGLRenderingContext.FLOAT_MAT3x2, new GLTypeInfo(WebGLRenderingContext.FLOAT_MAT3x2, WebGLRenderingContext.FLOAT, 6, 4)],
+        // [WebGLRenderingContext.FLOAT_MAT3x4, new GLTypeInfo(WebGLRenderingContext.FLOAT_MAT3x4, WebGLRenderingContext.FLOAT, 12, 4)],
+        // [WebGLRenderingContext.FLOAT_MAT4x2, new GLTypeInfo(WebGLRenderingContext.FLOAT_MAT4x2, WebGLRenderingContext.FLOAT, 8, 4)],
+        // [WebGLRenderingContext.FLOAT_MAT4x3, new GLTypeInfo(WebGLRenderingContext.FLOAT_MAT4x3, WebGLRenderingContext.FLOAT, 12, 4)],
+        // [WebGLRenderingContext.SAMPLER_1D, new GLTypeInfo(WebGLRenderingContext.SAMPLER_1D, WebGLRenderingContext.FLOAT, 1, 4)],
         [WebGLRenderingContext.SAMPLER_2D, new GLTypeInfo(WebGLRenderingContext.SAMPLER_2D, WebGLRenderingContext.FLOAT, 1, 4)],
+        // [WebGLRenderingContext.SAMPLER_3D, new GLTypeInfo(WebGLRenderingContext.SAMPLER_3D, WebGLRenderingContext.FLOAT, 1, 4)],
         [WebGLRenderingContext.SAMPLER_CUBE, new GLTypeInfo(WebGLRenderingContext.SAMPLER_CUBE, WebGLRenderingContext.FLOAT, 1, 4)],
     ]);
 })(Utils || (Utils = {}));
@@ -1892,6 +2228,9 @@ class Surface {
         this.count++;
     }
 }
+/// <reference path="Fluxions.ts" />
+/// <reference path="Vertex.ts" />
+/// <reference path="Surface.ts" />
 var FluxionsImpl;
 (function (FluxionsImpl) {
     class Edge {
@@ -2123,6 +2462,9 @@ class IndexedGeometryMesh {
         this.normal(0, 0, 1);
         let theta = 0;
         let dtheta = GTE.radians(360.0 / segments);
+        // this.texcoord(0, 0, 0);
+        // this.position(ox, oy, 0);
+        // this.addIndex(-1);
         for (let i = 0; i < segments; i++) {
             let x = Math.cos(theta);
             let y = Math.sin(theta);
@@ -2153,12 +2495,15 @@ class IndexedGeometryMesh {
     }
     begin(mode) {
         if (this.surfaces.length == 0) {
+            // if no surfaces exist, add one
             this.surfaces.push(new Surface(mode, this.indices.length, this._mtllib, this._mtl));
         }
         else if (this.currentIndexCount != 0) {
+            // do not add a surface if the most recent one is empty
             this.surfaces.push(new Surface(mode, this.indices.length, this._mtllib, this._mtl));
         }
         if (this.surfaces.length > 0) {
+            // simply update the important details
             let s = this.surfaces[this.surfaces.length - 1];
             s.mtl = this._mtl;
             s.mtllib = this._mtllib;
@@ -2203,6 +2548,7 @@ class IndexedGeometryMesh {
         this.aabb.add(v);
         this._vertex.position.copy(v);
         this.vertices.push(...this._vertex.asArray());
+        // this._vertex = new Vertex();
     }
     vertex(x, y, z) {
         let v = new Vector3(x, y, z);
@@ -2212,7 +2558,11 @@ class IndexedGeometryMesh {
         let v = new Vector3(x, y, z);
         this.vertex3(v);
     }
+    // DrawTexturedRect(bottomLeft: Vector3, upperRight: Vector3,
+    //     minTexCoord: Vector3, maxTexCoord: Vector3): void {
+    // }
     build() {
+        // Building the VBO goes here
         if (!this._dirty)
             return;
         this._vboData = new Float32Array(this.vertices);
@@ -2230,8 +2580,10 @@ class IndexedGeometryMesh {
     }
     render(rc, sg) {
         if (!rc.usable) {
+            //hflog.warn("IndexedGeometryMesh Called, but render config is unusable.");
             return;
         }
+        // Rendering code goes here
         this.build();
         let gl = this.fx.gl;
         if (!gl)
@@ -2265,8 +2617,10 @@ class IndexedGeometryMesh {
     }
     renderplain(rc) {
         if (!rc.usable) {
+            //hflog.warn("IndexedGeometryMesh Called, but render config is unusable.");
             return;
         }
+        // Rendering code goes here
         this.build();
         let gl = this.fx.gl;
         if (!gl)
@@ -2330,6 +2684,7 @@ class IndexedGeometryMesh {
         let normals = [];
         let colors = [];
         let texcoords = [];
+        // in case there are no mtllib's, usemtl's, o's, g's, or s's
         this.begin(WebGLRenderingContext.TRIANGLES);
         for (let tokens of lines) {
             if (tokens.length >= 3) {
@@ -2400,6 +2755,7 @@ class IndexedGeometryMesh {
         this.build();
     }
 }
+/// <reference path="Fluxions.ts" />
 class FBO {
     constructor(_renderingContext, depth, color, width = 512, height = 512, colorType = 0, colorUnit = 11, depthUnit = 12, shouldAutoResize = false) {
         this._renderingContext = _renderingContext;
@@ -2426,12 +2782,18 @@ class FBO {
         else {
             throw "Unable to create FBO";
         }
+        // width = 1 << ((0.5 + Math.log2(width)) | 0);
+        // height = 1 << ((0.5 + Math.log2(height)) | 0);
+        // this._powerOfTwoDimensions = Vector2.make(
+        //     width, height
+        // );
         if (colorType == 0)
             this._colorType = gl.UNSIGNED_BYTE;
         else
             this._colorType = gl.FLOAT;
         this.make();
     }
+    // private _powerOfTwoDimensions: Vector2;
     get complete() { return this._complete; }
     get dimensions() { return Vector2.make(this.width, this.height); }
     autoResize(width, height) {
@@ -2457,6 +2819,8 @@ class FBO {
         if (this.color && !this._colorTexture) {
             this._colorTexture = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, this._colorTexture);
+            // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
+            //     this._powerOfTwoDimensions.x, this._powerOfTwoDimensions.y, 0, gl.RGBA, this._colorType, null);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, this._colorType, null);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -2468,6 +2832,8 @@ class FBO {
         if (this.depth && !this._depthTexture) {
             this._depthTexture = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, this._depthTexture);
+            // gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT,
+            //     this._powerOfTwoDimensions.x, this._powerOfTwoDimensions.y, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, this.width, this.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -2494,6 +2860,8 @@ class FBO {
         else {
             this._complete = true;
             hflog.log("Framebuffer is okay! size is " + resolutionSizeText);
+            // hflog.log("Framebuffer is okay! size is " + this.width + "x" + this.height + " texture: " +
+            //     this._powerOfTwoDimensions.x + "x" + this._powerOfTwoDimensions.y);
         }
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
@@ -2682,6 +3050,7 @@ class Camera {
         return this._transform.clone();
     }
 }
+/// <reference path="Fluxions.ts" />
 class Texture {
     constructor(fx, name, url, target, texture) {
         this.fx = fx;
@@ -2692,6 +3061,7 @@ class Texture {
         this.id = "";
     }
 }
+/// <reference path="Fluxions.ts" />
 class Material {
     constructor(name) {
         this.name = name;
@@ -2774,9 +3144,22 @@ class DirectionalLight {
     }
     get projectionMatrix() {
         let size = this._distance;
+        // this._znear = -50.0;
+        // this._zfar = 50.0;
+        //return Matrix4.makePerspectiveX(90.0, 1.0, 0.1, 100.0);
         return Matrix4.makeOrtho(-size, size, -size, size, -size * 2, size * 2);
+        // return Matrix4.makeOrtho(
+        //     this._zoom * (-size + this._offset.x), this._zoom * (size + this._offset.x),
+        //     this._zoom * (-size + this._offset.y), this._zoom * (size + this._offset.y),
+        //     this._znear, this._zfar);
     }
 }
+/// <reference path="Fluxions.ts" />
+/// <reference path="FBO.ts" />
+/// <reference path="Camera.ts" />
+/// <reference path="Texture.ts" />
+/// <reference path="Material.ts" />
+/// <reference path="DirectionalLight.ts" />
 var SGAssetType;
 (function (SGAssetType) {
     SGAssetType[SGAssetType["Scene"] = 0] = "Scene";
@@ -2813,9 +3196,11 @@ class Scenegraph {
         this.textfiles = [];
         this.imagefiles = [];
         this.shaderSrcFiles = [];
+        // private _defaultFBO: FBO | null;
         this._scenegraphs = new Map();
         this._fbo = new Map();
         this._renderConfigs = new Map();
+        //private _cubeTextures: Map<string, WebGLTexture> = new Map<string, WebGLTexture>();
         this._textures = new Map();
         this._materials = new Map();
         this._sceneResources = new Map();
@@ -2839,6 +3224,10 @@ class Scenegraph {
             }`);
         const width = this.fx.width;
         const height = this.fx.height;
+        // this._defaultFBO = new FBO(this.fx, true, true, 1024, 1024, 0, true);
+        // this._fbo.set("sunshadow", new FBO(this.fx, true, true, 512, 512, 0));
+        // this._fbo.set("gbuffer", new FBO(this.fx, true, true, width, height, 1, true));
+        // this._fbo.set("image", new FBO(this.fx, true, true, width, height, 1, true));
         let gl = this.fx.gl;
         this._deferredMesh = new IndexedGeometryMesh(this.fx);
         this._deferredMesh.texcoord3(Vector3.make(0.0, 0.0, 0.0));
@@ -2859,6 +3248,9 @@ class Scenegraph {
         this._deferredMesh.addIndex(2);
         this._deferredMesh.addIndex(3);
     }
+    // get shadowFBO(): FBO { return this.getFBO("sunshadow"); }
+    // get gbufferFBO(): FBO { return this.getFBO("gbuffer") }
+    // get imageFBO(): FBO { return this.getFBO("image"); }
     get width() { return this.fx.width; }
     get height() { return this.fx.height; }
     get aspectRatio() { return this.width / this.height; }
@@ -2997,9 +3389,39 @@ class Scenegraph {
         }
         return this.currentrc;
     }
+    // AddRenderConfig(name: string, vertshaderUrl: string, fragshaderUrl: string) {
+    //     let self = this;
+    //     this.shaderSrcFiles.push(new Utils.ShaderLoader(vertshaderUrl, fragshaderUrl, (vertShaderSource: string, fragShaderSource: string) => {
+    //         let rc = new RenderConfig(this.fx);
+    //         rc.compile(vertShaderSource, fragShaderSource);
+    //         self._renderConfigs.set(name, rc);
+    //         hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + vertshaderUrl + " and " + fragshaderUrl);
+    //     }));
+    // }
+    // GetRenderConfig(name: string): RenderConfig | null {
+    //     let rc = this._renderConfigs.get(name);
+    //     if (rc) {
+    //         return rc;
+    //     }
+    //     return null;
+    // }
+    // UseRenderConfig(name: string): RenderConfig | null {
+    //     let rc = this._renderConfigs.get(name);
+    //     if (rc) {
+    //         rc.use();
+    //         return rc;
+    //     }
+    //     return null;
+    // }
     getMaterial(mtllib, mtl) {
         let material = this._materials.get(mtllib + mtl) || null;
         return material;
+        // for (let ml of this._materials) {
+        //     if (ml["0"] == mtllib + mtl) {
+        //         return ml["1"];
+        //     }
+        // }
+        // return null;
     }
     usemtl(mtllib, mtl) {
         let gl = this.fx.gl;
@@ -3036,6 +3458,38 @@ class Scenegraph {
                 }
             }
         }
+        // for (let ml of this._materials) {
+        //     if (ml["0"] == mtllib + mtl) {// && ml["1"].name == mtl) {
+        //         let m = ml["1"];
+        //         let tnames = ["map_Kd", "map_Ks", "map_normal"];
+        //         let textures = [m.map_Kd, m.map_Ks, m.map_normal];
+        //         for (let i = 0; i < textures.length; i++) {
+        //             if (textures[i].length == 0)
+        //                 continue;
+        //             let loc = rc.getUniformLocation(tnames[i]);
+        //             if (loc) {
+        //                 this.useTexture(textures[i], i);
+        //                 rc.uniform1i(tnames[i], i);
+        //             }
+        //         }
+        //         let v1fnames = ["map_Kd_mix", "map_Ks_mix", "map_normal_mix", "PBKdm", "PBKsm", "PBn2", "PBk2"];
+        //         let v1fvalues = [m.map_Kd_mix, m.map_Ks_mix, m.map_normal_mix, m.PBKdm, m.PBKsm, m.PBn2, m.PBk2];
+        //         for (let i = 0; i < v1fnames.length; i++) {
+        //             let uloc = rc.getUniformLocation(v1fnames[i]);
+        //             if (uloc) {
+        //                 rc.uniform1f(v1fnames[i], v1fvalues[i]);
+        //             }
+        //         }
+        //         let v3fnames = ["Kd", "Ks", "Ka"];
+        //         let v3fvalues = [m.Kd, m.Ks, m.Ka];
+        //         for (let i = 0; i < v3fnames.length; i++) {
+        //             let uloc = rc.getUniformLocation(v3fnames[i]);
+        //             if (uloc) {
+        //                 rc.uniform3f(v3fnames[i], v3fvalues[i]);
+        //             }
+        //         }
+        //     }
+        // }
     }
     RenderMesh(name, rc) {
         if (name.length == 0) {
@@ -3220,6 +3674,7 @@ class Scenegraph {
         }
     }
     Update() {
+        // check FBOs
         this._fbo.forEach((fbo) => {
             if (fbo.width != this.width || fbo.height != this.height) {
                 fbo.autoResize(this.width, this.height);
@@ -3229,6 +3684,7 @@ class Scenegraph {
     RenderScene(shaderName, sceneName = "") {
         let rc = this.userc(shaderName);
         if (!rc || !rc.usable) {
+            //hflog.error("MyScenegraph::RenderScene(): \"" + shaderName + "\" is not a render config");
             return;
         }
         for (let node of this._nodes) {
@@ -3251,6 +3707,7 @@ class Scenegraph {
     RenderDeferred(shaderName) {
         let rc = this.userc(shaderName);
         if (!rc || !rc.usable) {
+            //hflog.error("MyScenegraph::RenderDeferred(): \"" + shaderName + "\" is not a render config");
             return;
         }
         let gl = this.fx.gl;
@@ -3264,12 +3721,15 @@ class Scenegraph {
     processTextFile(data, name, path, assetType) {
         let textParser = new TextParser(data);
         switch (assetType) {
+            // ".SCN"
             case SGAssetType.Scene:
                 this.loadScene(textParser.lines, name, path);
                 break;
+            // ".OBJ"
             case SGAssetType.GeometryGroup:
                 this.loadOBJ(textParser.lines, name, path);
                 break;
+            // ".MTL"
             case SGAssetType.MaterialLibrary:
                 this.loadMTL(textParser.lines, name, path);
                 break;
@@ -3327,6 +3787,10 @@ class Scenegraph {
         }
     }
     loadScene(lines, name, path) {
+        // sundir <direction: Vector3>
+        // camera <eye: Vector3> <center: Vector3> <up: Vector3>
+        // transform <worldMatrix: Matrix4>
+        // geometryGroup <objUrl: string>
         for (let tokens of lines) {
             if (tokens[0] == "enviroCube") {
                 this._sceneResources.set("enviroCube", Utils.GetURLResource(tokens[1]));
@@ -3351,6 +3815,9 @@ class Scenegraph {
                 this._tempNode.transform.scale(values.x, values.y, values.z);
             }
             else if (tokens[0] == "geometryGroup") {
+                // geometryGroup filename
+                // geometryGroup name filename
+                // geometryGroup name parentNode filename
                 let parentName = "";
                 let filename = (tokens.length >= 2) ? tokens[tokens.length - 1] : "nothing.obj";
                 let nodeName = (tokens.length >= 3) ? tokens[1] : filename;
@@ -3369,6 +3836,8 @@ class Scenegraph {
                 this._tempNode = new ScenegraphNode();
             }
             else if (tokens[0] == "node") {
+                // node name
+                // node name parentNode
                 let nodeName = (tokens.length >= 2) ? tokens[1] : "";
                 let parentName = (tokens.length >= 3) ? tokens[2] : "";
                 this._tempNode.name = nodeName;
@@ -3388,12 +3857,89 @@ class Scenegraph {
         this._scenegraphs.set(name, true);
     }
     loadOBJ(lines, name, path) {
+        // mtllib <mtlUrl: string>
+        // usemtl <name: string>
+        // v <position: Vector3>
+        // vn <normal: Vector3>
+        // vt <texcoord: Vector2|Vector3>
+        // vc <color: Vector4>
+        // f <v1: number> <v2: number> <v3: number>
+        // f <v1: number>/<vt1:number> <v2: number>/<vt2:number> <v2: number>/<vt2:number>
+        // f <v1: number>//<vt1:number> <v2: number>//<vt2:number> <v2: number>//<vt2:number>
+        // f <v1: number>/<vn1:number>/<vt1:number> <v2: number>/<vn2:number>/<vt2:number> <v2: number>/<vn3:number>/<vt2:number>
+        // o <objectName: string>
+        // g <newSmoothingGroup: string>
+        // s <newSmoothingGroup: string>
         let mesh = new IndexedGeometryMesh(this.fx);
+        // let gl = this.fx.gl;
+        // let positions: Vector3[] = [];
+        // let normals: Vector3[] = [];
+        // let colors: Vector3[] = [];
+        // let texcoords: Vector3[] = [];
+        // // in case there are no mtllib's, usemtl's, o's, g's, or s's
+        // mesh.begin(gl.TRIANGLES);
+        // for (let tokens of lines) {
+        //     if (tokens.length >= 3) {
+        //         if (tokens[0] == "v") {
+        //             let position = TextParser.ParseVector(tokens);
+        //             positions.push(position);
+        //             mesh.edgeMesh.addVertex(position);
+        //         } else if (tokens[0] == "vn") {
+        //             normals.push(TextParser.ParseVector(tokens));
+        //         } else if (tokens[0] == "vt") {
+        //             texcoords.push(TextParser.ParseVector(tokens));
+        //         } else if (tokens[0] == "vc") {
+        //             let color = TextParser.ParseVector(tokens);
+        //             colors.push(color);
+        //             mesh.color(color.x, color.y, color.z);
+        //         } else if (tokens[0] == "f") {
+        //             let indices = TextParser.ParseFace(tokens);
+        //             let edgeIndices: number[] = [];
+        //             for (let i = 0; i < 3; i++) {
+        //                 try {
+        //                     if (indices[i * 3 + 2] >= 0)
+        //                         mesh.normal3(normals[indices[i * 3 + 2]]);
+        //                     if (indices[i * 3 + 1] >= 0)
+        //                         mesh.texcoord3(texcoords[indices[i * 3 + 1]]);
+        //                     mesh.vertex3(positions[indices[i * 3 + 0]]);
+        //                     mesh.addIndex(-1);
+        //                     edgeIndices.push(indices[i * 3]);
+        //                 }
+        //                 catch (s) {
+        //                     hflog.debug(s);
+        //                 }
+        //                 mesh.edgeMesh.addFace(edgeIndices);
+        //             }
+        //         }
+        //     }
+        //     else if (tokens.length >= 2) {
+        //         if (tokens[0] == "mtllib") {
+        //             this.load(path + tokens[1]);
+        //             mesh.mtllib(TextParser.ParseIdentifier(tokens));
+        //             mesh.begin(gl.TRIANGLES);
+        //         } else if (tokens[0] == "usemtl") {
+        //             mesh.usemtl(TextParser.ParseIdentifier(tokens));
+        //             mesh.begin(gl.TRIANGLES);
+        //         } else if (tokens[0] == "o") {
+        //             mesh.begin(gl.TRIANGLES);
+        //         } else if (tokens[0] == "g") {
+        //             mesh.begin(gl.TRIANGLES);
+        //         } else if (tokens[0] == "s") {
+        //             mesh.begin(gl.TRIANGLES);
+        //         }
+        //     }
+        // }
         mesh.loadOBJ(lines, this, path);
         mesh.build();
         this._meshes.set(name, mesh);
     }
     loadMTL(lines, name, path) {
+        // newmtl <name: string>
+        // Kd <color: Vector3>
+        // Ks <color: Vector3>
+        // map_Kd <url: string>
+        // map_Ks <url: string>
+        // map_normal <url: string>
         let mtl = "";
         let mtllib = TextParser.MakeIdentifier(name);
         let curmtl;
@@ -3468,14 +4014,42 @@ class Scenegraph {
             }
         }
     }
+    /**
+     * Returns null or the FBO referred to by name
+     * @param name The name of the FBO
+     */
     getFBO(name) {
         return this._fbo.get(name) || null;
     }
+    /**
+     * Creates a new FBO and adds it to the scene graph
+     * @param name The name of the FBO
+     * @param hasDepth Does the FBO have a depth attachment
+     * @param hasColor Does the FBO have a color attachment
+     * @param width The width of the FBO (should be power of two)
+     * @param height The height of the FBO (should be power of two)
+     * @param colorType 0 for gl.UNSIGNED_BYTE or 1 for gl.FLOAT
+     */
+    addFBO(name, hasDepth, hasColor, width, height, colorType) {
+        this._fbo.set(name, new FBO(this.fx, hasDepth, hasColor, width, height, colorType));
+        return this.getFBO(name);
+    }
 }
+/// <reference path="../LibXOR.ts" />
+/// <reference path="Utils.ts" />
+/// <reference path="IndexedGeometryMesh.ts" />
+/// <reference path="Scenegraph.ts" />
+/// <reference path="FxRenderingContext.ts" />
+/// <reference path="LibXOR.ts" />
 class MemorySystem {
     constructor(xor) {
         this.xor = xor;
         this.mem = new Int32Array(65536);
+        // handy reminders
+        // 0x1000 = 4096
+        // 0x100 = 256
+        // 0x10 = 16
+        // Start of VIC memory
         this.VICSTART = 0x1000;
         this.VICCOUNT = 256;
         this.PALETTESTART = 0x1100;
@@ -3501,6 +4075,8 @@ class MemorySystem {
         this.mem[location] = value | 0;
     }
 }
+/// <reference path="MemorySystem.ts" />
+/// <reference path="../Fluxions/GTE.ts" />
 class GraphicsSprite {
     constructor() {
         this.position = GTE.vec3(0, 0, 0);
@@ -3538,6 +4114,7 @@ class GraphicsSprite {
         this.matrix.loadRowMajor(M11, M12, 0, M13, M21, M22, 0, M23, 0, 0, 1, 0, 0, 0, 0, 1);
     }
 }
+/// <reference path="MemorySystem.ts" />
 class GraphicsTileLayer {
     constructor() {
         this.tiles = [];
@@ -3546,6 +4123,9 @@ class GraphicsTileLayer {
     readFromMemory(mem, offset) {
     }
 }
+/// <reference path="LibXOR.ts" />
+/// <reference path="GraphicsSprite.ts" />
+/// <reference path="GraphicsTileLayer.ts" />
 function randomUint8() {
     return (Math.random() * 255.99) | 0;
 }
@@ -3561,6 +4141,7 @@ class GraphicsSystem {
         this.sprites = [];
         this.tileLayers = [];
         this.spriteImage = new Uint8Array(128 * 128 * 4);
+        // VIC memory
         this.layer1width = 0;
         this.layer1height = 0;
         this.layer2width = 0;
@@ -3570,8 +4151,9 @@ class GraphicsSystem {
         this.layer4width = 0;
         this.layer4height = 0;
         this.worldMatrix = Matrix4.makeIdentity();
-        this.cameraMatrix = Matrix4.makeIdentity();
+        this.cameraMatrix = Matrix4.makeIdentity(); //Matrix4.makeTranslation(0, 0, Math.sin(this.xor.t1) - 10);
         this.projectionMatrix = Matrix4.makeOrtho(0, 256, 0, 256, -100.0, 100.0);
+        //perspectiveMatrix = Matrix4.makePerspectiveX(45.0, 1.0, 0.01, 100.0);
         this.MaxSprites = 128;
         this.MaxTileLayers = 4;
         this.SpriteSize = 16;
@@ -3628,6 +4210,8 @@ class GraphicsSystem {
         p.appendChild(canvas);
         if (this.gl) {
             this.xor.fluxions = new FxRenderingContext(this.xor);
+            this.xor.input.captureMouse(canvas);
+            hflog.info("Capturing mouse");
         }
     }
     clear(index) {
@@ -3645,6 +4229,7 @@ class GraphicsSystem {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     }
     readFromMemory() {
+        // Read VIC information
         let mem = this.xor.memory;
         let pos = this.VICMemoryStart;
         this.layer1width = mem.PEEK(pos++);
@@ -3655,9 +4240,11 @@ class GraphicsSystem {
         this.layer3height = mem.PEEK(pos++);
         this.layer4width = mem.PEEK(pos++);
         this.layer4height = mem.PEEK(pos++);
+        // Read Sprite Info
         for (let i = 0; i < this.MaxSprites; i++) {
             this.sprites[i].readFromMemory(this.xor.memory, this.SpriteInfoMemoryStart + i * this.SpriteSize);
         }
+        // Read Sprite Imagery        
         let pixels = this.spriteImage;
         let offset = this.SpriteBitmapMemoryStart;
         let p = 0;
@@ -3676,6 +4263,9 @@ class GraphicsSystem {
                 }
             }
         }
+        // for (let i = 0; i < this.MaxTileLayers; i++) {
+        //     this.tileLayers[i].readFromMemory(this.xor.memory, this.TileMatrixMemoryStart + i * this.TileLayerMemorySize)
+        // }
     }
     createBuffers() {
         if (!this.gl)
@@ -3685,6 +4275,7 @@ class GraphicsSystem {
         this.drawList = [];
         this.drawList.push(gl.TRIANGLES);
         this.drawList.push(vertices.length / 16);
+        // sprites ...
         for (let i = 0; i < this.MaxSprites; i++) {
             let spr = this.sprites[i];
             let r = 1;
@@ -3696,12 +4287,12 @@ class GraphicsSystem {
             let v1 = spr.flipv ? 1.0 : 0.0;
             let v2 = spr.flipv ? 0.0 : 1.0;
             let w = 0.0;
-            let scale = 1.0;
-            let x1 = spr.position.x;
-            let y1 = spr.position.y;
-            let x2 = spr.position.x + 8;
-            let y2 = spr.position.y + 8;
-            let z = 0.0;
+            let scale = 1.0; // / this.canvas.width;
+            let x1 = spr.position.x; // - spr.pivot.x;
+            let y1 = spr.position.y; // - spr.pivot.y;
+            let x2 = spr.position.x + 8; // - spr.pivot.x;
+            let y2 = spr.position.y + 8; // - spr.pivot.y;
+            let z = 0.0; //spr.plane + 4;
             let nx = 0.0;
             let ny = 0.0;
             let nz = 1.0;
@@ -3718,8 +4309,13 @@ class GraphicsSystem {
             vertices.push(...ur);
             vertices.push(...ul);
             vertices.push(...ll);
+            // vertices.push(...ll);
+            // vertices.push(...ul);
+            // vertices.push(...ur);
         }
         this.drawList.push(this.MaxSprites * 6);
+        // tiles ...
+        // characters ...
         if (!this.drawABO) {
             this.drawABO = gl.createBuffer();
         }
@@ -3853,6 +4449,7 @@ class GraphicsSystem {
                 this.uCameraMatrix = gl.getUniformLocation(p, "CameraMatrix");
                 this.uWorldMatrix = gl.getUniformLocation(p, "WorldMatrix");
             }
+            // Textures
             if (!this.spriteTexture) {
                 this.spriteTexture = gl.createTexture();
             }
@@ -3889,8 +4486,17 @@ class GraphicsSystem {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         this.projectionMatrix = Matrix4.makeOrtho2D(0, this.canvas.width, this.canvas.height, 0);
         gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+        // General Order of Drawing
+        // 1. Upload Palette ROM Textures
+        // 2. Upload Character ROM Textures
+        // 3. Upload Sprite ROM Textures
+        // 4. Upload 3D Geometry
+        // 5. Draw Tile Layer 0
+        // 6. Draw Sprites
+        // 7. Draw Tile Layer 1
         gl.enable(gl.DEPTH_TEST);
         gl.depthFunc(gl.LEQUAL);
+        // bind ABO and configure vertex array
         gl.bindBuffer(gl.ARRAY_BUFFER, this.drawABO);
         this.enableVertexAttrib(gl, this.aPosition, 3, gl.FLOAT, 64, 0);
         this.enableVertexAttrib(gl, this.aNormal, 3, gl.FLOAT, 64, 12);
@@ -3898,6 +4504,7 @@ class GraphicsSystem {
         this.enableVertexAttrib(gl, this.aColor, 4, gl.FLOAT, 64, 36);
         this.enableVertexAttrib(gl, this.aGeneric, 3, gl.FLOAT, 64, 52);
         gl.useProgram(this.shaderProgram);
+        // set uniforms
         if (this.uTexture0)
             gl.uniform1i(this.uTexture0, 0);
         if (this.uWorldMatrix)
@@ -3906,9 +4513,15 @@ class GraphicsSystem {
             gl.uniformMatrix4fv(this.uCameraMatrix, false, this.cameraMatrix.toColMajorArray());
         if (this.uProjectionMatrix)
             gl.uniformMatrix4fv(this.uProjectionMatrix, false, this.projectionMatrix.toColMajorArray());
+        // draw sprites
+        // bind textures
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.spriteTexture);
         gl.drawArrays(gl.TRIANGLES, 0, this.MaxSprites * 6);
+        // gl.activeTexture(gl.TEXTURE1);
+        // gl.bindTexture(gl.TEXTURE_2D, this.tileTexture);
+        // gl.activeTexture(gl.TEXTURE1);
+        // gl.bindTexture(gl.TEXTURE_2D, this.charTexture);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, null);
         gl.useProgram(null);
@@ -3920,11 +4533,42 @@ class GraphicsSystem {
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
     }
 }
+/// <reference path="LibXOR.ts" />
 class SoundSystem {
     constructor(xor) {
         this.xor = xor;
     }
     init() {
+    }
+}
+/// <reference path="LibXOR.ts" />
+class XORMouseEvent {
+    constructor(button = 0, clicks = 0, buttons = 0, position = Vector2.make(0, 0), screen = Vector2.make(0, 0), delta = Vector2.make(0, 0), ctrlKey = false, altKey = false, shiftKey = false, metaKey = false) {
+        this.button = button;
+        this.clicks = clicks;
+        this.buttons = buttons;
+        this.position = position;
+        this.screen = screen;
+        this.delta = delta;
+        this.ctrlKey = ctrlKey;
+        this.altKey = altKey;
+        this.shiftKey = shiftKey;
+        this.metaKey = metaKey;
+    }
+    copyMouseEvent(e) {
+        this.delta.x = e.offsetX - this.position.x;
+        this.delta.y = e.offsetY - this.position.y;
+        this.position.x = e.offsetX;
+        this.position.y = e.offsetY;
+        this.screen.x = e.screenX;
+        this.screen.y = e.screenY;
+        this.buttons = e.buttons;
+        this.button = e.button;
+        this.clicks = e.detail;
+        this.ctrlKey = e.ctrlKey;
+        this.altKey = e.altKey;
+        this.shiftKey = e.shiftKey;
+        this.metaKey = e.metaKey;
     }
 }
 class InputSystem {
@@ -3933,6 +4577,11 @@ class InputSystem {
         this.keys = new Map();
         this.codes = new Map();
         this.modifiers = 0;
+        this.canvas = null;
+        this.mouseXY = Vector2.make(0, 0);
+        this.mouse = new XORMouseEvent();
+        this.mouseButtons = new Map();
+        this.mouseOver = false;
     }
     init() {
         let self = this;
@@ -3941,6 +4590,36 @@ class InputSystem {
         };
         window.onkeyup = (e) => {
             self.onkeyup(e);
+        };
+        for (let i = 0; i < 5; i++) {
+            this.mouseButtons.set(i, new XORMouseEvent());
+        }
+    }
+    captureMouse(e) {
+        this.canvas = e;
+        let self = this;
+        this.canvas.onmousedown = (e) => {
+            self.mouse.copyMouseEvent(e);
+            let button = self.mouseButtons.get(e.button);
+            if (button) {
+                button.copyMouseEvent(e);
+            }
+        };
+        this.canvas.onmouseup = (e) => {
+            self.mouse.copyMouseEvent(e);
+            let button = self.mouseButtons.get(e.button);
+            if (button) {
+                button.copyMouseEvent(e);
+            }
+        };
+        this.canvas.onmousemove = (e) => {
+            self.mouse.copyMouseEvent(e);
+        };
+        this.canvas.onmouseenter = (e) => {
+            self.mouseOver = true;
+        };
+        this.canvas.onmouseleave = (e) => {
+            self.mouseOver = false;
         };
     }
     checkKeys(keys) {
@@ -3958,6 +4637,10 @@ class InputSystem {
         }
         return 0.0;
     }
+    get mousecurpos() { return this.mouse.position; }
+    get mouseclick() { let b = this.mouseButtons.get(0); if (!b)
+        return Vector2.make(0, 0); return b.position; }
+    get mouseshadertoy() { return Vector4.make(this.mousecurpos.x, this.mousecurpos.y, this.mouseclick.x, this.mouseclick.y); }
     changeModifier(bit, state) {
         bit = bit | 0;
         if (bit > 8)
@@ -4030,6 +4713,7 @@ class InputSystem {
         e.preventDefault();
     }
 }
+/// <reference path="LibXOR.ts" />
 class PaletteSystem {
     constructor(xor) {
         this.xor = xor;
@@ -4050,41 +4734,56 @@ class PaletteSystem {
         this.GOLD = 14;
         this.FORESTGREEN = 15;
     }
+    /**
+     *
+     * @param index (0 = BLACK, 1 = GRAY33, 2 = GRAY67, 3 = WHITE, 4 = RED, 5 = ORANGE, 6 = YELLOW, 7 = GREEN, 8 = CYAN, 9 = AZURE, 10 = BLUE, 11 = VIOLET, 12 = ROSE, 13 = BROWN, 14 = GOLD, 15 = FORESTGREEN)
+     * @returns Vector3 color with RGB values 0 to 1
+     */
     getColor(index) {
         if (index == 0)
-            return GTE.vec3(0.000, 0.000, 0.000);
+            return GTE.vec3(0.000, 0.000, 0.000); //Black
         if (index == 1)
-            return GTE.vec3(0.333, 0.333, 0.333);
+            return GTE.vec3(0.333, 0.333, 0.333); //Gray33
         if (index == 2)
-            return GTE.vec3(0.667, 0.667, 0.667);
+            return GTE.vec3(0.667, 0.667, 0.667); //Gray67
         if (index == 3)
-            return GTE.vec3(1.000, 1.000, 1.000);
+            return GTE.vec3(1.000, 1.000, 1.000); //White
         if (index == 4)
-            return GTE.vec3(1.000, 0.000, 0.000);
+            return GTE.vec3(1.000, 0.000, 0.000); //Red
         if (index == 5)
-            return GTE.vec3(0.894, 0.447, 0.000);
+            return GTE.vec3(0.894, 0.447, 0.000); //Orange
         if (index == 6)
-            return GTE.vec3(0.894, 0.894, 0.000);
+            return GTE.vec3(0.894, 0.894, 0.000); //Yellow
         if (index == 7)
-            return GTE.vec3(0.000, 1.000, 0.000);
+            return GTE.vec3(0.000, 1.000, 0.000); //Green
         if (index == 8)
-            return GTE.vec3(0.000, 0.707, 0.707);
+            return GTE.vec3(0.000, 0.707, 0.707); //Cyan
         if (index == 9)
-            return GTE.vec3(0.000, 0.447, 0.894);
+            return GTE.vec3(0.000, 0.447, 0.894); //Azure
         if (index == 10)
-            return GTE.vec3(0.000, 0.000, 1.000);
+            return GTE.vec3(0.000, 0.000, 1.000); //Blue
         if (index == 11)
-            return GTE.vec3(0.447, 0.000, 0.894);
+            return GTE.vec3(0.447, 0.000, 0.894); //Violet
         if (index == 12)
-            return GTE.vec3(0.894, 0.000, 0.447);
+            return GTE.vec3(0.894, 0.000, 0.447); //Rose
         if (index == 13)
-            return GTE.vec3(0.500, 0.250, 0.000);
+            return GTE.vec3(0.500, 0.250, 0.000); //Brown
         if (index == 14)
-            return GTE.vec3(0.830, 0.670, 0.220);
+            return GTE.vec3(0.830, 0.670, 0.220); //Gold
         if (index == 15)
-            return GTE.vec3(0.250, 0.500, 0.250);
-        return GTE.vec3(0.0, 0.0, 0.0);
+            return GTE.vec3(0.250, 0.500, 0.250); //ForestGreen
+        return GTE.vec3(0.0, 0.0, 0.0); // Black
     }
+    /**
+     * calcColor(color1, color2, colormix, color1hue, color2hue, negative)
+     * @param color1 0 to 15
+     * @param color2 0 to 15
+     * @param colormix 0 to 7
+     * @param color1hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
+     * @param color2hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
+     * @param negative 0 = none, 1 = 1 - RGB
+     * @returns Vector3 color with RGB values 0 to 1
+     */
     calcColor(color1, color2, colormix, color1hue, color2hue, negative) {
         let c1 = this.getColor(color1);
         let c2 = this.getColor(color2);
@@ -4094,6 +4793,11 @@ class PaletteSystem {
         let cneg = negative ? this.negativeColor(cmix) : cmix;
         return cneg;
     }
+    /**
+     * calcColorBits(bits)
+     * @param bits 16 bit number (0-3: color1, 4-7: color2, 8-10: mix, 9-11: color1 hue shift, 12-14: color2 hue shift, 15: negative)
+     * @returns Vector3 color with RGB values 0 to 1
+     */
     calcColorBits(bits) {
         let color1 = (bits | 0) & 0xF;
         let color2 = (bits >> 4) & 0xF;
@@ -4103,6 +4807,16 @@ class PaletteSystem {
         let negative = (bits >> 15) & 0x1;
         return this.calcColor(color1, color2, colormix, color1hue, color2hue, negative);
     }
+    /**
+     * calcBits(color1, color2, colormix, color1hue, color2hue, negative)
+     * @param color1 0 to 15
+     * @param color2 0 to 15
+     * @param colormix 0 to 7
+     * @param color1hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
+     * @param color2hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
+     * @param negative 0 = none, 1 = 1 - RGB
+     * @returns number representing 16-bit XOR color model
+     */
     calcBits(color1, color2, colormix, color1hue, color2hue, negative) {
         let bits = 0;
         bits |= (color1 & 0xF);
@@ -4113,10 +4827,23 @@ class PaletteSystem {
         bits |= (negative & 0x1) << 15;
         return bits;
     }
+    /**
+     * mixColors(color1, color2, mix)
+     * @param color1 RGB color with values 0 to 1
+     * @param color2 RGB color with values 0 to 1
+     * @param mix 0 to 7 representing lerp mix
+     * @returns Vector3 color with RGB values 0 to 1
+     */
     mixColors(color1, color2, mix) {
         let t = GTE.clamp(1.0 - mix / 7.0, 0.0, 1.0);
         return GTE.vec3(GTE.lerp(color1.x, color2.x, t), GTE.lerp(color1.y, color2.y, t), GTE.lerp(color1.z, color2.z, t));
     }
+    /**
+     * hueshiftcolor(color, shift)
+     * @param color RGB color with values 0 to 1
+     * @param shift 0 = no shift, 1 = 7.5 degrees, 2 = 15 degrees, 3 = 180 degrees
+     * @returns Vector3 color with RGB values 0 to 1
+     */
     hueshiftColor(color, shift) {
         let hue = 0;
         if (shift == 1)
@@ -4129,9 +4856,19 @@ class PaletteSystem {
         hsl.x += hue;
         return PaletteSystem.hsl2rgb(hsl);
     }
+    /**
+     * negativeColor(color3)
+     * @param color RGB color with values 0 to 1
+     * @returns Vector3 representing 1 - color
+     */
     negativeColor(color) {
         return GTE.vec3(1.0 - color.x, 1.0 - color.y, 1.0 - color.z);
     }
+    /**
+     * getHtmlColor(color: Vector3)
+     * @param color RGB color with values 0 to 1
+     * @returns string valid html color
+     */
     getHtmlColor(color) {
         let r = (GTE.clamp(color.x * 255.99, 0, 255) | 0).toString(16);
         let g = (GTE.clamp(color.y * 255.99, 0, 255) | 0).toString(16);
@@ -4144,10 +4881,29 @@ class PaletteSystem {
             b = '0' + b;
         return '#' + r + g + b;
     }
+    /**
+     * setpalette(paletteIndex, colorIndex, color1, color2, colormix, color1hue, color2hue, negative)
+     * @param paletteIndex 0 to 15
+     * @param colorIndex 0 to 15
+     * @param color1 0 to 15
+     * @param color2 0 to 15
+     * @param colormix 0 to 7
+     * @param color1hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
+     * @param color2hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
+     * @param negative 0 = none, 1 = 1 - RGB
+     * @returns nothing
+     */
     setpalette(paletteIndex, colorIndex, color1, color2, colormix, color1hue, color2hue, negative) {
         let bits = this.calcBits(color1, color2, colormix, color1hue, color2hue, negative);
         this.setpalettebits(paletteIndex, colorIndex, bits);
     }
+    /**
+     * setpalettebits(paletteIndex, colorIndex, bits)
+     * @param paletteIndex 0 to 15
+     * @param colorIndex 0 to 15
+     * @param bits 16 bit number (0-3: color1, 4-7: color2, 8-10: mix, 9-11: color1 hue shift, 12-14: color2 hue shift, 15: negative)
+     * @returns nothing
+     */
     setpalettebits(paletteIndex, colorIndex, bits) {
         if (!isFinite(paletteIndex) || paletteIndex < 0 || paletteIndex > 15)
             return;
@@ -4155,10 +4911,22 @@ class PaletteSystem {
             return;
         this.xor.memory.POKE(this.xor.memory.PALETTESTART + paletteIndex * 16 + colorIndex, bits);
     }
+    /**
+     * getpalette(paletteIndex, colorIndex)
+     * @param paletteIndex 0 - 15
+     * @param colorIndex 0 - 15
+     * @returns Vector3 color with RGB values 0 to 1
+     */
     getpalette(paletteIndex, colorIndex) {
         let bits = this.getpalettebits(paletteIndex, colorIndex);
         return this.calcColorBits(bits);
     }
+    /**
+     * getpalettebits(paletteIndex, colorIndex)
+     * @param paletteIndex 0 - 15
+     * @param colorIndex 0 - 15
+     * @returns integer representing 16-bit LibXOR color model
+     */
     getpalettebits(paletteIndex, colorIndex) {
         if (!isFinite(paletteIndex) || paletteIndex < 0 || paletteIndex > 15)
             return 0;
@@ -4184,7 +4952,7 @@ class PaletteSystem {
     }
     static hsl2rgb(hsl) {
         if (hsl.y == 0.0) {
-            return GTE.vec3(hsl.z, hsl.z, hsl.z);
+            return GTE.vec3(hsl.z, hsl.z, hsl.z); // Luminance
         }
         else {
             let f2;
@@ -4237,6 +5005,8 @@ class PaletteSystem {
         return GTE.vec3(h, s, l);
     }
 }
+/// <reference path="LibXOR.ts" />
+/// <reference path="Fluxions/RenderConfig.ts" />
 class RenderConfigSystem {
     constructor(xor) {
         this.xor = xor;
@@ -4276,6 +5046,8 @@ class RenderConfigSystem {
         return null;
     }
 }
+/// <reference path="LibXOR.ts" />
+/// <reference path="Fluxions/Fluxions.ts"/>
 class MeshSystem {
     constructor(xor) {
         this.xor = xor;
@@ -4315,6 +5087,16 @@ class MeshSystem {
         return null;
     }
 }
+/// <reference path="../Hatchetfish.ts" />
+/// <reference path="../Fluxions/GTE.ts" />
+/// <reference path="Fluxions/Fluxions.ts" />
+/// <reference path="MemorySystem.ts" />
+/// <reference path="GraphicsSystem.ts" />
+/// <reference path="SoundSystem.ts" />
+/// <reference path="InputSystem.ts" />
+/// <reference path="PaletteSystem.ts" />
+/// <reference path="RenderConfigSystem.ts" />
+/// <reference path="MeshSystem.ts" />
 class LibXOR {
     constructor(parentId) {
         this.parentId = parentId;

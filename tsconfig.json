@@ -3,11 +3,11 @@
         "target": "es2015",
         "module": "esnext",
         "noImplicitAny": true,
-        "removeComments": true,
+        "removeComments": false,
         "preserveConstEnums": true,
         "strict": true,
-        "outDir": "www/LibXOR",
-        "outFile": "./www/LibXOR.js",
+        "outDir": "examples/LibXOR",
+        "outFile": "./examples/LibXOR.js",
         "sourceMap": true
     },
     "include": [

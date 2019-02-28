@@ -80,6 +80,8 @@ class GraphicsSystem {
 
         if(this.gl) {
             this.xor.fluxions = new FxRenderingContext(this.xor);
+            this.xor.input.captureMouse(canvas);
+            hflog.info("Capturing mouse");
         }
     }
 

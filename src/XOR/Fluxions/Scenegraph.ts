@@ -895,7 +895,25 @@ class Scenegraph {
         }
     }
 
+    /**
+     * Returns null or the FBO referred to by name
+     * @param name The name of the FBO
+     */
     getFBO(name: string): FBO | null {
         return this._fbo.get(name) || null;
+    }
+
+    /**
+     * Creates a new FBO and adds it to the scene graph
+     * @param name The name of the FBO
+     * @param hasDepth Does the FBO have a depth attachment
+     * @param hasColor Does the FBO have a color attachment
+     * @param width The width of the FBO (should be power of two)
+     * @param height The height of the FBO (should be power of two)
+     * @param colorType 0 for gl.UNSIGNED_BYTE or 1 for gl.FLOAT
+     */
+    addFBO(name: string, hasDepth: boolean, hasColor: boolean, width: number, height: number, colorType: number): FBO | null {
+        this._fbo.set(name, new FBO(this.fx, hasDepth, hasColor, width, height, colorType));
+        return this.getFBO(name);
     }
 }
