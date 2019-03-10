@@ -295,8 +295,8 @@ Material sfCreateDielectricMaterial(vec3 Kd, float indexOfRefraction)
 Material sfCreateEmissionMaterial(vec3 Ke)
 {
     Material m;
-    m.Kd = ArneBlack;
-    m.Ks = ArneBlack;
+    m.Kd = Black;
+    m.Ks = Black;
     m.Ke = Ke;
     m.roughness = 0.0;
     m.indexOfRefraction = 1.0;
@@ -624,7 +624,7 @@ bool sfRayIntersectCone(Hitable s, Ray r, float tMin, float tMax, out HitRecord 
     float a = D.x*D.x/s.radius + D.z*D.z/s.radius - D.y*D.y;
     float b = 2.0 * (D.x*E.x/s.radius + D.z*E.z/s.radius - D.y*E.y);
     float c = E.x*E.x/s.radius + E.z*E.z/s.radius - E.y*E.y;
-    if (!sfSolveQuadratic(a, b, c, root1, root2)) {
+    if (!xratic(a, b, c, root1, root2)) {
         return false;
     }
     float t;
@@ -1325,7 +1325,7 @@ vec3 sfRayCast(Ray r)
 void sfCreateScene() {
     sfAddHitable(sfCreateSphere(vec3(1.0, sin(iTime) + 0.0, 0.0), 0.5,
                                 sfCreateMaterial(Blue, White, 0.0)));
-    sfAddHitable(sfCreateSphere(vec3(-1.0, 0.0, 0.0), 0.5,
+    sfAddHitable(sfCreateCylinder(vec3(-1.0, 0.0, 0.0), 0.5,
                                 sfCreateMaterial(Gray67, White, 0.0)));
     sfAddHitable(sfCreateSphere(vec3(0.0, -1001.0, 0.0), 1000.5,
                                 sfCreateMaterial(Brown, White, 0.0)));
