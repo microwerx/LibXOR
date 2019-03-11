@@ -84,7 +84,7 @@ class Vector2 {
         this.x += b.x * bscale;
         this.y += b.y * bscale;
         return this;
-    }    
+    }
 
     toFloat32Array(): Float32Array {
         return new Float32Array([this.x, this.y]);
@@ -121,6 +121,13 @@ class Vector2 {
         else
             len = Math.sqrt(len);
         return new Vector2(this.x / len, this.y / len);
+    }
+
+    clamp(a: number, b: number): Vector2 {
+        return new Vector2(
+            GTE.clamp(this.x, a, b),
+            GTE.clamp(this.y, a, b)
+        );
     }
 
     static make(x: number, y: number): Vector2 {

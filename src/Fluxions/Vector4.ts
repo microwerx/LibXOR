@@ -94,7 +94,7 @@ class Vector4 {
         this.z += b.z * bscale;
         this.w += b.w * bscale;
         return this;
-    }    
+    }
 
     negate(): Vector4 {
         return new Vector4(-this.x, -this.y, -this.z, -this.w);
@@ -133,6 +133,15 @@ class Vector4 {
         return new Vector4(this.x / len, this.y / len, this.z / len, this.w / len);
     }
 
+    clamp(a: number, b: number): Vector4 {
+        return new Vector4(
+            GTE.clamp(this.x, a, b),
+            GTE.clamp(this.y, a, b),
+            GTE.clamp(this.z, a, b),
+            GTE.clamp(this.w, a, b)
+        );
+    }
+
     static dot(v1: Vector4, v2: Vector4): number {
         return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w;
     }
@@ -150,11 +159,11 @@ class Vector4 {
         return v;
     }
 
-    static make(x: number, y: number, z: number, w:number): Vector4 {
+    static make(x: number, y: number, z: number, w: number): Vector4 {
         return new Vector4(x, y, z, w);
     }
 
-    static makeUnit(x: number, y: number, z: number, w:number): Vector4 {
+    static makeUnit(x: number, y: number, z: number, w: number): Vector4 {
         return (new Vector4(x, y, z, w)).norm();
-    }    
+    }
 }

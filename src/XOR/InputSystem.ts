@@ -1,45 +1,22 @@
 /// <reference path="LibXOR.ts" />
-
-class XORMouseEvent {
-    constructor(
-        public button = 0,
-        public clicks = 0,
-        public buttons = 0,
-        public position = Vector2.make(0, 0),
-        public screen = Vector2.make(0, 0),
-        public delta = Vector2.make(0, 0),
-        public ctrlKey = false,
-        public altKey = false,
-        public shiftKey = false,
-        public metaKey = false
-    ) { }
-
-    copyMouseEvent(e: MouseEvent) {
-        this.delta.x = e.offsetX - this.position.x;
-        this.delta.y = e.offsetY - this.position.y;
-        this.position.x = e.offsetX;
-        this.position.y = e.offsetY;
-        this.screen.x = e.screenX;
-        this.screen.y = e.screenY;
-        this.buttons = e.buttons;
-        this.button = e.button;
-        this.clicks = e.detail;
-        this.ctrlKey = e.ctrlKey;
-        this.altKey = e.altKey;
-        this.shiftKey = e.shiftKey;
-        this.metaKey = e.metaKey;
-    }
-}
+/// <reference path="Input/XORMouseEvent.ts" />
+/// <reference path="Input/XORGamepadState.ts" />
 
 class InputSystem {
+    /** @type {Map<string, number} */
     keys = new Map<string, number>();
+    /** @type {Map<string, number} */
     codes = new Map<string, number>();
     modifiers = 0;
     canvas: HTMLCanvasElement | null = null;
     mouseXY = Vector2.make(0, 0);
     mouse = new XORMouseEvent();
+    /** @type {Map<number, XORMouseEvent>} */
     mouseButtons = new Map<number, XORMouseEvent>();
     mouseOver = false;
+    /** @type {Map<number, XORGamepadState>} */
+    gamepads: Map<number, XORGamepadState> = new Map<number, XORGamepadState>();
+    gamepadAPI = false;
 
     constructor(private xor: LibXOR) { }
 
@@ -53,6 +30,44 @@ class InputSystem {
         };
         for (let i = 0; i < 5; i++) {
             this.mouseButtons.set(i, new XORMouseEvent());
+        }
+
+        for (let i = 0; i < 5; i++) {
+            this.gamepads.set(i, new XORGamepadState());
+        }
+        window.addEventListener("gamepadconnected", (ev: Event | GamepadEvent) => {
+            let e = <GamepadEvent>(ev);
+            let gp = new XORGamepadState();
+            gp.enabled = true;
+            gp.id = e.gamepad.id;
+            gp.numButtons = e.gamepad.buttons.length;
+            gp.numAxes = e.gamepad.buttons.length;
+            gp.copyInfo(e.gamepad);
+            self.gamepads.set(e.gamepad.index, gp);
+            hflog.info("gamepad %d connected", e.gamepad.index);
+        });
+        window.addEventListener("gamepaddisconnected", (ev: Event | GamepadEvent) => {
+            let e = <GamepadEvent>(ev);
+            let gp = self.gamepads.get(e.gamepad.index);
+            if (gp) {
+                gp.enabled = false;
+            }
+            hflog.info("gamepad %d disconnected", e.gamepad.index);
+        });
+        this.gamepadAPI = true;
+        hflog.info("capturing gamepads");
+    }
+
+    poll() {
+        let gamepads = navigator.getGamepads();
+        if (gamepads) {
+            for (let i = 0; i < gamepads.length; i++) {
+                let gp = this.gamepads.get(i);
+                let gamepad = gamepads[i];
+                if (gamepad && gp) {
+                    gp.copyInfo(gamepad);
+                }
+            }
         }
     }
 
@@ -98,6 +113,14 @@ class InputSystem {
             }
         }
         return 0.0;
+    }
+
+    pollGamepads() {
+        for (let i = 0; i < 4; i++) {
+            let gp = this.gamepads.get(i);
+            if (!gp) continue;
+            Gamepad
+        }
     }
 
     get mousecurpos(): Vector2 { return this.mouse.position; }

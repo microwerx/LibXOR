@@ -31,6 +31,13 @@
 /// <reference path="./BoundingBox.ts" />
 
 namespace GTE {
+    /**
+     * Returns (x) < (a) ? (a) : (x) > (b) ? (b) : (x)
+     * @param x number
+     * @param a number
+     * @param b number
+     * @returns number
+     */
     export function clamp(x: number, a: number, b: number) {
         return x < a ? a : x > b ? b : x;
     }

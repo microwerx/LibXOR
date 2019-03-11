@@ -177,7 +177,7 @@ class Vector3 {
         this.y += b.y * bscale;
         this.z += b.z * bscale;
         return this;
-    }    
+    }
 
     compMul(b: Vector3): Vector3 {
         return new Vector3(
@@ -326,6 +326,14 @@ class Vector3 {
             case 1: this.y = value; return;
             case 2: this.z = value; return;
         }
+    }
+
+    clamp(a: number, b: number): Vector3 {
+        return new Vector3(
+            GTE.clamp(this.x, a, b),
+            GTE.clamp(this.y, a, b),
+            GTE.clamp(this.z, a, b)
+        );
     }
 
     static dot(v1: Vector3, v2: Vector3): number {
