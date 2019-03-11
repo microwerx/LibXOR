@@ -1,3 +1,1 @@
-/// <reference path="Hatchetfish.ts" />
-/// <reference path="Fluxions/GTE.ts" />
-/// <reference path="XOR/LibXOR.ts" />
+/* eslint-disable no-unused-vars, no-unreachable, no-redeclare, no-console, no-empty, no-extra-semi, no-constant-condition */

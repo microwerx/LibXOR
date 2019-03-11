@@ -1,3 +1,4 @@
+/* global LibXOR, hflog, Vector3, Matrix4 */
 function accum(a, b, bscale) {
     a.x += b.x * bscale;
     a.y += b.y * bscale;
@@ -57,7 +58,7 @@ class Simulation {
             accum(sv.v, sv.a, dt);
             let v_after = sv.v.clone();
             let v = (v_after.add(v_before)).scale(0.5);
-            accum(sv.x, v, drag*dt);
+            accum(sv.x, v, drag * dt);
 
             if (sv.x.y < -1) {
                 sv.x.y = -1;
@@ -90,14 +91,13 @@ class App {
         hflog.logElement = "log";
         this.xor.graphics.setVideoMode(1.5 * 384, 384);
         this.xor.input.init();
-        let gl = this.xor.graphics.gl;
 
         let rc = this.xor.renderconfigs.load('default', 'basic.vert', 'basic.frag');
         rc.useDepthTest = false;
 
         let pal = this.xor.palette;
 
-        let rect = this.xor.meshes.load('rect', 'rect.obj');
+        this.xor.meshes.load('rect', 'rect.obj');
         let bg = this.xor.meshes.create('bg');
         bg.color3(pal.getColor(pal.BROWN));
         bg.rect(-5, -1, 5, -5);

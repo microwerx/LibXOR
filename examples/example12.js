@@ -1,5 +1,5 @@
-/// <reference path="../src/LibXOR.ts" />
-
+/// <reference path="./LibXOR.js" />
+/* global GTE, LibXOR, createRangeRow, createRow, hflog, Matrix4 */
 class PhysicsConstants {
     constructor() {
         this.Mearth = 5.9722e24;
@@ -30,6 +30,14 @@ class PhysicsObject {
         this.a = GTE.vec3(0.0, 0.0, 0.0);
         for (let i = 0; i < this.accelerations.length; i++) {
             this.a.accum(this.accelerations[i], 1.0);
+        }
+
+        let accelerations = [
+            GTE.vec3(0.0, constants.g, 0.0),
+            this.v.scale(-constants.drag)
+        ];
+        for (let i = 0; i < accelerations.length; i++) {
+            this.a.accum(accelerations[i], 1.0);
         }
 
         this.v = GTE.vec3(
@@ -82,13 +90,13 @@ class App {
         hflog.logElement = "log";
         this.xor.graphics.setVideoMode(1.5 * 384, 384);
         this.xor.input.init();
-        let gl = this.xor.graphics.gl;
+        this.xor.graphics.gl;
 
         let rc = this.xor.renderconfigs.load('default', 'basic.vert', 'basic.frag');
         rc.useDepthTest = true;
 
         let pal = this.xor.palette;
-        let rect = this.xor.meshes.load('rect', 'rect.obj');
+        this.xor.meshes.load('rect', 'rect.obj');
         let bg = this.xor.meshes.create('bg');
         bg.color3(pal.getColor(pal.BROWN));
         bg.rect(-5, -1, 5, -5);
@@ -117,15 +125,13 @@ class App {
             this.anybutton = (gp.b0 + gp.b1 + gp.b2 + gp.b3) > 0.0 ? 1.0 : 0.0;
         }
 
-        if (this.resetSim) {
+        if (resetSim) {
             this.player.x = GTE.vec3();
         }
-        if (this.updown) {}
+
         this.player.accelerations = [
-            GTE.vec3(0.0, this.constants.g, 0.0),
             GTE.vec3(0.0, -this.updown * this.constants.g * 2, 0.0),
             GTE.vec3(this.leftright * 10.0, 0.0, 0.0),
-            this.player.v.scale(-this.constants.drag)
         ];
         this.player.update(dt, this.constants);
         this.player.bound(-2.0, 2.0, -1.0, 2.0);

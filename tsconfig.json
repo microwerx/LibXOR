@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "target": "es2015",
-        "module": "esnext",
+        // "module": "esnext",
         "noImplicitAny": true,
         "removeComments": false,
         "preserveConstEnums": true,
@@ -11,6 +11,7 @@
         "sourceMap": true
     },
     "include": [
+        "src/LibXOR.ts",
         "src/XOR/LibXOR.ts"
     ],
     "exclude": [
