@@ -50,7 +50,7 @@ class PhysicsObject {
     }
 
     /**
-     * 
+     *
      * @param {number} minx minimum x world coordinates
      * @param {number} maxx maximum x world coordinates
      * @param {number} miny minimum y world coordinates
@@ -67,8 +67,7 @@ class App {
         this.xor = new LibXOR("project");
 
         let p = document.getElementById('desc');
-        p.innerHTML = `This graphics demonstration of a simple ray tracer demonstrates
-        a signed distance function to render diverse objects.`;
+        p.innerHTML = `This app demonstrates the use of a keyboard of gamepad for controlling game input. The Arrow keys or WASD controls direction and SPACE/CONTROL/ENTER/ESCAPE are the buttons.`;
 
         let c = document.getElementById('controls');
         c.appendChild(createRow('iSkyMode', '<input id="iSkyMode" type="range" min="0", max="5", value="1" />'));
@@ -81,6 +80,10 @@ class App {
         this.leftright = 0.0;
         this.updown = 0.0;
         this.anybutton = 0.0;
+        this.b0 = 0.0;
+        this.b1 = 0.0;
+        this.b2 = 0.0;
+        this.b3 = 0.0;
 
         this.player = new PhysicsObject();
         this.constants = new PhysicsConstants();
@@ -115,6 +118,42 @@ class App {
         if (xor.input.checkKeys([" ", "Space"])) {
             resetSim = true;
         }
+
+        this.leftright = 0.0;
+        this.updown = 0.0;
+        this.anybutton = 0.0;
+
+        // From XBOX ONE / PS4 Controller
+        // B0 -> A X        ENTER / JUMP   "SPACE"
+        // B1 -> B CIRCLE   CANCEL/ BACK   "ESCAPE"
+        // B2 -> X SQUARE   SHIFT / RUN    "CONTROL"
+        // B3 -> Y TRIANGLE MENU  / ACTION "ENTER"
+        let b0Keys = ["Space"];
+        let b1Keys = ["Escape", "Esc"];
+        let b2Keys = ["Control", "ControlLeft", "ControlRight"];
+        let b3Keys = ["Enter"];
+        let dirLKeys = ["ArrowLeft", "Left", "A", "a"];
+        let dirRKeys = ["ArrowRight", "Right", "D", "d"];
+        let dirUKeys = ["ArrowUp", "Up", "W", "w"];
+        let dirDKeys = ["ArrowDown", "Down", "S", "s"];
+        this.b0 = xor.input.checkKeys(b0Keys) ? 1.0 : 0.0;
+        this.b1 = xor.input.checkKeys(b1Keys) ? 1.0 : 0.0;
+        this.b2 = xor.input.checkKeys(b2Keys) ? 1.0 : 0.0;
+        this.b3 = xor.input.checkKeys(b3Keys) ? 1.0 : 0.0;
+        if (xor.input.checkKeys(dirLKeys)) {
+            this.leftright -= 1.0;
+        }
+        if (xor.input.checkKeys(dirRKeys)) {
+            this.leftright += 1.0;
+        }
+        if (xor.input.checkKeys(dirUKeys)) {
+            this.updown += 1.0;
+        }
+        if (xor.input.checkKeys(dirDKeys)) {
+            this.updown -= 1.0;
+        }
+        this.anybutton = (this.b0 + this.b1 + this.b2 + this.b3) > 0.0;
+
         for (let i = 0; i < 4; i++) {
             let gp = xor.input.gamepads.get(i);
             if (!gp.enabled) {
