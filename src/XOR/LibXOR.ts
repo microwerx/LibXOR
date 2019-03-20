@@ -12,7 +12,7 @@
 class LibXOR {
     public memory = new MemorySystem(this);
     public graphics = new GraphicsSystem(this);
-    public sound = new SoundSystem(this);
+    public sound = new XOR.SoundSystem(this);
     public input = new InputSystem(this);
     public palette = new PaletteSystem(this);
     public fluxions: FxRenderingContext | null = null;

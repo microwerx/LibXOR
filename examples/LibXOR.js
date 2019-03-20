@@ -4533,14 +4533,204 @@ class GraphicsSystem {
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
     }
 }
+/// <reference path="../SoundSystem.ts" />
+var XOR;
+(function (XOR) {
+    class DAHDSREnvelope {
+        constructor(delay = 0.0, // delay to start
+        delayCV = 0.0, // level at start
+        attack = 0.0, // how long to ramp from 0 to 1
+        attackCV = 1.0, // Highest level (normally 1)
+        hold = 10.0, // how long to hold signal at highest amplitude
+        decay = 0.0, // how long to ramp from 1 to sustain
+        sustainCV = 1.0, // level of the sustain
+        release = 0.0, // how long to ramp from sustain to 0
+        releaseCV = 0.0 // lowest level of ramp (normally 0)
+        ) {
+            this.delay = delay;
+            this.delayCV = delayCV;
+            this.attack = attack;
+            this.attackCV = attackCV;
+            this.hold = hold;
+            this.decay = decay;
+            this.sustainCV = sustainCV;
+            this.release = release;
+            this.releaseCV = releaseCV;
+        }
+    }
+    XOR.DAHDSREnvelope = DAHDSREnvelope;
+    class AttackReleaseEnvelope {
+        constructor(delay = 0.0, attack = 0.0, attackCV = 1.0, hold = 0.0, release = 0.0, releaseCV = 0.0) {
+            this.delay = delay;
+            this.attack = attack;
+            this.attackCV = attackCV;
+            this.hold = hold;
+            this.release = release;
+            this.releaseCV = releaseCV;
+        }
+    }
+    XOR.AttackReleaseEnvelope = AttackReleaseEnvelope;
+    class SimpleSamplerPlaySettings {
+        constructor(VCFfrequency1 = 1000.0, VCFfrequency2 = 1000.0, VCFsweepTime = 1.0, VCFresonance = 500.0, VCAattack = 0.0, VCAhold = 1.0, VCArelease = 1.0, sampleLoop = true) {
+            this.VCFfrequency1 = VCFfrequency1;
+            this.VCFfrequency2 = VCFfrequency2;
+            this.VCFsweepTime = VCFsweepTime;
+            this.VCFresonance = VCFresonance;
+            this.VCAattack = VCAattack;
+            this.VCAhold = VCAhold;
+            this.VCArelease = VCArelease;
+            this.sampleLoop = sampleLoop;
+        }
+    }
+    XOR.SimpleSamplerPlaySettings = SimpleSamplerPlaySettings;
+    class Sample {
+        constructor(buffer = null, loaded = false, haderror = false) {
+            this.buffer = buffer;
+            this.loaded = loaded;
+            this.haderror = haderror;
+            this.VCF = null;
+            this.VCA = null;
+            this.VCAenvelope = new DAHDSREnvelope();
+            this.VCOenvelope = new DAHDSREnvelope();
+            this.VCFenvelope = new DAHDSREnvelope();
+            this.VCFresonance = 1.0;
+            this.VCFenvelope.attack = 1;
+            this.VCFenvelope.decay = 1;
+            this.VCFenvelope.release = 1;
+            this.VCFenvelope.sustainCV = 0.5;
+        }
+        play(ss, time = 0) {
+            let t = ss.context.currentTime;
+            let source = ss.context.createBufferSource();
+            let VCF = ss.context.createBiquadFilter();
+            let VCA = ss.context.createGain();
+            source.buffer = this.buffer;
+            source.loop = true;
+            source.connect(VCF);
+            VCF.connect(ss.gainNode);
+            // source.connect(ss.gainNode);
+            // source.connect(VCF);
+            // VCF.connect(VCA);
+            // VCA.connect(ss.gainNode);
+            let detune1 = 8;
+            let detune2 = 1;
+            let detuneTime = 2;
+            source.playbackRate.setValueAtTime(detune1, t);
+            source.playbackRate.linearRampToValueAtTime(detune2, t + detuneTime);
+            let to = setTimeout(() => {
+                source.stop();
+            }, detuneTime * 1000);
+            VCF.type = 'lowpass';
+            VCF.frequency.value = 1440.0;
+            VCF.Q.value = 10.0; //100.0;//this.VCFresonance;
+            let vcfEnv = this.VCFenvelope;
+            vcfEnv.delayCV = 0.0;
+            vcfEnv.attack = 1.0;
+            vcfEnv.attackCV = 1200.0;
+            vcfEnv.hold = 0.0;
+            vcfEnv.release = 1.0;
+            vcfEnv.releaseCV = 0.0;
+            VCF.frequency.setValueAtTime(vcfEnv.delayCV, t);
+            t += vcfEnv.delay;
+            VCF.frequency.setValueAtTime(vcfEnv.delayCV, t);
+            t += vcfEnv.attack;
+            VCF.frequency.linearRampToValueAtTime(vcfEnv.attackCV, t);
+            t += vcfEnv.hold;
+            VCF.frequency.linearRampToValueAtTime(vcfEnv.attackCV, t);
+            t += vcfEnv.release;
+            VCF.frequency.linearRampToValueAtTime(vcfEnv.releaseCV, t);
+            let vcaEnv = this.VCAenvelope;
+            t = ss.context.currentTime;
+            VCA.gain.setValueAtTime(this.VCAenvelope.delayCV, t);
+            t += vcaEnv.delay;
+            VCA.gain.setValueAtTime(this.VCAenvelope.delayCV, t);
+            t += vcaEnv.attack;
+            VCA.gain.linearRampToValueAtTime(vcaEnv.attackCV, t);
+            t += vcaEnv.hold;
+            VCA.gain.setValueAtTime(vcaEnv.attackCV, t);
+            t += vcaEnv.decay;
+            VCA.gain.linearRampToValueAtTime(vcaEnv.sustainCV, t);
+            t += vcaEnv.release;
+            VCA.gain.linearRampToValueAtTime(vcaEnv.releaseCV, t);
+            // configure envelopes
+            source.start(time);
+            this.VCA = VCA;
+            this.VCF = VCF;
+        }
+    }
+    XOR.Sample = Sample;
+    class Sampler {
+        constructor(ss) {
+            this.ss = ss;
+            this.samples = new Map();
+        }
+        loadSample(id, url, logErrors = true) {
+            let self = this;
+            let xhr = new XMLHttpRequest();
+            xhr.open('GET', url);
+            xhr.responseType = 'arraybuffer';
+            xhr.onload = () => {
+                self.ss.context.decodeAudioData(xhr.response, (buffer) => {
+                    // on success
+                    let s = new Sample(buffer, true, false);
+                    self.samples.set(id, s);
+                    if (logErrors)
+                        hflog.info('loaded ', url);
+                }, () => {
+                    // on error
+                    let s = new Sample(null, false, true);
+                    self.samples.set(id, s);
+                    if (logErrors)
+                        hflog.info('failed to load ', url);
+                });
+            };
+            xhr.onabort = () => {
+                if (logErrors)
+                    hflog.error('Could not load ', url);
+                self.samples.set(id, new Sample(null, false, true));
+            };
+            xhr.onerror = () => {
+                if (logErrors)
+                    hflog.error('Could not load ', url);
+                self.samples.set(id, new Sample(null, false, true));
+            };
+            this.samples.set(id, new Sample());
+            xhr.send();
+        }
+        playSample(id, time = 0) {
+            let s = this.samples.get(id);
+            if (!s)
+                return;
+            s.play(this.ss, time);
+        }
+    }
+    XOR.Sampler = Sampler;
+})(XOR || (XOR = {}));
 /// <reference path="LibXOR.ts" />
-class SoundSystem {
-    constructor(xor) {
-        this.xor = xor;
+/// <reference path="Audio/Sampler.ts" />
+var XOR;
+(function (XOR) {
+    class SoundSystem {
+        constructor(xor) {
+            this.xor = xor;
+            this.sampler = new XOR.Sampler(this);
+            this.context = new AudioContext();
+            this.masterVolume = this.context.createGain();
+            // let self = this;
+            // window.addEventListener("load", (e) => {
+            //     self.context = new AudioContext();
+            // }, false);
+        }
+        init() {
+            this.masterVolume.connect(this.context.destination);
+            this.masterVolume.gain.value = 0.5;
+        }
+        get volume() { return this.masterVolume.gain.value; }
+        set volume(v) { this.masterVolume.gain.value = GTE.clamp(v, 0.0, 1.0); }
+        get gainNode() { return this.masterVolume; }
     }
-    init() {
-    }
-}
+    XOR.SoundSystem = SoundSystem;
+})(XOR || (XOR = {}));
 /// <reference path="LibXOR.ts" />
 class XORMouseEvent {
     constructor(button = 0, clicks = 0, buttons = 0, position = Vector2.make(0, 0), screen = Vector2.make(0, 0), delta = Vector2.make(0, 0), ctrlKey = false, altKey = false, shiftKey = false, metaKey = false) {
@@ -5102,7 +5292,7 @@ class LibXOR {
         this.parentId = parentId;
         this.memory = new MemorySystem(this);
         this.graphics = new GraphicsSystem(this);
-        this.sound = new SoundSystem(this);
+        this.sound = new XOR.SoundSystem(this);
         this.input = new InputSystem(this);
         this.palette = new PaletteSystem(this);
         this.fluxions = null;
