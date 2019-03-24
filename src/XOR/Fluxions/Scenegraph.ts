@@ -45,7 +45,6 @@ class Scenegraph {
 
     // private _defaultFBO: FBO | null;
     private _scenegraphs: Map<string, boolean> = new Map<string, boolean>();
-    private _fbo: Map<string, FBO> = new Map<string, FBO>();
     private _deferredMesh: IndexedGeometryMesh;
     private _renderConfigs: Map<string, RenderConfig> = new Map<string, RenderConfig>();
     //private _cubeTextures: Map<string, WebGLTexture> = new Map<string, WebGLTexture>();
@@ -493,40 +492,43 @@ class Scenegraph {
             rc.uniform3f("CameraPosition", this.camera.eye);
             this.useTexture("enviroCube", 10);
             rc.uniform1i("EnviroCube", 10);
-            if (!rc.usesFBO) {
+
+            // TODO: Make This Part of a Light Data Structure
+            if (!rc.writesToFBO) {
                 rc.uniformMatrix4f("SunShadowBiasMatrix", Matrix4.makeShadowBias());
                 rc.uniformMatrix4f("SunShadowProjectionMatrix", this.sunlight.projectionMatrix);
                 rc.uniformMatrix4f("SunShadowViewMatrix", this.sunlight.lightMatrix);
             }
 
-            let unit = 11;
-            for (let fbo of rc.fbos) {
-                this.configureFBO(rc, fbo, unit, unit + 1);
-                unit += 2;
-            }
+            // let unit = 11;
+            // for (let fbo of rc.readFromFBOs) {
+            //     this.configureFBO(rc, fbo, unit, unit + 1);
+            //     unit += 2;
+            // }
+            this.fx.fboSystem.configure(rc);
         }
         let gl = this.fx.gl;
         gl.viewport(0, 0, this.width, this.height);
     }
 
-    configureFBO(rc: RenderConfig, name: string, colorUnit: number, depthUnit: number) {
-        const colorUniform = name + "Color";
-        const depthUniform = name + "Depth";
-        const resolutionUnifom = name + "Resolution";
-        const usingUniform = "Using" + name;
-        let fbo = this._fbo.get(name) || null;
-        if (!fbo) return;
-        rc.uniform2f(resolutionUnifom, fbo.dimensions);
-        rc.uniform1i(usingUniform, rc.usesFBO ? 1 : 0);
-        if (rc.usesFBO && fbo.complete) {
-            fbo.bindTextures(colorUnit, depthUnit);
-            if (fbo.color) rc.uniform1i(colorUniform, colorUnit);
-            if (fbo.depth) rc.uniform1i(depthUniform, depthUnit);
-        } else {
-            rc.uniform1i(colorUniform, 0);
-            rc.uniform1i(depthUniform, 0);
-        }
-    }
+    // configureFBO(rc: RenderConfig, name: string, colorUnit: number, depthUnit: number) {
+    //     const colorUniform = name + "Color";
+    //     const depthUniform = name + "Depth";
+    //     const resolutionUnifom = name + "Resolution";
+    //     const usingUniform = "Using" + name;
+    //     let fbo = this._fbo.get(name) || null;
+    //     if (!fbo) return;
+    //     rc.uniform2f(resolutionUnifom, fbo.dimensions);
+    //     rc.uniform1i(usingUniform, rc.writesToFBO ? 1 : 0);
+    //     if (rc.writesToFBO && fbo.complete) {
+    //         fbo.bindTextures(colorUnit, depthUnit);
+    //         if (fbo.color) rc.uniform1i(colorUniform, colorUnit);
+    //         if (fbo.depth) rc.uniform1i(depthUniform, depthUnit);
+    //     } else {
+    //         rc.uniform1i(colorUniform, 0);
+    //         rc.uniform1i(depthUniform, 0);
+    //     }
+    // }
 
     Restore() {
         let gl = this.fx.gl;
@@ -535,18 +537,20 @@ class Scenegraph {
             gl.bindTexture(gl.TEXTURE_2D, null);
         }
         this.useTexture("enviroCube", 10, false);
-        for (let fbo of this._fbo) {
-            if (fbo[1].complete) fbo[1].unbindTextures()
-        }
+        // for (let fbo of this._fbo) {
+        //     if (fbo[1].complete) fbo[1].unbindTextures()
+        // }
+        this.fx.fboSystem.restore();
     }
 
     Update() {
         // check FBOs
-        this._fbo.forEach((fbo) => {
-            if (fbo.width != this.width || fbo.height != this.height) {
-                fbo.autoResize(this.width, this.height);
-            }
-        });
+        // this._fbo.forEach((fbo) => {
+        //     if (fbo.width != this.width || fbo.height != this.height) {
+        //         fbo.autoResize(this.width, this.height);
+        //     }
+        // });
+        this.fx.fboSystem.autoresize();
     }
 
     RenderScene(shaderName: string, sceneName: string = "") {
@@ -893,27 +897,5 @@ class Scenegraph {
                 }
             }
         }
-    }
-
-    /**
-     * Returns null or the FBO referred to by name
-     * @param name The name of the FBO
-     */
-    getFBO(name: string): FBO | null {
-        return this._fbo.get(name) || null;
-    }
-
-    /**
-     * Creates a new FBO and adds it to the scene graph
-     * @param name The name of the FBO
-     * @param hasDepth Does the FBO have a depth attachment
-     * @param hasColor Does the FBO have a color attachment
-     * @param width The width of the FBO (should be power of two)
-     * @param height The height of the FBO (should be power of two)
-     * @param colorType 0 for gl.UNSIGNED_BYTE or 1 for gl.FLOAT
-     */
-    addFBO(name: string, hasDepth: boolean, hasColor: boolean, width: number, height: number, colorType: number): FBO | null {
-        this._fbo.set(name, new FBO(this.fx, hasDepth, hasColor, width, height, colorType));
-        return this.getFBO(name);
     }
 }

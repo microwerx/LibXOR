@@ -1,8 +1,10 @@
 /// <reference path="Fluxions.ts" />
+/// <reference path="FxFboSystem.ts" />
 
 class FxRenderingContext {
     gl: WebGLRenderingContext;
     scenegraph: Scenegraph;
+    fboSystem = new FxFboSystem(this);
 
     get width(): number { return this.xor.graphics.width; }
     get height(): number { return this.xor.graphics.height; }

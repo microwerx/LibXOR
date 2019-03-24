@@ -51,13 +51,16 @@ class RenderConfig {
     public stencilFunc: number = WebGLRenderingContext.ALWAYS;
     public stencilFuncRef: number = 0.0;
     public stencilMask: number = 1;
-    public usesFBO = false;
     public renderShadowMap = false;
     public renderGBuffer = false;
     public renderImage = false;
     public renderEdges = false;
 
-    public fbos: string[] = [];
+    public writesToFBO = false;
+    public writeToFBO: string = "";
+    public clearWriteToFBO = true;
+    public disableWriteToFBOColorWrites = false;
+    public readFromFBOs: string[] = [];
 
     constructor(private fx: FxRenderingContext) { }
 
