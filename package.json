@@ -13,5 +13,8 @@
         "concurrently": "latest",
         "lite-server": "^2.4.0",
         "typescript": "^3.0.0"
+    },
+    "devDependencies": {
+        "eslint": "^5.15.1"
     }
 }

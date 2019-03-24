@@ -1,4 +1,4 @@
-
+/// <reference path="LibXOR.ts" />
 
 class Hatchetfish {
     private _logElementId: string = "";

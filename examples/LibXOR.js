@@ -1,4 +1,6 @@
 "use strict";
+/* eslint-disable no-unused-vars, no-unreachable, no-redeclare, no-console, no-empty, no-extra-semi, no-constant-condition */
+/// <reference path="LibXOR.ts" />
 class Hatchetfish {
     constructor(logElementId = "") {
         this._logElementId = "";
@@ -157,6 +159,9 @@ class Vector2 {
         else
             len = Math.sqrt(len);
         return new Vector2(this.x / len, this.y / len);
+    }
+    clamp(a, b) {
+        return new Vector2(GTE.clamp(this.x, a, b), GTE.clamp(this.y, a, b));
     }
     static make(x, y) {
         return new Vector2(x, y);
@@ -415,6 +420,9 @@ class Vector3 {
                 return;
         }
     }
+    clamp(a, b) {
+        return new Vector3(GTE.clamp(this.x, a, b), GTE.clamp(this.y, a, b), GTE.clamp(this.z, a, b));
+    }
     static dot(v1, v2) {
         return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
     }
@@ -539,6 +547,9 @@ class Vector4 {
         else
             len = Math.sqrt(len);
         return new Vector4(this.x / len, this.y / len, this.z / len, this.w / len);
+    }
+    clamp(a, b) {
+        return new Vector4(GTE.clamp(this.x, a, b), GTE.clamp(this.y, a, b), GTE.clamp(this.z, a, b), GTE.clamp(this.w, a, b));
     }
     static dot(v1, v2) {
         return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w;
@@ -1335,6 +1346,13 @@ var GTE;
 /// <reference path="./BoundingBox.ts" />
 var GTE;
 (function (GTE) {
+    /**
+     * Returns (x) < (a) ? (a) : (x) > (b) ? (b) : (x)
+     * @param x number
+     * @param a number
+     * @param b number
+     * @returns number
+     */
     function clamp(x, a, b) {
         return x < a ? a : x > b ? b : x;
     }
@@ -4731,7 +4749,7 @@ var XOR;
     }
     XOR.SoundSystem = SoundSystem;
 })(XOR || (XOR = {}));
-/// <reference path="LibXOR.ts" />
+/// <reference path="../../Fluxions/GTE.ts" />
 class XORMouseEvent {
     constructor(button = 0, clicks = 0, buttons = 0, position = Vector2.make(0, 0), screen = Vector2.make(0, 0), delta = Vector2.make(0, 0), ctrlKey = false, altKey = false, shiftKey = false, metaKey = false) {
         this.button = button;
@@ -4761,17 +4779,87 @@ class XORMouseEvent {
         this.metaKey = e.metaKey;
     }
 }
+/// <reference path="../../Fluxions/GTE.ts" />
+/**
+ * @member buttons Map<number, number>
+ * @member axes Map<number, number>
+ * @member enabled boolean
+ */
+class XORGamepadState {
+    constructor() {
+        this.buttons = new Map();
+        this.axes = new Map();
+        this.lastButtons = 0;
+        this.currentButtons = 0;
+        this.anyButtonPressed = true;
+        this.numButtons = 0;
+        this.numAxes = 0;
+        this.enabled = false;
+        this.id = null;
+        for (let i = 0; i < 17; i++) {
+            this.buttons.set(i, 0.0);
+        }
+    }
+    copyInfo(state) {
+        this.lastButtons = this.currentButtons;
+        this.currentButtons = 0;
+        let bit = 1;
+        for (let i = 0; i < state.buttons.length; i++) {
+            this.buttons.set(i, state.buttons[i].value);
+            if (state.buttons[i].value != 0.0)
+                this.currentButtons |= bit;
+            bit <<= 1;
+        }
+        if (this.currentButtons > 0 && this.currentButtons != this.lastButtons) {
+            this.anyButtonPressed = true;
+        }
+        for (let i = 0; i < state.axes.length; i++) {
+            this.axes.set(i, state.axes[i]);
+        }
+    }
+    button(i) {
+        let v = this.buttons.get(i);
+        if (v)
+            return v;
+        return 0.0;
+    }
+    axe(i) {
+        let v = this.axes.get(i);
+        if (v)
+            return v;
+        return 0.0;
+    }
+    get left() { return this.button(14) > 0.5 || this.axe(0) < -0.5; }
+    get right() { return this.button(15) > 0.5 || this.axe(0) > 0.5; }
+    get up() { return this.button(12) > 0.5 || this.axe(1) < -0.5; }
+    get down() { return this.button(13) > 0.5 || this.axe(1) > 0.5; }
+    get b0() { return this.button(0) > 0.5; }
+    get b1() { return this.button(1) > 0.5; }
+    get b2() { return this.button(2) > 0.5; }
+    get b3() { return this.button(3) > 0.5; }
+    get leftright() { return (this.left ? -1.0 : 0.0) + (this.right ? 1.0 : 0.0); }
+    get updown() { return (this.down ? -1.0 : 0.0) + (this.up ? 1.0 : 0.0); }
+}
+/// <reference path="LibXOR.ts" />
+/// <reference path="Input/XORMouseEvent.ts" />
+/// <reference path="Input/XORGamepadState.ts" />
 class InputSystem {
     constructor(xor) {
         this.xor = xor;
+        /** @type {Map<string, number} */
         this.keys = new Map();
+        /** @type {Map<string, number} */
         this.codes = new Map();
         this.modifiers = 0;
         this.canvas = null;
         this.mouseXY = Vector2.make(0, 0);
         this.mouse = new XORMouseEvent();
+        /** @type {Map<number, XORMouseEvent>} */
         this.mouseButtons = new Map();
         this.mouseOver = false;
+        /** @type {Map<number, XORGamepadState>} */
+        this.gamepads = new Map();
+        this.gamepadAPI = false;
     }
     init() {
         let self = this;
@@ -4783,6 +4871,42 @@ class InputSystem {
         };
         for (let i = 0; i < 5; i++) {
             this.mouseButtons.set(i, new XORMouseEvent());
+        }
+        for (let i = 0; i < 5; i++) {
+            this.gamepads.set(i, new XORGamepadState());
+        }
+        window.addEventListener("gamepadconnected", (ev) => {
+            let e = (ev);
+            let gp = new XORGamepadState();
+            gp.enabled = true;
+            gp.id = e.gamepad.id;
+            gp.numButtons = e.gamepad.buttons.length;
+            gp.numAxes = e.gamepad.buttons.length;
+            gp.copyInfo(e.gamepad);
+            self.gamepads.set(e.gamepad.index, gp);
+            hflog.info("gamepad %d connected", e.gamepad.index);
+        });
+        window.addEventListener("gamepaddisconnected", (ev) => {
+            let e = (ev);
+            let gp = self.gamepads.get(e.gamepad.index);
+            if (gp) {
+                gp.enabled = false;
+            }
+            hflog.info("gamepad %d disconnected", e.gamepad.index);
+        });
+        this.gamepadAPI = true;
+        hflog.info("capturing gamepads");
+    }
+    poll() {
+        let gamepads = navigator.getGamepads();
+        if (gamepads) {
+            for (let i = 0; i < gamepads.length; i++) {
+                let gp = this.gamepads.get(i);
+                let gamepad = gamepads[i];
+                if (gamepad && gp) {
+                    gp.copyInfo(gamepad);
+                }
+            }
         }
     }
     captureMouse(e) {
@@ -4826,6 +4950,14 @@ class InputSystem {
             }
         }
         return 0.0;
+    }
+    pollGamepads() {
+        for (let i = 0; i < 4; i++) {
+            let gp = this.gamepads.get(i);
+            if (!gp)
+                continue;
+            Gamepad;
+        }
     }
     get mousecurpos() { return this.mouse.position; }
     get mouseclick() { let b = this.mouseButtons.get(0); if (!b)

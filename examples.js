@@ -12,7 +12,8 @@ class ExampleMetadata {
             "example9.html",
             "example10.html",
             "example11.html",
-            "example12.html"
+            "example12.html",
+            "example13.html"
         ];
         this.exampleDescs = [
             "WebGL Basic Code",
@@ -27,6 +28,7 @@ class ExampleMetadata {
             "Lattice-Boltzmann",
             "Raymarching",
             "Sampler"
+            "Gamepads"
         ];
         this.numExamples = this.exampleDescs.length;
         this.courseNumber = "Graphics Rendering, Animation, and Simulation";
@@ -41,7 +43,7 @@ class ExampleMetadata {
         let loc = window.location.pathname.search(".html");
         if (isFinite(loc)) {
             let count = 0;
-            for (let i = loc-1; i >= 0; i--) {
+            for (let i = loc - 1; i >= 0; i--) {
                 let c = window.location.pathname.charAt(i);
                 if (c < '0' || c > '9') break;
                 loc = i;
@@ -89,7 +91,7 @@ class ExampleMetadata {
         this.write("<table style='margin: auto;'>");
         let count = 3 * ((exampleDescs.length / 3 | 0) + ((exampleDescs.length % 3 != 0) ? 1 : 0));
         for (let i = 0; i < count; i++) {
-            let exampleStem = "example" + (i+1).toString();
+            let exampleStem = "example" + (i + 1).toString();
             if (i % 3 == 0) this.write("<tr>");
             this.write("<td style='width: 30%;' align='center'>");
             if (i < exampleDescs.length) {
