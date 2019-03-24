@@ -27,7 +27,7 @@ class ExampleMetadata {
             "Oren-Nayer",
             "Lattice-Boltzmann",
             "Raymarching",
-            "Sampler"
+            "Sampler",
             "Gamepads"
         ];
         this.numExamples = this.exampleDescs.length;
