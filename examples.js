@@ -27,8 +27,8 @@ class ExampleMetadata {
             "Oren-Nayer",
             "Lattice-Boltzmann",
             "Raymarching",
+            "Gamepads",
             "Sampler",
-            "Gamepads"
         ];
         this.numExamples = this.exampleDescs.length;
         this.courseNumber = "Graphics Rendering, Animation, and Simulation";

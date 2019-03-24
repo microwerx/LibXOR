@@ -1,3 +1,66 @@
+/// <reference path="./LibXOR.js" />
+/* global GTE, LibXOR, createRangeRow, createRow, hflog, Matrix4 */
+class PhysicsConstants {
+    constructor() {
+        this.Mearth = 5.9722e24;
+        this.Rearth = 6.3781e6;
+        this.Rearth2 = 6.3781e6 * 6.3781e6;
+        this.G = 6.674e-11;
+        this.g = -this.Mearth * this.G / this.Rearth2;
+        this.drag = 10.0;
+        this.wind = 0.0;
+    }
+}
+
+class PhysicsObject {
+    constructor() {
+        this.accelerations = [];
+        this.x = GTE.vec3();
+        this.a = GTE.vec3();
+        this.v = GTE.vec3();
+        this.m = 62.0; // average human mass
+    }
+
+    /**
+     * update(dt)
+     * @param {number} dt time in seconds elapsed since the last call
+     * @param {PhysicsConstants} constants standard constants for physics calculations
+     */
+    update(dt, constants) {
+        this.a = GTE.vec3(0.0, 0.0, 0.0);
+        for (let i = 0; i < this.accelerations.length; i++) {
+            this.a.accum(this.accelerations[i], 1.0);
+        }
+
+        let accelerations = [
+            GTE.vec3(0.0, constants.g, 0.0),
+            this.v.scale(-constants.drag)
+        ];
+        for (let i = 0; i < accelerations.length; i++) {
+            this.a.accum(accelerations[i], 1.0);
+        }
+
+        this.v = GTE.vec3(
+            0.5 * (this.v.x + this.a.x * dt + this.v.x),
+            0.5 * (this.v.y + this.a.y * dt + this.v.y),
+            0.5 * (this.v.z + this.a.z * dt + this.v.z)
+        );
+
+        this.x.accum(this.v, dt);
+    }
+
+    /**
+     *
+     * @param {number} minx minimum x world coordinates
+     * @param {number} maxx maximum x world coordinates
+     * @param {number} miny minimum y world coordinates
+     * @param {number} maxy maximum y world coordinates
+     */
+    bound(minx, maxx, miny, maxy) {
+        this.x.x = GTE.clamp(this.x.x, minx, maxx);
+        this.x.y = GTE.clamp(this.x.y, miny, maxy);
+    }
+}
 
 class App {
     constructor() {

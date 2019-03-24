@@ -1,3 +1,5 @@
+/// <reference path="htmlutils.js" />
+/// <reference path="LibXOR.js" />
 
 class App {
     constructor() {
@@ -31,11 +33,8 @@ class App {
         this.mainloop();
     }
 
-    update(dt) {
+    update() {
         let xor = this.xor;
-        if (xor.input.checkKeys([" ", "Space"])) {
-            resetSim = true;
-        }
         if (xor.t1 > this.sampleResets[1] && xor.input.checkKeys(["1"])) {
             this.sampleResets[1] = xor.t1 + 0.100;
             xor.sound.sampler.playSample(1);
