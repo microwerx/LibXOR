@@ -1,4 +1,4 @@
-class TextParser {
+class FxTextParser {
     readonly lines: Array<string[]> = [];
 
     constructor(data: string) {
@@ -97,12 +97,12 @@ class TextParser {
         if (tokens.length < 4) {
             return indices;
         }
-        let v1: Array<number> = TextParser.ParseFaceIndices(tokens[1]);
-        let v2: Array<number> = TextParser.ParseFaceIndices(tokens[2]);
-        let v3: Array<number> = TextParser.ParseFaceIndices(tokens[3]);
+        let v1: Array<number> = FxTextParser.ParseFaceIndices(tokens[1]);
+        let v2: Array<number> = FxTextParser.ParseFaceIndices(tokens[2]);
+        let v3: Array<number> = FxTextParser.ParseFaceIndices(tokens[3]);
 
         if (tokens.length >= 5) {
-            let v4: Array<number> = TextParser.ParseFaceIndices(tokens[4]);
+            let v4: Array<number> = FxTextParser.ParseFaceIndices(tokens[4]);
             return [...v1, ...v2, ...v3, ...v4]
         }
 

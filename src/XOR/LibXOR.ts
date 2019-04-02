@@ -1,5 +1,6 @@
 /// <reference path="../Hatchetfish.ts" />
 /// <reference path="../Fluxions/GTE.ts" />
+/// <reference path="XORUtils.ts" />
 /// <reference path="Fluxions/Fluxions.ts" />
 /// <reference path="MemorySystem.ts" />
 /// <reference path="GraphicsSystem.ts" />
@@ -8,6 +9,7 @@
 /// <reference path="PaletteSystem.ts" />
 /// <reference path="RenderConfigSystem.ts" />
 /// <reference path="MeshSystem.ts" />
+/// <reference path="XORTextFileLoaderSystem.ts" />
 
 /**
  * @class LibXOR
@@ -28,6 +30,7 @@ class LibXOR {
     public palette = new PaletteSystem(this);
     public renderconfigs = new RenderConfigSystem(this);
     public meshes = new MeshSystem(this);
+    public textfiles = new XORTextFileLoaderSystem();
 
     public oninit = () => { };
     public onupdate = (dt: number) => { };

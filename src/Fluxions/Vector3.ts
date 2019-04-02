@@ -44,6 +44,10 @@ class Vector3 {
     constructor(public x: number = 0.0, public y: number = 0.0, public z = 0.0) {
     }
 
+    /**
+     * 
+     * @param {Vector3} v Copies the components of v into this vector
+     */
     copy(v: Vector3): Vector3 {
         this.x = v.x;
         this.y = v.y;

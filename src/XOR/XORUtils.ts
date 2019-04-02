@@ -22,11 +22,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-/// <reference path="FxRenderingContext.ts" />
-/// <reference path="RenderConfig.ts" />
-/// <reference path="TextParser.ts" />
+///- <reference path="FxRenderingContext.ts" />
+///- <reference path="RenderConfig.ts" />
+///- <reference path="TextParser.ts" />
 
-namespace Utils {
+namespace XORUtils {
     // return last part of the url name ignoring possible ending slash
     export function GetURLResource(url: string): string {
         let parts = url.split('/');

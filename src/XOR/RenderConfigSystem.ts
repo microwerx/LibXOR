@@ -18,7 +18,7 @@ class RenderConfigSystem {
         if (!this.xor.fluxions) throw "Fluxions is not initialized";
         let rc = new RenderConfig(this.xor.fluxions);
         this.renderconfigs.set(name, rc);
-        let sl = new Utils.ShaderLoader(vshaderUrl, fshaderUrl, (vsource, fsource) => {
+        let sl = new XORUtils.ShaderLoader(vshaderUrl, fshaderUrl, (vsource, fsource) => {
             rc.compile(vsource, fsource);
             hflog.log("Loaded " + vshaderUrl + " and " + fshaderUrl);
         });

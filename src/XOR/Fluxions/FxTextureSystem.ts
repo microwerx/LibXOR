@@ -1,11 +1,12 @@
 /// <reference path="./FxRenderingContext.ts" />
+/// <reference path="../XORUtils.ts" />
 
 class FxTextureSystem {
     private _textures: Map<string, Texture> = new Map<string, Texture>();
     // private _cubeTextures: Map<string, WebGLTexture> = new Map<string, WebGLTexture>();
     private _default2D: Texture;
     private _defaultCube: Texture;
-    private imagefiles: Utils.ImageFileLoader[] = [];
+    private imagefiles: XORUtils.ImageFileLoader[] = [];
 
 
     /**
@@ -110,7 +111,7 @@ class FxTextureSystem {
             return;
 
         let self = this;
-        this.imagefiles.push(new Utils.ImageFileLoader(url, (data, name) => {
+        this.imagefiles.push(new XORUtils.ImageFileLoader(url, (data, name) => {
             self.processTextureMap(data, name);
             hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + name);
         }));
@@ -139,7 +140,7 @@ class FxTextureSystem {
 
         if (image.width == 6 * image.height) {
             let images: Array<ImageData> = new Array<ImageData>(6);
-            Utils.SeparateCubeMapImages(image, images);
+            XORUtils.SeparateCubeMapImages(image, images);
             let texture = gl.createTexture();
             if (texture) {
                 gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);

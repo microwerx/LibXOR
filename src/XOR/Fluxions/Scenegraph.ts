@@ -4,6 +4,9 @@
 /// <reference path="Texture.ts" />
 /// <reference path="Material.ts" />
 /// <reference path="DirectionalLight.ts" />
+/// <reference path="FxTextParser.ts" />
+/// <reference path="../XORUtils.ts" />
+/// <reference path="IndexedGeometryMesh.ts" />
 
 enum SGAssetType {
     Scene,
@@ -39,8 +42,7 @@ class ScenegraphNode {
 }
 
 class Scenegraph {
-    private textfiles: Utils.TextFileLoader[] = [];
-    private shaderSrcFiles: Utils.ShaderLoader[] = [];
+    private shaderSrcFiles: XORUtils.ShaderLoader[] = [];
 
     // private _defaultFBO: FBO | null;
     private _scenegraphs: Map<string, boolean> = new Map<string, boolean>();
@@ -111,8 +113,8 @@ class Scenegraph {
     }
 
     get loaded(): boolean {
-        for (let t of this.textfiles) {
-            if (!t.loaded) return false;
+        if (!this.fx.xor.textfiles.loaded) {
+            return false;
         }
         if (!this.fx.textures.loaded)
             return false;
@@ -123,8 +125,8 @@ class Scenegraph {
     }
 
     get failed(): boolean {
-        for (let t of this.textfiles) {
-            if (t.failed) return true;
+        if (this.fx.xor.textfiles.failed) {
+            return true;
         }
         if (this.fx.textures.failed) {
             return true;
@@ -137,23 +139,19 @@ class Scenegraph {
 
     get percentLoaded(): number {
         let a = 0;
-        for (let t of this.textfiles) {
-            if (t.loaded) a++;
-        }
-        let imagesLoaded = this.fx.textures.percentLoaded;
         for (let s of this.shaderSrcFiles) {
             if (s.loaded) a++;
         }
-        return 100.0 * a / (this.textfiles.length + this.shaderSrcFiles.length) + imagesLoaded / 3.0;
+        return 100.0 * a / (this.shaderSrcFiles.length) + this.fx.textures.percentLoaded / 3.0 + this.fx.xor.textfiles.percentLoaded / 3.0;
     }
 
     load(url: string): void {
         let fx = this.fx;
-        let name = Utils.GetURLResource(url);
+        let name = XORUtils.GetURLResource(url);
         let self = this;
         let assetType: SGAssetType;
-        let ext = Utils.GetExtension(name);
-        let path = Utils.GetURLPath(url);
+        let ext = XORUtils.GetExtension(name);
+        let path = XORUtils.GetURLPath(url);
 
         if (ext == "scn") assetType = SGAssetType.Scene;
         else if (ext == "obj") assetType = SGAssetType.GeometryGroup;
@@ -171,10 +169,14 @@ class Scenegraph {
             if (assetType == SGAssetType.Scene) {
                 this._scenegraphs.set(name, false);
             }
-            this.textfiles.push(new Utils.TextFileLoader(url, (data, name, assetType) => {
+            fx.xor.textfiles.load(name, url, (data, name, assetType) => {
                 self.processTextFile(data, name, path, assetType);
                 hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + name);
-            }, assetType));
+            }, assetType);
+            // this.textFiles.push(new XORUtils.TextFileLoader(url, (data, name, assetType) => {
+            //     self.processTextFile(data, name, path, assetType);
+            //     hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + name);
+            // }, assetType));
         }
         hflog.debug("MyScenegraph::Load() => Requesting " + url);
     }
@@ -186,11 +188,12 @@ class Scenegraph {
     }
 
     wasRequested(name: string): boolean {
-        for (let tf of this.textfiles) {
-            if (tf.name == name) return true;
-        }
-        if (this.fx.textures.wasRequested(name))
+        if (this.fx.xor.textfiles.wasRequested(name)) {
             return true;
+        }
+        if (this.fx.textures.wasRequested(name)) {
+            return true;
+        }
         return false;
     }
 
@@ -207,7 +210,7 @@ class Scenegraph {
         this._renderConfigs.set(name, rc);
 
         let self = this;
-        this.shaderSrcFiles.push(new Utils.ShaderLoader(vertshaderUrl, fragshaderUrl, (vertShaderSource: string, fragShaderSource: string) => {
+        this.shaderSrcFiles.push(new XORUtils.ShaderLoader(vertshaderUrl, fragshaderUrl, (vertShaderSource: string, fragShaderSource: string) => {
             rc.compile(vertShaderSource, fragShaderSource);
             hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + vertshaderUrl + " and " + fragshaderUrl);
         }));
@@ -588,7 +591,7 @@ class Scenegraph {
     }
 
     private processTextFile(data: string, name: string, path: string, assetType: SGAssetType): void {
-        let textParser = new TextParser(data);
+        let textParser = new FxTextParser(data);
 
         switch (assetType) {
             // ".SCN"
@@ -618,24 +621,24 @@ class Scenegraph {
 
         for (let tokens of lines) {
             if (tokens[0] == "enviroCube") {
-                this._sceneResources.set("enviroCube", Utils.GetURLResource(tokens[1]));
+                this._sceneResources.set("enviroCube", XORUtils.GetURLResource(tokens[1]));
                 this.load(path + tokens[1]);
             }
             else if (tokens[0] == "transform") {
-                this._tempNode.transform.loadMatrix(TextParser.ParseMatrix(tokens));
+                this._tempNode.transform.loadMatrix(FxTextParser.ParseMatrix(tokens));
             }
             else if (tokens[0] == "loadIdentity") {
                 this._tempNode.transform.loadIdentity();
             }
             else if (tokens[0] == "translate") {
-                let t = TextParser.ParseVector(tokens);
+                let t = FxTextParser.ParseVector(tokens);
                 this._tempNode.transform.translate(t.x, t.y, t.z);
             }
             else if (tokens[0] == "rotate") {
-                let values = TextParser.ParseVector4(tokens);
+                let values = FxTextParser.ParseVector4(tokens);
                 this._tempNode.transform.rotate(values.x, values.y, values.z, values.w);
             } else if (tokens[0] == "scale") {
-                let values = TextParser.ParseVector4(tokens);
+                let values = FxTextParser.ParseVector4(tokens);
                 this._tempNode.transform.scale(values.x, values.y, values.z);
             }
             else if (tokens[0] == "geometryGroup") {
@@ -771,46 +774,46 @@ class Scenegraph {
         // map_Ks <url: string>
         // map_normal <url: string>
         let mtl = "";
-        let mtllib = TextParser.MakeIdentifier(name);
+        let mtllib = FxTextParser.MakeIdentifier(name);
         let curmtl: Material | undefined;
         for (let tokens of lines) {
             if (tokens.length >= 2) {
                 if (tokens[0] == "newmtl") {
-                    mtl = TextParser.MakeIdentifier(tokens[1]);
+                    mtl = FxTextParser.MakeIdentifier(tokens[1]);
                     curmtl = new Material(mtl);
                     this._materials.set(mtllib + mtl, curmtl);
                 }
                 else if (tokens[0] == "map_Kd") {
                     if (curmtl) {
-                        curmtl.map_Kd = Utils.GetURLResource(tokens[1]);
+                        curmtl.map_Kd = XORUtils.GetURLResource(tokens[1]);
                         curmtl.map_Kd_mix = 1.0;
                     }
                     this.load(path + tokens[1]);
                 }
                 else if (tokens[0] == "map_Ks") {
                     if (curmtl) {
-                        curmtl.map_Ks = Utils.GetURLResource(tokens[1]);
+                        curmtl.map_Ks = XORUtils.GetURLResource(tokens[1]);
                         curmtl.map_Ks_mix = 1.0;
                     }
                     this.load(path + tokens[1]);
                 }
                 else if (tokens[0] == "map_normal") {
                     if (curmtl) {
-                        curmtl.map_normal = Utils.GetURLResource(tokens[1]);
+                        curmtl.map_normal = XORUtils.GetURLResource(tokens[1]);
                         curmtl.map_normal_mix = 1.0;
                     }
                     this.load(path + tokens[1]);
                 } else if (tokens[0] == "Kd") {
                     if (curmtl) {
-                        curmtl.Kd = TextParser.ParseVector(tokens);
+                        curmtl.Kd = FxTextParser.ParseVector(tokens);
                     }
                 } else if (tokens[0] == "Ks") {
                     if (curmtl) {
-                        curmtl.Ks = TextParser.ParseVector(tokens);
+                        curmtl.Ks = FxTextParser.ParseVector(tokens);
                     }
                 } else if (tokens[0] == "Ka") {
                     if (curmtl) {
-                        curmtl.Ka = TextParser.ParseVector(tokens);
+                        curmtl.Ka = FxTextParser.ParseVector(tokens);
                     }
                 } else if (tokens[0] == "PBn2") {
                     if (curmtl) {

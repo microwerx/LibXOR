@@ -17,8 +17,8 @@ class MeshSystem {
         if (!this.xor.fluxions) throw "Fluxions is not initialized";
         let mesh = new IndexedGeometryMesh(this.xor.fluxions);
         this.meshes.set(name, mesh);
-        let tl = new Utils.TextFileLoader(url, (data: string, name: string, p: number) => {
-            let textParser = new TextParser(data);
+        let tl = new XORUtils.TextFileLoader(url, (data: string, name: string, p: number) => {
+            let textParser = new FxTextParser(data);
             mesh.loadOBJ(textParser.lines);
         });
         return mesh;

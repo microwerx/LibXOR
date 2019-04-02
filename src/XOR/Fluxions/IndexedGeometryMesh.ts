@@ -501,19 +501,19 @@ class IndexedGeometryMesh {
         for (let tokens of lines) {
             if (tokens.length >= 3) {
                 if (tokens[0] == "v") {
-                    let position = TextParser.ParseVector(tokens);
+                    let position = FxTextParser.ParseVector(tokens);
                     positions.push(position);
                     this.edgeMesh.addVertex(position);
                 } else if (tokens[0] == "vn") {
-                    normals.push(TextParser.ParseVector(tokens));
+                    normals.push(FxTextParser.ParseVector(tokens));
                 } else if (tokens[0] == "vt") {
-                    texcoords.push(TextParser.ParseVector(tokens));
+                    texcoords.push(FxTextParser.ParseVector(tokens));
                 } else if (tokens[0] == "vc") {
-                    let color = TextParser.ParseVector(tokens);
+                    let color = FxTextParser.ParseVector(tokens);
                     colors.push(color);
                     this.color(color.x, color.y, color.z);
                 } else if (tokens[0] == "f") {
-                    let indices = TextParser.ParseFace(tokens);
+                    let indices = FxTextParser.ParseFace(tokens);
                     let edgeIndices: number[] = [];
                     let ncount = normals.length;
                     let tcount = texcoords.length;
@@ -538,10 +538,10 @@ class IndexedGeometryMesh {
             else if (tokens.length >= 2) {
                 if (tokens[0] == "mtllib") {
                     if (scenegraph && path) scenegraph.load(path + tokens[1]);
-                    this.mtllib(TextParser.ParseIdentifier(tokens));
+                    this.mtllib(FxTextParser.ParseIdentifier(tokens));
                     this.begin(WebGLRenderingContext.TRIANGLES);
                 } else if (tokens[0] == "usemtl") {
-                    this.usemtl(TextParser.ParseIdentifier(tokens));
+                    this.usemtl(FxTextParser.ParseIdentifier(tokens));
                     this.begin(WebGLRenderingContext.TRIANGLES);
                 } else if (tokens[0] == "o") {
                     this.begin(WebGLRenderingContext.TRIANGLES);
