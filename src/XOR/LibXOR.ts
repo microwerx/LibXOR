@@ -9,21 +9,25 @@
 /// <reference path="RenderConfigSystem.ts" />
 /// <reference path="MeshSystem.ts" />
 
+/**
+ * @class LibXOR
+ * @member {FxRenderingContext} fluxions
+ */
 class LibXOR {
-    public memory = new MemorySystem(this);
-    public graphics = new GraphicsSystem(this);
-    public sound = new XOR.SoundSystem(this);
-    public input = new InputSystem(this);
-    public palette = new PaletteSystem(this);
-    public fluxions: FxRenderingContext | null = null;
-    public renderconfigs = new RenderConfigSystem(this);
-    public meshes = new MeshSystem(this);
-    public parentElement: HTMLElement;
-
     public t1 = 0.0;
     public t0 = 0.0;
     public dt = 0.0;
     public frameCount = 0;
+
+    public parentElement: HTMLElement;
+    public graphics: GraphicsSystem;
+    public fluxions: FxRenderingContext;
+    public memory = new MemorySystem(this);
+    public sound = new XOR.SoundSystem(this);
+    public input = new InputSystem(this);
+    public palette = new PaletteSystem(this);
+    public renderconfigs = new RenderConfigSystem(this);
+    public meshes = new MeshSystem(this);
 
     public oninit = () => { };
     public onupdate = (dt: number) => { };
@@ -32,6 +36,9 @@ class LibXOR {
         let n = document.getElementById(parentId);
         if (!n) throw "Unable to initialize LibXOR due to bad parentId '" + parentId.toString() + "'";
         this.parentElement = n;
+
+        this.graphics = new GraphicsSystem(this);
+        this.fluxions = new FxRenderingContext(this);
     }
 
     start() {

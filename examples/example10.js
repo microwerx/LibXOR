@@ -1,3 +1,6 @@
+/// <reference path="LibXOR.js" />
+/* global Vector3 */
+
 class App {
     constructor() {
         this.xor = new LibXOR("project");
@@ -20,11 +23,13 @@ class App {
         hflog.logElement = "log";
         this.xor.graphics.setVideoMode(1.5 * 384, 384);
         this.xor.input.init();
-        let gl = this.xor.graphics.gl;
 
-        let sg = this.xor.fluxions.scenegraph;
-        sg.addFBO("lb1", false, true, 128, 128, 1);
-        sg.addFBO("lb2", false, true, 128, 128, 1);
+        let fx = this.xor.fluxions;
+        fx.fbos.add("lb1", false, true, 128, 128, 1);
+        fx.fbos.add("lb2", false, true, 128, 128, 1);
+
+        // load some textures
+        fx.textures.load("flame_map", "textures/flame_map.png");
 
         let lb = this.xor.renderconfigs.load('lattice-boltzmann', 'fluids.vert', 'fluids-lattice-boltzmann.frag');
         lb.useDepthTest = false;
@@ -44,10 +49,14 @@ class App {
         this.mainloop();
     }
 
-    update(dt) {
+    reset() {
+
+    }
+
+    update() {
         let xor = this.xor;
         if (xor.input.checkKeys([" ", "Space"])) {
-            resetSim = true;
+            this.reset();
         }
     }
 

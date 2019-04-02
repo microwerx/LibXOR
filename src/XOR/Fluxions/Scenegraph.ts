@@ -40,15 +40,12 @@ class ScenegraphNode {
 
 class Scenegraph {
     private textfiles: Utils.TextFileLoader[] = [];
-    private imagefiles: Utils.ImageFileLoader[] = [];
     private shaderSrcFiles: Utils.ShaderLoader[] = [];
 
     // private _defaultFBO: FBO | null;
     private _scenegraphs: Map<string, boolean> = new Map<string, boolean>();
     private _deferredMesh: IndexedGeometryMesh;
     private _renderConfigs: Map<string, RenderConfig> = new Map<string, RenderConfig>();
-    //private _cubeTextures: Map<string, WebGLTexture> = new Map<string, WebGLTexture>();
-    private _textures: Map<string, Texture> = new Map<string, Texture>();
     private _materials: Map<string, Material> = new Map<string, Material>();
     private _sceneResources: Map<string, string> = new Map<string, string>();
     private _nodes: Array<ScenegraphNode> = [];
@@ -117,9 +114,8 @@ class Scenegraph {
         for (let t of this.textfiles) {
             if (!t.loaded) return false;
         }
-        for (let i of this.imagefiles) {
-            if (!i.loaded) return false;
-        }
+        if (!this.fx.textures.loaded)
+            return false;
         for (let s of this.shaderSrcFiles) {
             if (!s.loaded) return false;
         }
@@ -130,8 +126,8 @@ class Scenegraph {
         for (let t of this.textfiles) {
             if (t.failed) return true;
         }
-        for (let i of this.imagefiles) {
-            if (i.failed) return true;
+        if (this.fx.textures.failed) {
+            return true;
         }
         for (let s of this.shaderSrcFiles) {
             if (s.failed) return true;
@@ -144,16 +140,15 @@ class Scenegraph {
         for (let t of this.textfiles) {
             if (t.loaded) a++;
         }
-        for (let i of this.imagefiles) {
-            if (i.loaded) a++;
-        }
+        let imagesLoaded = this.fx.textures.percentLoaded;
         for (let s of this.shaderSrcFiles) {
             if (s.loaded) a++;
         }
-        return 100.0 * a / (this.textfiles.length + this.imagefiles.length + this.shaderSrcFiles.length);
+        return 100.0 * a / (this.textfiles.length + this.shaderSrcFiles.length) + imagesLoaded / 3.0;
     }
 
     load(url: string): void {
+        let fx = this.fx;
         let name = Utils.GetURLResource(url);
         let self = this;
         let assetType: SGAssetType;
@@ -171,12 +166,7 @@ class Scenegraph {
         if (this.wasRequested(name)) return;
 
         if (assetType == SGAssetType.Image) {
-            if (this._textures.has(name))
-                return;
-            this.imagefiles.push(new Utils.ImageFileLoader(url, (data, name, assetType) => {
-                self.processTextureMap(data, name, assetType);
-                hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + name);
-            }));
+            fx.textures.load(name, url);
         } else {
             if (assetType == SGAssetType.Scene) {
                 this._scenegraphs.set(name, false);
@@ -199,9 +189,8 @@ class Scenegraph {
         for (let tf of this.textfiles) {
             if (tf.name == name) return true;
         }
-        for (let img of this.imagefiles) {
-            if (img.name == name) return true;
-        }
+        if (this.fx.textures.wasRequested(name))
+            return true;
         return false;
     }
 
@@ -375,11 +364,11 @@ class Scenegraph {
         }
         gl.activeTexture(unit);
 
-        let t = this._textures.get(textureName);
+        let t = this.fx.textures.get(textureName);
         if (!t) {
             let alias = this._sceneResources.get(textureName);
             if (alias) {
-                t = this._textures.get(alias);
+                t = this.fx.textures.get(alias);
             }
         }
         if (t) {
@@ -505,7 +494,7 @@ class Scenegraph {
             //     this.configureFBO(rc, fbo, unit, unit + 1);
             //     unit += 2;
             // }
-            this.fx.fboSystem.configure(rc);
+            this.fx.fbos.configure(rc);
         }
         let gl = this.fx.gl;
         gl.viewport(0, 0, this.width, this.height);
@@ -540,7 +529,7 @@ class Scenegraph {
         // for (let fbo of this._fbo) {
         //     if (fbo[1].complete) fbo[1].unbindTextures()
         // }
-        this.fx.fboSystem.restore();
+        this.fx.fbos.restore();
     }
 
     Update() {
@@ -550,7 +539,7 @@ class Scenegraph {
         //         fbo.autoResize(this.width, this.height);
         //     }
         // });
-        this.fx.fboSystem.autoresize();
+        this.fx.fbos.autoresize();
     }
 
     RenderScene(shaderName: string, sceneName: string = "") {
@@ -620,54 +609,6 @@ class Scenegraph {
         }
     }
 
-    private processTextureMap(image: HTMLImageElement, name: string, assetType: SGAssetType): void {
-        let gl = this.fx.gl;
-
-        let minFilter = gl.NEAREST;
-        let magFilter = gl.NEAREST;
-
-        let maxAnisotropy = 1.0;
-        let ext = this.fx.getExtension("EXT_texture_filter_anisotropic")
-        if (ext) {
-            let maxAnisotropy = gl.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
-        } else {
-            hflog.debug("cannot use anisotropic filtering");
-        }
-
-        if (image.width == 6 * image.height) {
-            let images: Array<ImageData> = new Array<ImageData>(6);
-            Utils.SeparateCubeMapImages(image, images);
-            let texture = gl.createTexture();
-            if (texture) {
-                gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
-                for (let i = 0; i < 6; i++) {
-                    if (!images[i]) {
-                        continue;
-                    } else {
-                        hflog.debug("image " + i + " w:" + images[i].width + "/h:" + images[i].height);
-                    }
-                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[i]);
-                }
-                gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-                let t = new Texture(this.fx, name, name, gl.TEXTURE_CUBE_MAP, texture);
-                this._textures.set(name, t);
-            }
-        } else {
-            let texture = gl.createTexture();
-            if (texture) {
-                gl.bindTexture(gl.TEXTURE_2D, texture);
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-                gl.generateMipmap(gl.TEXTURE_2D);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
-                if (ext) {
-                    gl.texParameterf(gl.TEXTURE_2D, ext.TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy);
-                }
-                let t = new Texture(this.fx, name, name, gl.TEXTURE_2D, texture);
-                this._textures.set(name, t);
-            }
-        }
-    }
 
     private loadScene(lines: string[][], name: string, path: string): void {
         // sundir <direction: Vector3>

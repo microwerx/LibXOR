@@ -13,7 +13,7 @@ class FxFboSystem {
      * Returns null or the FBO referred to by name
      * @param name The name of the FBO
      */
-    getFBO(name: string): FBO | null {
+    get(name: string): FBO | null {
         return this._fbo.get(name) || null;
     }
 
@@ -26,9 +26,9 @@ class FxFboSystem {
      * @param height The height of the FBO (should be power of two)
      * @param colorType 0 for gl.UNSIGNED_BYTE or 1 for gl.FLOAT
      */
-    addFBO(name: string, hasDepth: boolean, hasColor: boolean, width: number, height: number, colorType: number): FBO | null {
+    add(name: string, hasDepth: boolean, hasColor: boolean, width: number, height: number, colorType: number): FBO | null {
         this._fbo.set(name, new FBO(this.fx, hasDepth, hasColor, width, height, colorType));
-        return this.getFBO(name);
+        return this.get(name);
     }
 
     /**
@@ -47,7 +47,6 @@ class FxFboSystem {
         if (this.currentFBO) {
             this.currentFBO.restore();
             this.currentFBO = null;
-            this.lastRC = null;
         } else {
             for (let fbo of this._fbo) {
                 if (fbo[1].complete) fbo[1].unbindTextures()
@@ -57,7 +56,7 @@ class FxFboSystem {
 
     configure(rc: RenderConfig, startUnit = 11) {
         if (rc.writeToFBO != "") {
-            let fbo = this.getFBO(rc.writeToFBO);
+            let fbo = this.get(rc.writeToFBO);
             if (fbo) {
                 fbo.use(rc.clearWriteToFBO, rc.disableWriteToFBOColorWrites);
                 this.currentFBO = fbo;

@@ -1,5 +1,6 @@
 "use strict";
 /* eslint-disable no-unused-vars, no-unreachable, no-redeclare, no-console, no-empty, no-extra-semi, no-constant-condition */
+/* eslint-disable */
 /// <reference path="LibXOR.ts" />
 class Hatchetfish {
     constructor(logElementId = "") {
@@ -212,7 +213,16 @@ class Vector2 {
 // SOFTWARE.
 //
 /// <reference path="./GTE.ts" />
+/**
+ * @class Vector3
+ */
 class Vector3 {
+    /**
+     *
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
+     */
     constructor(x = 0.0, y = 0.0, z = 0.0) {
         this.x = x;
         this.y = y;
@@ -1438,6 +1448,449 @@ var GTE;
     GTE.vec4 = vec4;
 })(GTE || (GTE = {}));
 /// <reference path="Fluxions.ts" />
+class FBO {
+    constructor(_renderingContext, depth, color, width = 512, height = 512, colorType = 0, colorUnit = 11, depthUnit = 12, shouldAutoResize = false) {
+        this._renderingContext = _renderingContext;
+        this.depth = depth;
+        this.color = color;
+        this.width = width;
+        this.height = height;
+        this.colorType = colorType;
+        this.colorUnit = colorUnit;
+        this.depthUnit = depthUnit;
+        this.shouldAutoResize = shouldAutoResize;
+        this._colorTexture = null;
+        this._depthTexture = null;
+        this._colorType = 0;
+        this._complete = false;
+        this._colorUnit = -1;
+        this._depthUnit = -1;
+        this.clearColor = Vector3.make(0.2, 0.2, 0.2);
+        let gl = _renderingContext.gl;
+        let fbo = gl.createFramebuffer();
+        if (fbo) {
+            this._fbo = fbo;
+        }
+        else {
+            throw "Unable to create FBO";
+        }
+        // width = 1 << ((0.5 + Math.log2(width)) | 0);
+        // height = 1 << ((0.5 + Math.log2(height)) | 0);
+        // this._powerOfTwoDimensions = Vector2.make(
+        //     width, height
+        // );
+        if (colorType == 0)
+            this._colorType = gl.UNSIGNED_BYTE;
+        else
+            this._colorType = gl.FLOAT;
+        this.make();
+    }
+    // private _powerOfTwoDimensions: Vector2;
+    get complete() { return this._complete; }
+    get dimensions() { return Vector2.make(this.width, this.height); }
+    autoResize(width, height) {
+        if (!this.shouldAutoResize)
+            return;
+        if (this.width == width && this.height == height)
+            return;
+        let gl = this._renderingContext.gl;
+        this.width = width;
+        this.height = height;
+        if (this._colorTexture)
+            gl.deleteTexture(this._colorTexture);
+        if (this._depthTexture)
+            gl.deleteTexture(this._depthTexture);
+        this._colorTexture = null;
+        this._depthTexture = null;
+        this.make();
+    }
+    make() {
+        let gl = this._renderingContext.gl;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
+        gl.activeTexture(gl.TEXTURE0);
+        if (this.color && !this._colorTexture) {
+            this._colorTexture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, this._colorTexture);
+            // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
+            //     this._powerOfTwoDimensions.x, this._powerOfTwoDimensions.y, 0, gl.RGBA, this._colorType, null);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, this._colorType, null);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._colorTexture, 0);
+        }
+        if (this.depth && !this._depthTexture) {
+            this._depthTexture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, this._depthTexture);
+            // gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT,
+            //     this._powerOfTwoDimensions.x, this._powerOfTwoDimensions.y, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, this.width, this.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this._depthTexture, 0);
+        }
+        let resolutionSizeText = this.width + "x" + this.height;
+        let fboStatus = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+        if (fboStatus != gl.FRAMEBUFFER_COMPLETE) {
+            if (this._colorType == gl.FLOAT) {
+                this._colorType = gl.UNSIGNED_BYTE;
+                this.colorType = 0;
+                gl.deleteTexture(this._colorTexture);
+                this._colorTexture = null;
+                this.make();
+                hflog.warn("FBO::make() --> Can't create FLOAT texture, trying UNSIGNED_BYTE");
+                return;
+            }
+            this._complete = false;
+            hflog.error("Unable to create a complete framebuffer " + resolutionSizeText, "| status: " + FBO.statusToText(fboStatus));
+        }
+        else {
+            this._complete = true;
+            hflog.log("Framebuffer is okay! size is " + resolutionSizeText);
+            // hflog.log("Framebuffer is okay! size is " + this.width + "x" + this.height + " texture: " +
+            //     this._powerOfTwoDimensions.x + "x" + this._powerOfTwoDimensions.y);
+        }
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+    use(clearScreen = true, disableColorWrites = false) {
+        let gl = this._renderingContext.gl;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
+        if (disableColorWrites)
+            gl.colorMask(false, false, false, false);
+        this._savedViewport = gl.getParameter(gl.VIEWPORT);
+        gl.viewport(0, 0, this.width, this.height);
+        if (clearScreen) {
+            gl.clearColor(this.clearColor.x, this.clearColor.y, this.clearColor.z, 1.0);
+            let bits = 0;
+            if (this.color)
+                bits |= gl.COLOR_BUFFER_BIT;
+            if (this.depth)
+                bits |= gl.DEPTH_BUFFER_BIT;
+            gl.clear(bits);
+        }
+    }
+    restore() {
+        let gl = this._renderingContext.gl;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        if (this.color && this._colorTexture) {
+            gl.bindTexture(gl.TEXTURE_2D, this._colorTexture);
+            gl.generateMipmap(gl.TEXTURE_2D);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+        }
+        gl.colorMask(true, true, true, true);
+        if (this._savedViewport) {
+            gl.viewport(this._savedViewport[0], this._savedViewport[1], this._savedViewport[2], this._savedViewport[3]);
+            this._savedViewport = undefined;
+        }
+    }
+    bindTextures(colorUnit = 15, depthUnit = 16) {
+        let gl = this._renderingContext.gl;
+        this._colorUnit = colorUnit;
+        this._depthUnit = depthUnit;
+        if (this._colorUnit >= 0) {
+            gl.activeTexture(this._colorUnit + gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this._colorTexture);
+        }
+        if (this._depthUnit >= 0) {
+            gl.activeTexture(this._depthUnit + gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this._depthTexture);
+        }
+        gl.activeTexture(gl.TEXTURE0);
+    }
+    unbindTextures() {
+        let gl = this._renderingContext.gl;
+        if (this._colorUnit >= 0) {
+            gl.activeTexture(this._colorUnit + gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            this._colorUnit = -1;
+        }
+        if (this._depthUnit >= 0) {
+            gl.activeTexture(this._depthUnit + gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            this._depthUnit = -1;
+        }
+        gl.activeTexture(gl.TEXTURE0);
+    }
+    static statusToText(status) {
+        let gl = WebGLRenderingContext;
+        switch (status) {
+            case gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+                return "Incomplete attachment";
+                break;
+            case gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+                return "Incomplete dimensions";
+                break;
+            case gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+                return "Missing attachment";
+                break;
+            case gl.FRAMEBUFFER_UNSUPPORTED:
+                return "Unsupported";
+                break;
+        }
+        return "Unknown error: " + status;
+    }
+}
+/// <reference path="FBO.ts" />
+/// <reference path="FxRenderingContext.ts" />
+class FxFboSystem {
+    constructor(fx) {
+        this.fx = fx;
+        this._fbo = new Map();
+        this.currentFBO = null;
+    }
+    /**
+     * Returns null or the FBO referred to by name
+     * @param name The name of the FBO
+     */
+    get(name) {
+        return this._fbo.get(name) || null;
+    }
+    /**
+     * Creates a new FBO and adds it to the scene graph
+     * @param name The name of the FBO
+     * @param hasDepth Does the FBO have a depth attachment
+     * @param hasColor Does the FBO have a color attachment
+     * @param width The width of the FBO (should be power of two)
+     * @param height The height of the FBO (should be power of two)
+     * @param colorType 0 for gl.UNSIGNED_BYTE or 1 for gl.FLOAT
+     */
+    add(name, hasDepth, hasColor, width, height, colorType) {
+        this._fbo.set(name, new FBO(this.fx, hasDepth, hasColor, width, height, colorType));
+        return this.get(name);
+    }
+    /**
+     * autoresize
+     */
+    autoresize() {
+        let fx = this.fx;
+        this._fbo.forEach((fbo) => {
+            if (fbo.width != fx.width || fbo.height != fx.height) {
+                fbo.autoResize(fx.width, fx.height);
+            }
+        });
+    }
+    restore() {
+        if (this.currentFBO) {
+            this.currentFBO.restore();
+            this.currentFBO = null;
+        }
+        else {
+            for (let fbo of this._fbo) {
+                if (fbo[1].complete)
+                    fbo[1].unbindTextures();
+            }
+        }
+    }
+    configure(rc, startUnit = 11) {
+        if (rc.writeToFBO != "") {
+            let fbo = this.get(rc.writeToFBO);
+            if (fbo) {
+                fbo.use(rc.clearWriteToFBO, rc.disableWriteToFBOColorWrites);
+                this.currentFBO = fbo;
+            }
+        }
+        else {
+            let unit = startUnit;
+            for (let fbo of rc.readFromFBOs) {
+                this.configureFBO(rc, fbo, unit, unit + 1);
+                unit += 2;
+            }
+        }
+    }
+    configureFBO(rc, name, colorUnit, depthUnit) {
+        const colorUniform = name + "Color";
+        const depthUniform = name + "Depth";
+        const resolutionUnifom = name + "Resolution";
+        const usingUniform = "Using" + name;
+        let fbo = this._fbo.get(name) || null;
+        if (!fbo)
+            return;
+        rc.uniform2f(resolutionUnifom, fbo.dimensions);
+        rc.uniform1i(usingUniform, rc.writesToFBO ? 1 : 0);
+        if (rc.writesToFBO && fbo.complete) {
+            fbo.bindTextures(colorUnit, depthUnit);
+            if (fbo.color)
+                rc.uniform1i(colorUniform, colorUnit);
+            if (fbo.depth)
+                rc.uniform1i(depthUniform, depthUnit);
+        }
+        else {
+            rc.uniform1i(colorUniform, 0);
+            rc.uniform1i(depthUniform, 0);
+        }
+    }
+}
+/// <reference path="./FxRenderingContext.ts" />
+class FxTextureSystem {
+    /**
+     *
+     * @param {FxRenderingContext} fx The rendering context
+     */
+    constructor(fx) {
+        this.fx = fx;
+        this._textures = new Map();
+        this.imagefiles = [];
+        let gl = fx.gl;
+        let tex2D = gl.createTexture();
+        let texCube = gl.createTexture();
+        if (!texCube || !tex2D) {
+            throw TypeError("texCube or tex2D is not valid");
+        }
+        let pixels = new ImageData(new Uint8ClampedArray([0, 0, 0, 255, 255, 255, 255, 255, 0, 0, 0, 255, 255, 255, 255, 255]), 2, 2);
+        gl.bindTexture(gl.TEXTURE_2D, tex2D);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, pixels);
+        //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 2, 2, 0, gl.RGB, gl.UNSIGNED_BYTE, pixels);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        let xppixels = new ImageData(new Uint8ClampedArray([127, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 127, 0, 0, 255]), 2, 2);
+        let xnpixels = new ImageData(new Uint8ClampedArray([0, 127, 127, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 127, 127, 255]), 2, 2);
+        let yppixels = new ImageData(new Uint8ClampedArray([0, 127, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 127, 0, 255]), 2, 2);
+        let ynpixels = new ImageData(new Uint8ClampedArray([127, 0, 127, 255, 255, 0, 255, 255, 255, 0, 255, 255, 127, 0, 127, 255]), 2, 2);
+        let zppixels = new ImageData(new Uint8ClampedArray([0, 0, 127, 255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 127, 255]), 2, 2);
+        let znpixels = new ImageData(new Uint8ClampedArray([127, 127, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 127, 127, 0, 255]), 2, 2);
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, texCube);
+        gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, xnpixels);
+        gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, ynpixels);
+        gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, znpixels);
+        gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, xppixels);
+        gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, yppixels);
+        gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, zppixels);
+        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+        this._default2D = new Texture(this.fx, "__texture2D__", "", WebGLRenderingContext.TEXTURE_2D, tex2D);
+        this._defaultCube = new Texture(this.fx, "__textureCube__", "", gl.TEXTURE_CUBE_MAP, texCube);
+        this._textures.set("__texture2D__", this._default2D);
+        this._textures.set("__textureCube__", this._defaultCube);
+    }
+    has(name) {
+        if (this._textures.has(name))
+            return true;
+        return false;
+    }
+    get(name) {
+        let t = this._textures.get(name);
+        if (t)
+            return t;
+        return null;
+    }
+    /**
+     *
+     * @param {string} name name of the texture
+     * @param {Texture} value
+     */
+    set(name, value) {
+        this._textures.set(name, value);
+    }
+    get loaded() {
+        for (let i of this.imagefiles) {
+            if (!i.loaded)
+                return false;
+        }
+        return true;
+    }
+    get failed() {
+        for (let i of this.imagefiles) {
+            if (i.failed)
+                return true;
+        }
+        return false;
+    }
+    get length() {
+        return this.imagefiles.length;
+    }
+    get percentLoaded() {
+        let a = 0;
+        for (let i of this.imagefiles) {
+            if (i.loaded)
+                a++;
+        }
+        return 100.0 * a / this.imagefiles.length;
+    }
+    /**
+     * @param {string} name the key to find this texture
+     * @param {string} url  the url to load this texture
+     */
+    load(name, url) {
+        if (this._textures.has(name))
+            return;
+        let self = this;
+        this.imagefiles.push(new Utils.ImageFileLoader(url, (data, name) => {
+            self.processTextureMap(data, name);
+            hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + name);
+        }));
+    }
+    wasRequested(name) {
+        for (let img of this.imagefiles) {
+            if (img.name == name)
+                return true;
+        }
+        return false;
+    }
+    processTextureMap(image, name) {
+        let gl = this.fx.gl;
+        let minFilter = gl.NEAREST;
+        let magFilter = gl.NEAREST;
+        let maxAnisotropy = 1.0;
+        let ext = this.fx.getExtension("EXT_texture_filter_anisotropic");
+        if (ext) {
+            let maxAnisotropy = gl.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+        }
+        else {
+            hflog.debug("cannot use anisotropic filtering");
+        }
+        if (image.width == 6 * image.height) {
+            let images = new Array(6);
+            Utils.SeparateCubeMapImages(image, images);
+            let texture = gl.createTexture();
+            if (texture) {
+                gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+                for (let i = 0; i < 6; i++) {
+                    if (!images[i]) {
+                        continue;
+                    }
+                    else {
+                        hflog.debug("image " + i + " w:" + images[i].width + "/h:" + images[i].height);
+                    }
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[i]);
+                }
+                gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+                let t = new Texture(this.fx, name, name, gl.TEXTURE_CUBE_MAP, texture);
+                this.fx.textures.set(name, t);
+            }
+        }
+        else {
+            let texture = gl.createTexture();
+            if (texture) {
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                gl.generateMipmap(gl.TEXTURE_2D);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
+                if (ext) {
+                    gl.texParameterf(gl.TEXTURE_2D, ext.TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy);
+                }
+                let t = new Texture(this.fx, name, name, gl.TEXTURE_2D, texture);
+                this.fx.textures.set(name, t);
+            }
+        }
+    }
+}
+/// <reference path="Fluxions.ts" />
+/// <reference path="FxFboSystem.ts" />
+/// <reference path="FxTextureSystem.ts" />
 class FxRenderingContext {
     constructor(xor) {
         this.xor = xor;
@@ -1447,6 +1900,8 @@ class FxRenderingContext {
         if (!xor.graphics.gl)
             throw "Unable to start Fluxions without valid gl context";
         this.gl = xor.graphics.gl;
+        this.textures = new FxTextureSystem(this);
+        this.fbos = new FxFboSystem(this);
         let debugInfo = this.gl.getExtension('WEBGL_debug_renderer_info');
         if (debugInfo) {
             let vendor = this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
@@ -1523,6 +1978,12 @@ class FxRenderingContext {
         // }
     }
 }
+class FxTextureUniform {
+    constructor(textureName, uniformName) {
+        this.textureName = textureName;
+        this.uniformName = uniformName;
+    }
+}
 // LibXOR Library
 // Copyright (c) 2017 - 2018 Jonathan Metzgar
 // All Rights Reserved.
@@ -1548,6 +2009,7 @@ class FxRenderingContext {
 // SOFTWARE.
 //
 /// <reference path="Fluxions.ts"/>
+/// <reference path="FxTextureUniform.ts" />
 class RenderConfig {
     constructor(fx) {
         this.fx = fx;
@@ -1576,12 +2038,17 @@ class RenderConfig {
         this.stencilFunc = WebGLRenderingContext.ALWAYS;
         this.stencilFuncRef = 0.0;
         this.stencilMask = 1;
-        this.usesFBO = false;
         this.renderShadowMap = false;
         this.renderGBuffer = false;
         this.renderImage = false;
         this.renderEdges = false;
-        this.fbos = [];
+        this.writesToFBO = false;
+        this.writeToFBO = "";
+        this.clearWriteToFBO = true;
+        this.disableWriteToFBOColorWrites = false;
+        this.readFromFBOs = [];
+        this.textures = [];
+        this._texturesBound = 0;
     }
     get usable() { return this.isCompiledAndLinked(); }
     isCompiledAndLinked() {
@@ -1590,6 +2057,7 @@ class RenderConfig {
         return false;
     }
     use() {
+        let fx = this.fx;
         let gl = this.fx.gl;
         gl.useProgram(this._program);
         if (this.useDepthTest) {
@@ -1605,6 +2073,20 @@ class RenderConfig {
             gl.stencilFunc(this.stencilFunc, this.stencilFuncRef, this.stencilMask);
         }
         gl.depthMask(this.depthMask);
+        let unit = 0;
+        for (let texture of this.textures) {
+            let u = this.uniforms.get(texture.uniformName);
+            if (!u)
+                continue;
+            let t = fx.textures.get(texture.textureName);
+            if (!t)
+                continue;
+            gl.activeTexture(gl.TEXTURE0 + unit);
+            gl.bindTexture(t.target, t.texture);
+            gl.uniform1i(u, unit);
+            unit++;
+        }
+        this._texturesBound = unit;
     }
     restore() {
         let gl = this.fx.gl;
@@ -1622,6 +2104,11 @@ class RenderConfig {
             gl.stencilFunc(gl.ALWAYS, 0, 1);
         }
         gl.depthMask(true);
+        for (let i = 0; i < this._texturesBound; i++) {
+            gl.activeTexture(gl.TEXTURE0 + i);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+        }
     }
     uniformMatrix4f(uniformName, m) {
         let gl = this.fx.gl;
@@ -2773,194 +3260,6 @@ class IndexedGeometryMesh {
         this.build();
     }
 }
-/// <reference path="Fluxions.ts" />
-class FBO {
-    constructor(_renderingContext, depth, color, width = 512, height = 512, colorType = 0, colorUnit = 11, depthUnit = 12, shouldAutoResize = false) {
-        this._renderingContext = _renderingContext;
-        this.depth = depth;
-        this.color = color;
-        this.width = width;
-        this.height = height;
-        this.colorType = colorType;
-        this.colorUnit = colorUnit;
-        this.depthUnit = depthUnit;
-        this.shouldAutoResize = shouldAutoResize;
-        this._colorTexture = null;
-        this._depthTexture = null;
-        this._colorType = 0;
-        this._complete = false;
-        this._colorUnit = -1;
-        this._depthUnit = -1;
-        this.clearColor = Vector3.make(0.2, 0.2, 0.2);
-        let gl = _renderingContext.gl;
-        let fbo = gl.createFramebuffer();
-        if (fbo) {
-            this._fbo = fbo;
-        }
-        else {
-            throw "Unable to create FBO";
-        }
-        // width = 1 << ((0.5 + Math.log2(width)) | 0);
-        // height = 1 << ((0.5 + Math.log2(height)) | 0);
-        // this._powerOfTwoDimensions = Vector2.make(
-        //     width, height
-        // );
-        if (colorType == 0)
-            this._colorType = gl.UNSIGNED_BYTE;
-        else
-            this._colorType = gl.FLOAT;
-        this.make();
-    }
-    // private _powerOfTwoDimensions: Vector2;
-    get complete() { return this._complete; }
-    get dimensions() { return Vector2.make(this.width, this.height); }
-    autoResize(width, height) {
-        if (!this.shouldAutoResize)
-            return;
-        if (this.width == width && this.height == height)
-            return;
-        let gl = this._renderingContext.gl;
-        this.width = width;
-        this.height = height;
-        if (this._colorTexture)
-            gl.deleteTexture(this._colorTexture);
-        if (this._depthTexture)
-            gl.deleteTexture(this._depthTexture);
-        this._colorTexture = null;
-        this._depthTexture = null;
-        this.make();
-    }
-    make() {
-        let gl = this._renderingContext.gl;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
-        gl.activeTexture(gl.TEXTURE0);
-        if (this.color && !this._colorTexture) {
-            this._colorTexture = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, this._colorTexture);
-            // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
-            //     this._powerOfTwoDimensions.x, this._powerOfTwoDimensions.y, 0, gl.RGBA, this._colorType, null);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, this._colorType, null);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-            gl.bindTexture(gl.TEXTURE_2D, null);
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._colorTexture, 0);
-        }
-        if (this.depth && !this._depthTexture) {
-            this._depthTexture = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, this._depthTexture);
-            // gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT,
-            //     this._powerOfTwoDimensions.x, this._powerOfTwoDimensions.y, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, this.width, this.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-            gl.bindTexture(gl.TEXTURE_2D, null);
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this._depthTexture, 0);
-        }
-        let resolutionSizeText = this.width + "x" + this.height;
-        let fboStatus = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-        if (fboStatus != gl.FRAMEBUFFER_COMPLETE) {
-            if (this._colorType == gl.FLOAT) {
-                this._colorType = gl.UNSIGNED_BYTE;
-                this.colorType = 0;
-                gl.deleteTexture(this._colorTexture);
-                this._colorTexture = null;
-                this.make();
-                hflog.warn("FBO::make() --> Can't create FLOAT texture, trying UNSIGNED_BYTE");
-                return;
-            }
-            this._complete = false;
-            hflog.error("Unable to create a complete framebuffer " + resolutionSizeText, "| status: " + FBO.statusToText(fboStatus));
-        }
-        else {
-            this._complete = true;
-            hflog.log("Framebuffer is okay! size is " + resolutionSizeText);
-            // hflog.log("Framebuffer is okay! size is " + this.width + "x" + this.height + " texture: " +
-            //     this._powerOfTwoDimensions.x + "x" + this._powerOfTwoDimensions.y);
-        }
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    }
-    use(clearScreen = true, disableColorWrites = false) {
-        let gl = this._renderingContext.gl;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
-        if (disableColorWrites)
-            gl.colorMask(false, false, false, false);
-        this._savedViewport = gl.getParameter(gl.VIEWPORT);
-        gl.viewport(0, 0, this.width, this.height);
-        if (clearScreen) {
-            gl.clearColor(this.clearColor.x, this.clearColor.y, this.clearColor.z, 1.0);
-            let bits = 0;
-            if (this.color)
-                bits |= gl.COLOR_BUFFER_BIT;
-            if (this.depth)
-                bits |= gl.DEPTH_BUFFER_BIT;
-            gl.clear(bits);
-        }
-    }
-    restore() {
-        let gl = this._renderingContext.gl;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        if (this.color && this._colorTexture) {
-            gl.bindTexture(gl.TEXTURE_2D, this._colorTexture);
-            gl.generateMipmap(gl.TEXTURE_2D);
-            gl.bindTexture(gl.TEXTURE_2D, null);
-        }
-        gl.colorMask(true, true, true, true);
-        if (this._savedViewport) {
-            gl.viewport(this._savedViewport[0], this._savedViewport[1], this._savedViewport[2], this._savedViewport[3]);
-            this._savedViewport = undefined;
-        }
-    }
-    bindTextures(colorUnit = 15, depthUnit = 16) {
-        let gl = this._renderingContext.gl;
-        this._colorUnit = colorUnit;
-        this._depthUnit = depthUnit;
-        if (this._colorUnit >= 0) {
-            gl.activeTexture(this._colorUnit + gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, this._colorTexture);
-        }
-        if (this._depthUnit >= 0) {
-            gl.activeTexture(this._depthUnit + gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, this._depthTexture);
-        }
-        gl.activeTexture(gl.TEXTURE0);
-    }
-    unbindTextures() {
-        let gl = this._renderingContext.gl;
-        if (this._colorUnit >= 0) {
-            gl.activeTexture(this._colorUnit + gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, null);
-            this._colorUnit = -1;
-        }
-        if (this._depthUnit >= 0) {
-            gl.activeTexture(this._depthUnit + gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, null);
-            this._depthUnit = -1;
-        }
-        gl.activeTexture(gl.TEXTURE0);
-    }
-    static statusToText(status) {
-        let gl = WebGLRenderingContext;
-        switch (status) {
-            case gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-                return "Incomplete attachment";
-                break;
-            case gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
-                return "Incomplete dimensions";
-                break;
-            case gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-                return "Missing attachment";
-                break;
-            case gl.FRAMEBUFFER_UNSUPPORTED:
-                return "Unsupported";
-                break;
-        }
-        return "Unknown error: " + status;
-    }
-}
 class Camera {
     constructor() {
         this._transform = Matrix4.makeIdentity();
@@ -3212,14 +3511,10 @@ class Scenegraph {
     constructor(fx) {
         this.fx = fx;
         this.textfiles = [];
-        this.imagefiles = [];
         this.shaderSrcFiles = [];
         // private _defaultFBO: FBO | null;
         this._scenegraphs = new Map();
-        this._fbo = new Map();
         this._renderConfigs = new Map();
-        //private _cubeTextures: Map<string, WebGLTexture> = new Map<string, WebGLTexture>();
-        this._textures = new Map();
         this._materials = new Map();
         this._sceneResources = new Map();
         this._nodes = [];
@@ -3277,10 +3572,8 @@ class Scenegraph {
             if (!t.loaded)
                 return false;
         }
-        for (let i of this.imagefiles) {
-            if (!i.loaded)
-                return false;
-        }
+        if (!this.fx.textures.loaded)
+            return false;
         for (let s of this.shaderSrcFiles) {
             if (!s.loaded)
                 return false;
@@ -3292,9 +3585,8 @@ class Scenegraph {
             if (t.failed)
                 return true;
         }
-        for (let i of this.imagefiles) {
-            if (i.failed)
-                return true;
+        if (this.fx.textures.failed) {
+            return true;
         }
         for (let s of this.shaderSrcFiles) {
             if (s.failed)
@@ -3308,17 +3600,15 @@ class Scenegraph {
             if (t.loaded)
                 a++;
         }
-        for (let i of this.imagefiles) {
-            if (i.loaded)
-                a++;
-        }
+        let imagesLoaded = this.fx.textures.percentLoaded;
         for (let s of this.shaderSrcFiles) {
             if (s.loaded)
                 a++;
         }
-        return 100.0 * a / (this.textfiles.length + this.imagefiles.length + this.shaderSrcFiles.length);
+        return 100.0 * a / (this.textfiles.length + this.shaderSrcFiles.length) + imagesLoaded / 3.0;
     }
     load(url) {
+        let fx = this.fx;
         let name = Utils.GetURLResource(url);
         let self = this;
         let assetType;
@@ -3341,12 +3631,7 @@ class Scenegraph {
         if (this.wasRequested(name))
             return;
         if (assetType == SGAssetType.Image) {
-            if (this._textures.has(name))
-                return;
-            this.imagefiles.push(new Utils.ImageFileLoader(url, (data, name, assetType) => {
-                self.processTextureMap(data, name, assetType);
-                hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + name);
-            }));
+            fx.textures.load(name, url);
         }
         else {
             if (assetType == SGAssetType.Scene) {
@@ -3370,10 +3655,8 @@ class Scenegraph {
             if (tf.name == name)
                 return true;
         }
-        for (let img of this.imagefiles) {
-            if (img.name == name)
-                return true;
-        }
+        if (this.fx.textures.wasRequested(name))
+            return true;
         return false;
     }
     areMeshes(names) {
@@ -3531,11 +3814,11 @@ class Scenegraph {
             unit += gl.TEXTURE0;
         }
         gl.activeTexture(unit);
-        let t = this._textures.get(textureName);
+        let t = this.fx.textures.get(textureName);
         if (!t) {
             let alias = this._sceneResources.get(textureName);
             if (alias) {
-                t = this._textures.get(alias);
+                t = this.fx.textures.get(alias);
             }
         }
         if (t) {
@@ -3643,42 +3926,40 @@ class Scenegraph {
             rc.uniform3f("CameraPosition", this.camera.eye);
             this.useTexture("enviroCube", 10);
             rc.uniform1i("EnviroCube", 10);
-            if (!rc.usesFBO) {
+            // TODO: Make This Part of a Light Data Structure
+            if (!rc.writesToFBO) {
                 rc.uniformMatrix4f("SunShadowBiasMatrix", Matrix4.makeShadowBias());
                 rc.uniformMatrix4f("SunShadowProjectionMatrix", this.sunlight.projectionMatrix);
                 rc.uniformMatrix4f("SunShadowViewMatrix", this.sunlight.lightMatrix);
             }
-            let unit = 11;
-            for (let fbo of rc.fbos) {
-                this.configureFBO(rc, fbo, unit, unit + 1);
-                unit += 2;
-            }
+            // let unit = 11;
+            // for (let fbo of rc.readFromFBOs) {
+            //     this.configureFBO(rc, fbo, unit, unit + 1);
+            //     unit += 2;
+            // }
+            this.fx.fbos.configure(rc);
         }
         let gl = this.fx.gl;
         gl.viewport(0, 0, this.width, this.height);
     }
-    configureFBO(rc, name, colorUnit, depthUnit) {
-        const colorUniform = name + "Color";
-        const depthUniform = name + "Depth";
-        const resolutionUnifom = name + "Resolution";
-        const usingUniform = "Using" + name;
-        let fbo = this._fbo.get(name) || null;
-        if (!fbo)
-            return;
-        rc.uniform2f(resolutionUnifom, fbo.dimensions);
-        rc.uniform1i(usingUniform, rc.usesFBO ? 1 : 0);
-        if (rc.usesFBO && fbo.complete) {
-            fbo.bindTextures(colorUnit, depthUnit);
-            if (fbo.color)
-                rc.uniform1i(colorUniform, colorUnit);
-            if (fbo.depth)
-                rc.uniform1i(depthUniform, depthUnit);
-        }
-        else {
-            rc.uniform1i(colorUniform, 0);
-            rc.uniform1i(depthUniform, 0);
-        }
-    }
+    // configureFBO(rc: RenderConfig, name: string, colorUnit: number, depthUnit: number) {
+    //     const colorUniform = name + "Color";
+    //     const depthUniform = name + "Depth";
+    //     const resolutionUnifom = name + "Resolution";
+    //     const usingUniform = "Using" + name;
+    //     let fbo = this._fbo.get(name) || null;
+    //     if (!fbo) return;
+    //     rc.uniform2f(resolutionUnifom, fbo.dimensions);
+    //     rc.uniform1i(usingUniform, rc.writesToFBO ? 1 : 0);
+    //     if (rc.writesToFBO && fbo.complete) {
+    //         fbo.bindTextures(colorUnit, depthUnit);
+    //         if (fbo.color) rc.uniform1i(colorUniform, colorUnit);
+    //         if (fbo.depth) rc.uniform1i(depthUniform, depthUnit);
+    //     } else {
+    //         rc.uniform1i(colorUniform, 0);
+    //         rc.uniform1i(depthUniform, 0);
+    //     }
+    // }
     Restore() {
         let gl = this.fx.gl;
         for (let i = 0; i < 10; i++) {
@@ -3686,18 +3967,19 @@ class Scenegraph {
             gl.bindTexture(gl.TEXTURE_2D, null);
         }
         this.useTexture("enviroCube", 10, false);
-        for (let fbo of this._fbo) {
-            if (fbo[1].complete)
-                fbo[1].unbindTextures();
-        }
+        // for (let fbo of this._fbo) {
+        //     if (fbo[1].complete) fbo[1].unbindTextures()
+        // }
+        this.fx.fbos.restore();
     }
     Update() {
         // check FBOs
-        this._fbo.forEach((fbo) => {
-            if (fbo.width != this.width || fbo.height != this.height) {
-                fbo.autoResize(this.width, this.height);
-            }
-        });
+        // this._fbo.forEach((fbo) => {
+        //     if (fbo.width != this.width || fbo.height != this.height) {
+        //         fbo.autoResize(this.width, this.height);
+        //     }
+        // });
+        this.fx.fbos.autoresize();
     }
     RenderScene(shaderName, sceneName = "") {
         let rc = this.userc(shaderName);
@@ -3754,54 +4036,6 @@ class Scenegraph {
             case SGAssetType.Text:
                 this.textFiles.set(name, textParser.lines);
                 break;
-        }
-    }
-    processTextureMap(image, name, assetType) {
-        let gl = this.fx.gl;
-        let minFilter = gl.NEAREST;
-        let magFilter = gl.NEAREST;
-        let maxAnisotropy = 1.0;
-        let ext = this.fx.getExtension("EXT_texture_filter_anisotropic");
-        if (ext) {
-            let maxAnisotropy = gl.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
-        }
-        else {
-            hflog.debug("cannot use anisotropic filtering");
-        }
-        if (image.width == 6 * image.height) {
-            let images = new Array(6);
-            Utils.SeparateCubeMapImages(image, images);
-            let texture = gl.createTexture();
-            if (texture) {
-                gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
-                for (let i = 0; i < 6; i++) {
-                    if (!images[i]) {
-                        continue;
-                    }
-                    else {
-                        hflog.debug("image " + i + " w:" + images[i].width + "/h:" + images[i].height);
-                    }
-                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[i]);
-                }
-                gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-                let t = new Texture(this.fx, name, name, gl.TEXTURE_CUBE_MAP, texture);
-                this._textures.set(name, t);
-            }
-        }
-        else {
-            let texture = gl.createTexture();
-            if (texture) {
-                gl.bindTexture(gl.TEXTURE_2D, texture);
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-                gl.generateMipmap(gl.TEXTURE_2D);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
-                if (ext) {
-                    gl.texParameterf(gl.TEXTURE_2D, ext.TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy);
-                }
-                let t = new Texture(this.fx, name, name, gl.TEXTURE_2D, texture);
-                this._textures.set(name, t);
-            }
         }
     }
     loadScene(lines, name, path) {
@@ -4032,32 +4266,13 @@ class Scenegraph {
             }
         }
     }
-    /**
-     * Returns null or the FBO referred to by name
-     * @param name The name of the FBO
-     */
-    getFBO(name) {
-        return this._fbo.get(name) || null;
-    }
-    /**
-     * Creates a new FBO and adds it to the scene graph
-     * @param name The name of the FBO
-     * @param hasDepth Does the FBO have a depth attachment
-     * @param hasColor Does the FBO have a color attachment
-     * @param width The width of the FBO (should be power of two)
-     * @param height The height of the FBO (should be power of two)
-     * @param colorType 0 for gl.UNSIGNED_BYTE or 1 for gl.FLOAT
-     */
-    addFBO(name, hasDepth, hasColor, width, height, colorType) {
-        this._fbo.set(name, new FBO(this.fx, hasDepth, hasColor, width, height, colorType));
-        return this.getFBO(name);
-    }
 }
 /// <reference path="../LibXOR.ts" />
 /// <reference path="Utils.ts" />
 /// <reference path="IndexedGeometryMesh.ts" />
 /// <reference path="Scenegraph.ts" />
 /// <reference path="FxRenderingContext.ts" />
+/// <reference path="FxTextureUniform.ts" />
 /// <reference path="LibXOR.ts" />
 class MemorySystem {
     constructor(xor) {
@@ -4200,6 +4415,7 @@ class GraphicsSystem {
         this.uProjectionMatrix = null;
         this.uCameraMatrix = null;
         this.uWorldMatrix = null;
+        this.setVideoMode(320, 200);
     }
     get width() { return this.canvas ? this.canvas.width : 0; }
     get height() { return this.canvas ? this.canvas.height : 0; }
@@ -4226,7 +4442,8 @@ class GraphicsSystem {
         this.gl = canvas.getContext("webgl");
         this.canvas = canvas;
         p.appendChild(canvas);
-        if (this.gl) {
+        // If this.xor.graphics is null, then LibXOR is in the constructor
+        if (this.xor.graphics && this.gl) {
             this.xor.fluxions = new FxRenderingContext(this.xor);
             this.xor.input.captureMouse(canvas);
             hflog.info("Capturing mouse");
@@ -5419,27 +5636,31 @@ class MeshSystem {
 /// <reference path="PaletteSystem.ts" />
 /// <reference path="RenderConfigSystem.ts" />
 /// <reference path="MeshSystem.ts" />
+/**
+ * @class LibXOR
+ * @member {FxRenderingContext} fluxions
+ */
 class LibXOR {
     constructor(parentId) {
         this.parentId = parentId;
-        this.memory = new MemorySystem(this);
-        this.graphics = new GraphicsSystem(this);
-        this.sound = new XOR.SoundSystem(this);
-        this.input = new InputSystem(this);
-        this.palette = new PaletteSystem(this);
-        this.fluxions = null;
-        this.renderconfigs = new RenderConfigSystem(this);
-        this.meshes = new MeshSystem(this);
         this.t1 = 0.0;
         this.t0 = 0.0;
         this.dt = 0.0;
         this.frameCount = 0;
+        this.memory = new MemorySystem(this);
+        this.sound = new XOR.SoundSystem(this);
+        this.input = new InputSystem(this);
+        this.palette = new PaletteSystem(this);
+        this.renderconfigs = new RenderConfigSystem(this);
+        this.meshes = new MeshSystem(this);
         this.oninit = () => { };
         this.onupdate = (dt) => { };
         let n = document.getElementById(parentId);
         if (!n)
             throw "Unable to initialize LibXOR due to bad parentId '" + parentId.toString() + "'";
         this.parentElement = n;
+        this.graphics = new GraphicsSystem(this);
+        this.fluxions = new FxRenderingContext(this);
     }
     start() {
         this.t0 = 0;

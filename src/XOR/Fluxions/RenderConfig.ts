@@ -23,6 +23,7 @@
 // SOFTWARE.
 //
 /// <reference path="Fluxions.ts"/>
+/// <reference path="FxTextureUniform.ts" />
 
 class RenderConfig {
     private _isCompiled = false;
@@ -62,6 +63,9 @@ class RenderConfig {
     public disableWriteToFBOColorWrites = false;
     public readFromFBOs: string[] = [];
 
+    public textures: FxTextureUniform[] = [];
+    private _texturesBound: number = 0;
+
     constructor(private fx: FxRenderingContext) { }
 
     get usable(): boolean { return this.isCompiledAndLinked(); }
@@ -73,6 +77,7 @@ class RenderConfig {
     }
 
     public use() {
+        let fx = this.fx;
         let gl = this.fx.gl;
         gl.useProgram(this._program);
         if (this.useDepthTest) {
@@ -88,6 +93,19 @@ class RenderConfig {
             gl.stencilFunc(this.stencilFunc, this.stencilFuncRef, this.stencilMask);
         }
         gl.depthMask(this.depthMask);
+
+        let unit = 0;
+        for (let texture of this.textures) {
+            let u = this.uniforms.get(texture.uniformName);
+            if (!u) continue;
+            let t = fx.textures.get(texture.textureName);
+            if (!t) continue;
+            gl.activeTexture(gl.TEXTURE0 + unit);
+            gl.bindTexture(t.target, t.texture);
+            gl.uniform1i(u, unit);
+            unit++;
+        }
+        this._texturesBound = unit;
     }
 
     public restore() {
@@ -106,6 +124,11 @@ class RenderConfig {
             gl.stencilFunc(gl.ALWAYS, 0, 1);
         }
         gl.depthMask(true);
+        for (let i = 0; i < this._texturesBound; i++) {
+            gl.activeTexture(gl.TEXTURE0 + i);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+        }
     }
 
     public uniformMatrix4f(uniformName: string, m: Matrix4): void {

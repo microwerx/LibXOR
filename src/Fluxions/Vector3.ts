@@ -24,6 +24,9 @@
 //
 /// <reference path="./GTE.ts" />
 
+/**
+ * @class Vector3
+ */
 class Vector3 {
     get r(): number { return this.x; }
     get g(): number { return this.y; }
@@ -32,6 +35,12 @@ class Vector3 {
     set g(g: number) { this.g = g; }
     set b(b: number) { this.z = b; }
 
+    /**
+     * 
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} z 
+     */
     constructor(public x: number = 0.0, public y: number = 0.0, public z = 0.0) {
     }
 

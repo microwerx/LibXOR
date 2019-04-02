@@ -49,7 +49,7 @@ class GraphicsSystem {
     get width(): number { return this.canvas ? this.canvas.width : 0; }
     get height(): number { return this.canvas ? this.canvas.height : 0; }
 
-    constructor(private xor: LibXOR) { }
+    constructor(private xor: LibXOR) { this.setVideoMode(320, 200); }
 
     init() {
         this.sprites = [];
@@ -78,7 +78,8 @@ class GraphicsSystem {
         this.canvas = canvas;
         p.appendChild(canvas);
 
-        if(this.gl) {
+        // If this.xor.graphics is null, then LibXOR is in the constructor
+        if(this.xor.graphics && this.gl) {
             this.xor.fluxions = new FxRenderingContext(this.xor);
             this.xor.input.captureMouse(canvas);
             hflog.info("Capturing mouse");

@@ -1,10 +1,12 @@
 /// <reference path="Fluxions.ts" />
 /// <reference path="FxFboSystem.ts" />
+/// <reference path="FxTextureSystem.ts" />
 
 class FxRenderingContext {
     gl: WebGLRenderingContext;
     scenegraph: Scenegraph;
-    fboSystem = new FxFboSystem(this);
+    textures: FxTextureSystem;
+    fbos: FxFboSystem;
 
     get width(): number { return this.xor.graphics.width; }
     get height(): number { return this.xor.graphics.height; }
@@ -13,6 +15,8 @@ class FxRenderingContext {
     constructor(public xor: LibXOR) {
         if (!xor.graphics.gl) throw "Unable to start Fluxions without valid gl context";
         this.gl = xor.graphics.gl;
+        this.textures = new FxTextureSystem(this);
+        this.fbos = new FxFboSystem(this);
 
         let debugInfo = this.gl.getExtension('WEBGL_debug_renderer_info');
         if (debugInfo) {

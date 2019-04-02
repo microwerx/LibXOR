@@ -1,3 +1,4 @@
+/* eslint-disable */
 /// <reference path="LibXOR.ts" />
 
 class Hatchetfish {
