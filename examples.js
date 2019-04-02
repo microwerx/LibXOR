@@ -14,7 +14,8 @@ class ExampleMetadata {
             "example11.html",
             "example12.html",
             "example13.html",
-            "example14.html"
+            "example14.html",
+            "example15.html"
         ];
         this.exampleDescs = [
             "WebGL Basic Code",
@@ -30,7 +31,8 @@ class ExampleMetadata {
             "Raymarching",
             "Gamepads",
             "Sampler",
-            "Springs"
+            "Springs",
+            "G-Buffer"
         ];
         this.numExamples = this.exampleDescs.length;
         this.courseNumber = "Graphics Rendering, Animation, and Simulation";
@@ -43,16 +45,20 @@ class ExampleMetadata {
 
         this.isLocalHost = window.location.href.search("localhost") >= 0 ? true : false;
         let loc = window.location.pathname.search(".html");
+        loc = window.location.pathname.search("\\d+");
         if (isFinite(loc)) {
-            let count = 0;
-            for (let i = loc - 1; i >= 0; i--) {
-                let c = window.location.pathname.charAt(i);
-                if (c < '0' || c > '9') break;
-                loc = i;
-                count++;
-            }
-            loc = parseInt(window.location.pathname.substr(loc, count));
+            loc = parseInt(window.location.pathname.substr(loc, 2));
         }
+        // if (isFinite(loc)) {
+        //     let count = 0;
+        //     for (let i = loc - 1; i >= 0; i--) {
+        //         let c = window.location.pathname.charAt(i);
+        //         if (c < '0' || c > '9') break;
+        //         loc = i;
+        //         count++;
+        //     }
+        //     loc = parseInt(window.location.pathname.substr(loc, count));
+        // }
         this.isMainIndex = window.location.pathname.search(this.backLink) >= 0 ? true : false;
         // perhaps we could not find index.html
         if (!this.isMainIndex && !isFinite(loc)) {
