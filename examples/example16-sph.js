@@ -183,10 +183,18 @@ class Simulation {
         this.fMassMean = 5.0;
         this.fMassSigma = 1.0;
         this.fInitialP = 0.75;
+        this.density = 1.0;     // water, basaltic 2.65
+        this.pMin = 0.0;
+        this.pMax = 0.0;
+        this.Ks = 2.2e9;          // bulk modulus (normally measured in GPa)
+        this.c2 = this.Ks / this.density;
     }
 
     syncControls() {
         this.supportRadius = getRangeValue("fSupportRadius");
+        this.density = getRangeValue("fDensity");
+        this.Ks = getRangeValue("fKs");
+        this.c2 = this.Ks / this.density;
         let G = getRangeValue("G");
         let sign = G >= 0.0 ? 1.0 : -1.0;
         let mag = Math.abs(G);
@@ -318,6 +326,8 @@ class Simulation {
     }
 
     sphInit() {
+        this.pMin = 1e6;
+        this.pMax = 1e-6;
         for (let i = 0; i < this.objects.length; i++) {
             this.objects[i].d = 0.0;
             this.objects[i].density = 0.0;
@@ -329,7 +339,7 @@ class Simulation {
         for (let i = 0; i < this.objects.length; i++) {
             let o1 = this.objects[i];
             for (let j = 0; j < this.objects.length; j++) {
-                if (i == j) continue;
+                //if (i == j) continue;
                 let o2 = this.objects[j];
 
                 let w = sphW(o1, o2, this.supportRadius);
@@ -343,13 +353,17 @@ class Simulation {
                 // calculate density
                 o1.density += o2.m * w;
             }
+            let rho_0 = this.density * 9.8 * (10 - o1.x.y);
+            o1.p = this.c2 * (o1.density - rho_0);
+            this.pMin = Math.min(o1.p, this.pMin);
+            this.pMax = Math.max(o1.p, this.pMax);
         }
     }
 
     sphPressure() {
         for (let i = 0; i < this.objects.length; i++) {
             let o1 = this.objects[i];
-            o1.pgrad = 0.0;
+            o1.pgrad = Vector3.make();
             for (let j = 0; j < this.objects.length; j++) {
                 if (i == j) continue;
                 let o2 = this.objects[j];
@@ -359,7 +373,8 @@ class Simulation {
                 let dw = this.sphdW[i][j];
                 let rhoSquared1 = o1.density * o1.density;
                 let rhoSquared2 = o2.density * o2.density;
-                o1.pgrad += o2.m * (o1.p / rhoSquared1 + o2.p / rhoSquared2) * dw;
+                let ximinusxj = Vector3.sub(o1.x, o2.x);
+                o1.pgrad.accum(ximinusxj, o2.m * (o1.p / rhoSquared1 + o2.p / rhoSquared2) * dw);
             }
         }
     }
@@ -381,11 +396,23 @@ class Simulation {
         }
     }
 
+    sphApplyForces() {
+        let dt = 0.01;
+        let halfdt = 0.5*dt;
+        for (let sv of this.objects) {
+            sv.a.copy(sv.pgrad);
+            sv.v.accum(sv.a, halfdt);
+            sv.x.accum(sv.v, dt);
+            sv.v.accum(sv.a, halfdt);
+        }
+    }
+
     sph() {
         this.sphInit();
         this.sphDensity();
         this.sphPressure();
-        this.sphDiffusion();
+        //this.sphDiffusion();
+        this.sphApplyForces();
     }
 
     boundParticles(minValue = -2, maxValue = 2) {
@@ -455,6 +482,8 @@ class App {
             self.sim.reset();
         });
         createRangeRow(controls, "fSupportRadius", 0.50, 0.0, 3.0, 0.01);
+        createRangeRow(controls, "fDensity", 1.00, 0.0, 3.0, 0.1);
+        createRangeRow(controls, "fKs", 2.2, 0.0, 3.0, 0.1);
         createRangeRow(controls, "fDrag", 0.00, -0.99, 0.99, 0.01);
         createRangeRow(controls, "fWindAngle", 0, -180, 180, 1);
         createRangeRow(controls, "fWindSpeed", 0, 0, 5, 0.1);
@@ -509,12 +538,12 @@ class App {
             this.sim.reset();
         }
 
-        this.sim.update(dt);
+        this.sim.update(0.016);
     }
 
     render() {
         let xor = this.xor;
-        xor.graphics.clear(xor.palette.AZURE);
+        xor.graphics.clear(xor.palette.WHITE);
 
         let pmatrix = Matrix4.makePerspectiveY(45.0, 1.5, 1.0, 100.0);
         let cmatrix = Matrix4.makeOrbit(-90, 0, 5.0);
@@ -524,13 +553,17 @@ class App {
             rc.uniformMatrix4f('CameraMatrix', cmatrix);
 
             rc.uniformMatrix4f('WorldMatrix', Matrix4.makeIdentity());
-            xor.meshes.render('bg', rc);
+            //xor.meshes.render('bg', rc);
+
+            let total = this.sim.pMax - this.sim.pMin;
+            let p1 = this.sim.pMin;
 
             for (let sv of this.sim.objects) {
                 let m = Matrix4.makeTranslation3(sv.x);
                 m.multMatrix(Matrix4.makeScale(2 * sv.radius, 2 * sv.radius, 2 * sv.radius));
                 rc.uniformMatrix4f('WorldMatrix', m);
-                let color = Vector3.make(sv.d / 10.0, 0.0, 1.0);
+                //let color = Vector3.make(sv.density / 1000.0, 0.0, 1.0);
+                let color = Vector3.make((sv.p - p1) / total, 0.0, 1.0);
                 rc.uniform3f('kd', color);
                 xor.meshes.render('circle', rc);
             }
