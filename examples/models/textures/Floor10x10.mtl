@@ -1,0 +1,22 @@
+# 3ds Max Wavefront OBJ Exporter v0.97b - (c)2007 guruware
+# File Created: 25.02.2016 20:19:09
+
+newmtl ConcreteFloor
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.5882 0.5882 0.5882
+	Kd 1.0 1.0 1.0
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka textures/ExposedConcrete_01.png
+	map_Kd textures/ExposedConcrete_01.png
+	map_normal textures/ExposedConcrete_01_normal.png
+#PBm 1.0
+#PBk 0.0
+#PBior 1.3
+#PBKdm 1.0
+#PBKsm 0.01

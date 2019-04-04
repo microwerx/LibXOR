@@ -1,70 +1,10 @@
-class StateVector {
-    constructor() {
-        this.x = Vector3.make();
-        this.v = Vector3.make();
-        this.a = Vector3.make();
-        this.m = 1.0;
-    }
-}
-
-function accum(a, b, bscale) {
-    a.x += b.x * bscale;
-    a.y += b.y * bscale;
-    a.z += b.z * bscale;
-}
-
-class Simulation {
-    constructor() {
-        this.objects = [];
-    }
-
-    reset() {
-        this.objects = [];
-        for (let i = 0; i < 10; i++) {
-            let sv = new StateVector();
-            sv.x.x = i - 5;
-            sv.x.y = -1;
-            sv.v.y = 5;
-            sv.a.y = -9.8;
-            this.objects.push(sv);
-        }
-    }
-
-    update(dt) {
-        for (let sv of this.objects) {
-            let drag = 1;
-            if (sv.x.y > 1) {
-                drag = 2.0;
-            }
-
-            if (sv.x.y > 0) {
-                drag = 0.75;
-            }
-
-            accum(sv.v, sv.a, dt);
-            accum(sv.x, sv.v, drag*dt);
-
-            if (sv.x.y < -1) {
-                sv.x.y = -1;
-                sv.v.y = Math.random() * 5 + 2.5;
-            }
-        }
-    }
-}
+/// <reference path="htmlutils.js" />
+/// <reference path="LibXOR.js" />
+/* global Vector3 */
 
 class App {
-    springsSetParams(k, d, m, x0, v0)
-    {
-        this.k = k;
-        this.d = d;
-        this.mass.m = m;
-        this.x0 = x0;
-        this.v0 = v0;
-    }
-
     constructor() {
         this.xor = new LibXOR("project");
-        this.sim = new Simulation();
 
         let p = document.getElementById('desc');
         p.innerHTML = `Display G-Buffer.`;
@@ -80,16 +20,15 @@ class App {
         let rc = this.xor.renderconfigs.load('default', 'basic.vert', 'gbuffer.frag');
         rc.useDepthTest = true;
 
-        this.xor.meshes.load('teapot', 'models/teapot.obj');
+        this.xor.meshes.load('teapot', 'models/mitsuba.obj');
     }
 
     start() {
         this.mainloop();
     }
 
-    update(dt) {
+    update() {
         let xor = this.xor;
-        let resetSim = false;
         if (xor.input.checkKeys([" ", "Space"])) {
         }
     }
@@ -99,13 +38,15 @@ class App {
         xor.graphics.clear(xor.palette.AZURE);
 
         let pmatrix = Matrix4.makePerspectiveY(45.0, 1.5, 1.0, 100.0);
-        let cmatrix = Matrix4.makeOrbit(-xor.t1*5.0, 0, 5.0);
+        let cmatrix = Matrix4.makeOrbit(-xor.t1*5.0, 0, 3.0);
         let rc = xor.renderconfigs.use('default');
         if (rc) {
             rc.uniformMatrix4f('ProjectionMatrix', pmatrix);
             rc.uniformMatrix4f('CameraMatrix', cmatrix);
+            rc.uniform3f('kd', Vector3.make(1.0, 0.0, 0.0));
+            rc.uniform3f('sunDirTo', Vector3.make(1.0, 1.0, 1.0));
 
-            rc.uniformMatrix4f('WorldMatrix', Matrix4.makeIdentity());
+            rc.uniformMatrix4f('WorldMatrix', Matrix4.makeTranslation(0, 0, 0));
             xor.meshes.render('teapot', rc);
         }
         xor.renderconfigs.use(null);

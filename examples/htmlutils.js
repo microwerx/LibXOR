@@ -1,3 +1,5 @@
+/* global Vector3 */
+
 // START HELPFUL HTML5 FUNCTIONS
 
 /**
@@ -79,7 +81,7 @@ function getRangeValue(id) {
     if (!e) return 0;
     let l = document.getElementById(id + "_value");
     if (l) l.innerHTML = e.value.toString();
-    return e.value;
+    return e.value * 1.0;
 }
 
 /**
