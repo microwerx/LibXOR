@@ -3944,10 +3944,29 @@ class FxRenderingContext {
         // }
     }
 }
+/// <reference path="FxRenderingContext.ts" />
 class FxTextureUniform {
-    constructor(textureName, uniformName) {
+    /**
+     *
+     * @param {string} textureName The name of the textures from the fx.textures[] array
+     * @param {string} uniformName The name of the uniform to apply this texture to
+     * @param {string} samplerName The name of the sampler params to apply (default "")
+     */
+    constructor(textureName, uniformName, samplerName = "") {
         this.textureName = textureName;
         this.uniformName = uniformName;
+        this.samplerName = samplerName;
+        this.texture = null;
+        this.sampler = null;
+    }
+    getTexture(fx) {
+        if (this.texture)
+            return this.texture;
+        let t = fx.textures.get(this.textureName);
+        if (t) {
+            this.texture = t.texture;
+        }
+        return this.texture;
     }
 }
 /// <reference path="../LibXOR.ts" />

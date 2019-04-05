@@ -1,6 +1,6 @@
 /// <reference path="htmlutils.js" />
 /// <reference path="LibXOR.js" />
-/* global Vector3 */
+/* global Vector3 FxTextureUniform */
 
 class App {
     constructor() {
@@ -17,8 +17,11 @@ class App {
         this.xor.graphics.setVideoMode(1.5 * 384, 384);
         this.xor.input.init();
 
+        this.xor.fluxions.textures.load("test2D", "models/textures/test_texture_2d.png");
+
         let rc = this.xor.renderconfigs.load('default', 'basic.vert', 'gbuffer.frag');
         rc.useDepthTest = true;
+        rc.textures.push = [ new FxTextureUniform("test2D", "map_kd") ];
 
         this.xor.meshes.load('teapot', 'models/mitsuba.obj');
     }

@@ -25,6 +25,8 @@ void main() {
     float NdotL = max(0.0, dot(N, L));
     vec3 V = normalize(vCamera);
     float NdotV = 0.5 * dot(N, V) + 0.5;
+
+    vec3 map = texture2D(map_kd, vTexcoord.st).rgb;
     // set to white
-    gl_FragColor = vec4(NdotV * kd, 1.0);
+    gl_FragColor = vec4(map + NdotV * kd, 1.0);
 }
