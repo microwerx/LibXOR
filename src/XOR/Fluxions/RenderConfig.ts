@@ -106,6 +106,8 @@ class RenderConfig {
             unit++;
         }
         this._texturesBound = unit;
+
+        this.fx.fbos.configure(this, unit);
     }
 
     public restore() {
@@ -129,6 +131,7 @@ class RenderConfig {
             gl.bindTexture(gl.TEXTURE_2D, null);
             gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
         }
+        this.fx.fbos.restore();
     }
 
     public uniformMatrix4f(uniformName: string, m: Matrix4): void {

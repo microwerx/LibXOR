@@ -346,9 +346,10 @@ class Simulation {
                 o1.d += w;
                 o2.d += w;
                 this.sphW[i][j] = w;
-                if (w <= 0.0) continue;
                 this.sphdW[i][j] = sphdW(o1, o2, this.supportRadius);
                 this.sphddW[i][j] = sphddW(o1, o2, this.supportRadius);
+
+                //if (w <= 0.0) continue;
 
                 // calculate density
                 o1.density += o2.m * w;
@@ -365,10 +366,10 @@ class Simulation {
             let o1 = this.objects[i];
             o1.pgrad = Vector3.make();
             for (let j = 0; j < this.objects.length; j++) {
-                if (i == j) continue;
+                //if (i == j) continue;
                 let o2 = this.objects[j];
 
-                if (this.sphW[i][j] <= 0.0) continue;
+                //if (this.sphW[i][j] <= 0.0) continue;
 
                 let dw = this.sphdW[i][j];
                 let rhoSquared1 = o1.density * o1.density;
@@ -384,10 +385,10 @@ class Simulation {
             let o1 = this.objects[i];
             o1.ugrad.reset();
             for (let j = 0; j < this.objects.length; j++) {
-                if (i == j) continue;
+                //if (i == j) continue;
                 let o2 = this.objects[j];
 
-                if (this.sphW[i][j] <= 0.0) continue;
+                //if (this.sphW[i][j] <= 0.0) continue;
 
                 let ddw = this.sphddW[i][j];
                 let ujminusui = Vector3.sub(o2.u, o1.u);
@@ -557,15 +558,18 @@ class App {
 
             let total = this.sim.pMax - this.sim.pMin;
             let p1 = this.sim.pMin;
+            let ototal = this.sim.objects.length;
 
+            let i = 0;
             for (let sv of this.sim.objects) {
                 let m = Matrix4.makeTranslation3(sv.x);
                 m.multMatrix(Matrix4.makeScale(2 * sv.radius, 2 * sv.radius, 2 * sv.radius));
                 rc.uniformMatrix4f('WorldMatrix', m);
                 //let color = Vector3.make(sv.density / 1000.0, 0.0, 1.0);
-                let color = Vector3.make((sv.p - p1) / total, 0.0, 1.0);
+                let color = Vector3.make((sv.p - p1) / total, 0.0, 1.0);//i/ototal);
                 rc.uniform3f('kd', color);
                 xor.meshes.render('circle', rc);
+                i++;
             }
         }
         xor.renderconfigs.use(null);

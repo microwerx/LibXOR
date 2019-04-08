@@ -3677,7 +3677,7 @@ class FxFboSystem {
             return;
         rc.uniform2f(resolutionUnifom, fbo.dimensions);
         rc.uniform1i(usingUniform, rc.writesToFBO ? 1 : 0);
-        if (rc.writesToFBO && fbo.complete) {
+        if (!rc.writesToFBO && fbo.complete) {
             fbo.bindTextures(colorUnit, depthUnit);
             if (fbo.color)
                 rc.uniform1i(colorUniform, colorUnit);
@@ -5347,6 +5347,7 @@ class RenderConfig {
             unit++;
         }
         this._texturesBound = unit;
+        this.fx.fbos.configure(this, unit);
     }
     restore() {
         let gl = this.fx.gl;
@@ -5369,6 +5370,7 @@ class RenderConfig {
             gl.bindTexture(gl.TEXTURE_2D, null);
             gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
         }
+        this.fx.fbos.restore();
     }
     uniformMatrix4f(uniformName, m) {
         let gl = this.fx.gl;

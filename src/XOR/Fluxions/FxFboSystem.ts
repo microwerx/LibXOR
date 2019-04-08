@@ -50,7 +50,7 @@ class FxFboSystem {
         } else {
             for (let fbo of this._fbo) {
                 if (fbo[1].complete) fbo[1].unbindTextures()
-            }    
+            }
         }
     }
 
@@ -79,7 +79,7 @@ class FxFboSystem {
         if (!fbo) return;
         rc.uniform2f(resolutionUnifom, fbo.dimensions);
         rc.uniform1i(usingUniform, rc.writesToFBO ? 1 : 0);
-        if (rc.writesToFBO && fbo.complete) {
+        if (!rc.writesToFBO && fbo.complete) {
             fbo.bindTextures(colorUnit, depthUnit);
             if (fbo.color) rc.uniform1i(colorUniform, colorUnit);
             if (fbo.depth) rc.uniform1i(depthUniform, depthUnit);
