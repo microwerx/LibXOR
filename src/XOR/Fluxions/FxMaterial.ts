@@ -1,6 +1,6 @@
 /// <reference path="Fluxions.ts" />
 
-class Material {
+class FxMaterial {
     public Kd: Vector3 = Vector3.make(0.8, 0.8, 0.8);
     public Ka: Vector3 = Vector3.make(0.2, 0.2, 0.2);
     public Ks: Vector3 = Vector3.make(1.0, 1.0, 1.0);

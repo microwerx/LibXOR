@@ -17,7 +17,8 @@ class ExampleMetadata {
             "example14.html",
             "example15.html",
             "example16.html",
-            "example17.html"
+            "example17.html",
+            "example18.html"
         ];
         this.exampleDescs = [
             "WebGL Basic Code",
@@ -35,8 +36,9 @@ class ExampleMetadata {
             "Sampler",
             "Springs",
             "G-Buffer",
+            "Broken SPH",
+            "Textures",
             "SPH",
-            "Textures"
         ];
         this.numExamples = this.exampleDescs.length;
         this.courseNumber = "Graphics Rendering, Animation, and Simulation";

@@ -25,7 +25,7 @@
 /// <reference path="Fluxions.ts"/>
 /// <reference path="FxTextureUniform.ts" />
 
-class RenderConfig {
+class FxRenderConfig {
     private _isCompiled = false;
     private _isLinked = false;
     private _vertShader: WebGLShader | null = null;

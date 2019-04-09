@@ -1,6 +1,7 @@
 /// <reference path="Fluxions.ts" />
-/// <reference path="Vertex.ts" />
-/// <reference path="Surface.ts" />
+/// <reference path="FxVertex.ts" />
+/// <reference path="FxSurface.ts" />
+/// <reference path="FxRenderConfig.ts" />
 
 namespace FluxionsImpl {
     class Edge {
@@ -174,15 +175,15 @@ namespace FluxionsImpl {
     }
 }
 
-class IndexedGeometryMesh {
+class FxIndexedGeometryMesh {
     public vertices: number[] = [];
     public indices: number[] = [];
-    public surfaces: Surface[] = [];
+    public surfaces: FxSurface[] = [];
     public edgeMesh = new FluxionsImpl.EdgeMesh();
 
     private _mtllib: string = "";
     private _mtl: string = "";
-    private _vertex: Vertex = new Vertex();
+    private _vertex: FxVertex = new FxVertex();
     private _dirty: boolean = true;
 
     private _vbo: WebGLBuffer;
@@ -209,7 +210,7 @@ class IndexedGeometryMesh {
         this.indices = [];
         this.surfaces = [];
         this._dirty = true;
-        this._vertex = new Vertex();
+        this._vertex = new FxVertex();
         this._mtllib = "";
         this._mtl = "";
         this.aabb.reset();
@@ -281,11 +282,11 @@ class IndexedGeometryMesh {
     begin(mode: number) {
         if (this.surfaces.length == 0) {
             // if no surfaces exist, add one
-            this.surfaces.push(new Surface(mode, this.indices.length, this._mtllib, this._mtl));
+            this.surfaces.push(new FxSurface(mode, this.indices.length, this._mtllib, this._mtl));
         }
         else if (this.currentIndexCount != 0) {
             // do not add a surface if the most recent one is empty
-            this.surfaces.push(new Surface(mode, this.indices.length, this._mtllib, this._mtl));
+            this.surfaces.push(new FxSurface(mode, this.indices.length, this._mtllib, this._mtl));
         }
         if (this.surfaces.length > 0) {
             // simply update the important details
@@ -377,7 +378,7 @@ class IndexedGeometryMesh {
         this._dirty = false;
     }
 
-    render(rc: RenderConfig, sg: Scenegraph): void {
+    render(rc: FxRenderConfig, sg: FxScenegraph): void {
         if (!rc.usable) {
             //hflog.warn("IndexedGeometryMesh Called, but render config is unusable.");
             return;
@@ -419,7 +420,7 @@ class IndexedGeometryMesh {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
     }
 
-    renderplain(rc: RenderConfig): void {
+    renderplain(rc: FxRenderConfig): void {
         if (!rc.usable) {
             //hflog.warn("IndexedGeometryMesh Called, but render config is unusable.");
             return;
@@ -460,7 +461,7 @@ class IndexedGeometryMesh {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
     }
 
-    renderEdges(rc: RenderConfig) {
+    renderEdges(rc: FxRenderConfig) {
         let gl = this.fx.gl; if (!gl) return;
         let ebo = this.edgeMesh.buildBuffers(gl);
         let offsets = [0, 12, 24, 36];
@@ -490,7 +491,7 @@ class IndexedGeometryMesh {
         }
     }
 
-    loadOBJ(lines: string[][], scenegraph: Scenegraph | null = null, path: string | null = null) {
+    loadOBJ(lines: string[][], scenegraph: FxScenegraph | null = null, path: string | null = null) {
         let positions: Vector3[] = [];
         let normals: Vector3[] = [];
         let colors: Vector3[] = [];

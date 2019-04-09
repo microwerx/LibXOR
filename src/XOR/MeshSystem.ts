@@ -2,20 +2,20 @@
 /// <reference path="Fluxions/Fluxions.ts"/>
 
 class MeshSystem {
-    meshes = new Map<string, IndexedGeometryMesh>();
+    meshes = new Map<string, FxIndexedGeometryMesh>();
 
     constructor(public xor: LibXOR) { }
 
-    create(name: string): IndexedGeometryMesh {
+    create(name: string): FxIndexedGeometryMesh {
         if (!this.xor.fluxions) throw "Fluxions is not initialized";
-        let mesh = new IndexedGeometryMesh(this.xor.fluxions);
+        let mesh = new FxIndexedGeometryMesh(this.xor.fluxions);
         this.meshes.set(name, mesh);
         return mesh;
     }
 
-    load(name: string, url: string): IndexedGeometryMesh {
+    load(name: string, url: string): FxIndexedGeometryMesh {
         if (!this.xor.fluxions) throw "Fluxions is not initialized";
-        let mesh = new IndexedGeometryMesh(this.xor.fluxions);
+        let mesh = new FxIndexedGeometryMesh(this.xor.fluxions);
         this.meshes.set(name, mesh);
         let tl = new XORUtils.TextFileLoader(url, (data: string, name: string, p: number) => {
             let textParser = new FxTextParser(data);
@@ -24,7 +24,7 @@ class MeshSystem {
         return mesh;
     }
 
-    render(name: string | null, rc: RenderConfig): IndexedGeometryMesh | null {
+    render(name: string | null, rc: RenderConfig): FxIndexedGeometryMesh | null {
         if (!this.xor.fluxions) throw "Fluxions is not initialized";
         if (!name) {
             return null;

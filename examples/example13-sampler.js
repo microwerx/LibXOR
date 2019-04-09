@@ -23,7 +23,7 @@ class App {
         this.xor.sound.sampler.loadSample(2, 'sounds/CowBell.wav');
         this.xor.sound.sampler.loadSample(3, 'sounds/Snare1.wav');
 
-        let rc = this.xor.renderconfigs.load('default', 'basic.vert', 'basic.frag');
+        let rc = this.xor.renderconfigs.load('default', 'shaders/basic.vert', 'shaders/basic.frag');
         rc.useDepthTest = false;
 
         this.xor.meshes.load('rect', 'rect.obj');

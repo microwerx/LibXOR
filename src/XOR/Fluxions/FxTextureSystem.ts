@@ -2,10 +2,10 @@
 /// <reference path="../XORUtils.ts" />
 
 class FxTextureSystem {
-    private _textures: Map<string, Texture> = new Map<string, Texture>();
+    private _textures: Map<string, FxTexture> = new Map<string, FxTexture>();
     // private _cubeTextures: Map<string, WebGLTexture> = new Map<string, WebGLTexture>();
-    private _default2D: Texture;
-    private _defaultCube: Texture;
+    private _default2D: FxTexture;
+    private _defaultCube: FxTexture;
     private imagefiles: XORUtils.ImageFileLoader[] = [];
 
 
@@ -50,8 +50,8 @@ class FxTextureSystem {
         gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
 
-        this._default2D = new Texture(this.fx, "__texture2D__", "", WebGLRenderingContext.TEXTURE_2D, tex2D);
-        this._defaultCube = new Texture(this.fx, "__textureCube__", "", gl.TEXTURE_CUBE_MAP, texCube);
+        this._default2D = new FxTexture(this.fx, "__texture2D__", "", WebGLRenderingContext.TEXTURE_2D, tex2D);
+        this._defaultCube = new FxTexture(this.fx, "__textureCube__", "", gl.TEXTURE_CUBE_MAP, texCube);
         this._textures.set("__texture2D__", this._default2D);
         this._textures.set("__textureCube__", this._defaultCube);
     }
@@ -61,7 +61,7 @@ class FxTextureSystem {
         return false;
     }
 
-    get(name: string): Texture | null {
+    get(name: string): FxTexture | null {
         let t = this._textures.get(name);
         if (t) return t;
         return null;
@@ -70,9 +70,9 @@ class FxTextureSystem {
     /**
      * 
      * @param {string} name name of the texture
-     * @param {Texture} value 
+     * @param {FxTexture} value 
      */
-    set(name: string, value: Texture) {
+    set(name: string, value: FxTexture) {
         this._textures.set(name, value);
     }
 
@@ -154,7 +154,7 @@ class FxTextureSystem {
                     gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[i]);
                 }
                 gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-                let t = new Texture(this.fx, name, name, gl.TEXTURE_CUBE_MAP, texture);
+                let t = new FxTexture(this.fx, name, name, gl.TEXTURE_CUBE_MAP, texture);
                 this.fx.textures.set(name, t);
             }
         } else {
@@ -168,7 +168,7 @@ class FxTextureSystem {
                 if (ext) {
                     gl.texParameterf(gl.TEXTURE_2D, ext.TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy);
                 }
-                let t = new Texture(this.fx, name, name, gl.TEXTURE_2D, texture);
+                let t = new FxTexture(this.fx, name, name, gl.TEXTURE_2D, texture);
                 this.fx.textures.set(name, t);
             }
         }

@@ -1,14 +1,14 @@
 /// <reference path="Fluxions.ts" />
-/// <reference path="FBO.ts" />
-/// <reference path="Camera.ts" />
-/// <reference path="Texture.ts" />
-/// <reference path="Material.ts" />
-/// <reference path="DirectionalLight.ts" />
+/// <reference path="FxFBO.ts" />
+/// <reference path="FxCamera.ts" />
+/// <reference path="FxTexture.ts" />
+/// <reference path="FxMaterial.ts" />
+/// <reference path="FxDirectionalLight.ts" />
 /// <reference path="FxTextParser.ts" />
 /// <reference path="../XORUtils.ts" />
-/// <reference path="IndexedGeometryMesh.ts" />
+/// <reference path="FxIndexedGeometryMesh.ts" />
 
-enum SGAssetType {
+enum FxSGAssetType {
     Scene,
     GeometryGroup,
     MaterialLibrary,
@@ -18,7 +18,7 @@ enum SGAssetType {
 };
 
 
-class ScenegraphNode {
+class FxScenegraphNode {
     public geometryGroup: string = "";
     private transform_: Matrix4 = Matrix4.makeIdentity();
     private pretransform_: Matrix4 = Matrix4.makeIdentity();
@@ -41,30 +41,30 @@ class ScenegraphNode {
     }
 }
 
-class Scenegraph {
+class FxScenegraph {
     private shaderSrcFiles: XORUtils.ShaderLoader[] = [];
 
     // private _defaultFBO: FBO | null;
     private _scenegraphs: Map<string, boolean> = new Map<string, boolean>();
-    private _deferredMesh: IndexedGeometryMesh;
-    private _renderConfigs: Map<string, RenderConfig> = new Map<string, RenderConfig>();
-    private _materials: Map<string, Material> = new Map<string, Material>();
+    private _deferredMesh: FxIndexedGeometryMesh;
+    private _renderConfigs: Map<string, FxRenderConfig> = new Map<string, FxRenderConfig>();
+    private _materials: Map<string, FxMaterial> = new Map<string, FxMaterial>();
     private _sceneResources: Map<string, string> = new Map<string, string>();
-    private _nodes: Array<ScenegraphNode> = [];
-    private _meshes: Map<string, IndexedGeometryMesh> = new Map<string, IndexedGeometryMesh>();
-    private _tempNode: ScenegraphNode = new ScenegraphNode("", "");
+    private _nodes: Array<FxScenegraphNode> = [];
+    private _meshes: Map<string, FxIndexedGeometryMesh> = new Map<string, FxIndexedGeometryMesh>();
+    private _tempNode: FxScenegraphNode = new FxScenegraphNode("", "");
     public textFiles: Map<string, string[][]> = new Map<string, string[][]>();
 
-    public camera: Camera = new Camera();
-    public sunlight: DirectionalLight = new DirectionalLight();
+    public camera: FxCamera = new FxCamera();
+    public sunlight: FxDirectionalLight = new FxDirectionalLight();
 
-    public currentrc: RenderConfig | null = null;
+    public currentrc: FxRenderConfig | null = null;
     public currentmtllib: string | null = "";
     public currentmtl: string | null = "";
     public currentobj: string | null = "";
     public currentscn: string | null = "";
 
-    private _defaultRenderConfig: RenderConfig;
+    private _defaultRenderConfig: FxRenderConfig;
 
     // get shadowFBO(): FBO { return this.getFBO("sunshadow"); }
     // get gbufferFBO(): FBO { return this.getFBO("gbuffer") }
@@ -75,7 +75,7 @@ class Scenegraph {
     get aspectRatio(): number { return this.width / this.height; }
 
     constructor(private fx: FxRenderingContext) {
-        this._defaultRenderConfig = new RenderConfig(this.fx);
+        this._defaultRenderConfig = new FxRenderConfig(this.fx);
         this._defaultRenderConfig.compile(
             `attribute vec4 aPosition;
              void main() {
@@ -92,7 +92,7 @@ class Scenegraph {
         // this._fbo.set("image", new FBO(this.fx, true, true, width, height, 1, true));
 
         let gl = this.fx.gl;
-        this._deferredMesh = new IndexedGeometryMesh(this.fx);
+        this._deferredMesh = new FxIndexedGeometryMesh(this.fx);
         this._deferredMesh.texcoord3(Vector3.make(0.0, 0.0, 0.0));
         this._deferredMesh.vertex3(Vector3.make(-1.0, -1.0, 0.0));
         this._deferredMesh.texcoord3(Vector3.make(1.0, 0.0, 0.0));
@@ -149,24 +149,24 @@ class Scenegraph {
         let fx = this.fx;
         let name = XORUtils.GetURLResource(url);
         let self = this;
-        let assetType: SGAssetType;
+        let assetType: FxSGAssetType;
         let ext = XORUtils.GetExtension(name);
         let path = XORUtils.GetURLPath(url);
 
-        if (ext == "scn") assetType = SGAssetType.Scene;
-        else if (ext == "obj") assetType = SGAssetType.GeometryGroup;
-        else if (ext == "mtl") assetType = SGAssetType.MaterialLibrary;
-        else if (ext == "png") assetType = SGAssetType.Image;
-        else if (ext == "jpg") assetType = SGAssetType.Image;
-        else if (ext == "txt") assetType = SGAssetType.Text;
+        if (ext == "scn") assetType = FxSGAssetType.Scene;
+        else if (ext == "obj") assetType = FxSGAssetType.GeometryGroup;
+        else if (ext == "mtl") assetType = FxSGAssetType.MaterialLibrary;
+        else if (ext == "png") assetType = FxSGAssetType.Image;
+        else if (ext == "jpg") assetType = FxSGAssetType.Image;
+        else if (ext == "txt") assetType = FxSGAssetType.Text;
         else return;
 
         if (this.wasRequested(name)) return;
 
-        if (assetType == SGAssetType.Image) {
+        if (assetType == FxSGAssetType.Image) {
             fx.textures.load(name, url);
         } else {
-            if (assetType == SGAssetType.Scene) {
+            if (assetType == FxSGAssetType.Scene) {
                 this._scenegraphs.set(name, false);
             }
             fx.xor.textfiles.load(name, url, (data, name, assetType) => {
@@ -206,7 +206,7 @@ class Scenegraph {
     }
 
     addRenderConfig(name: string, vertshaderUrl: string, fragshaderUrl: string) {
-        let rc = new RenderConfig(this.fx);
+        let rc = new FxRenderConfig(this.fx);
         this._renderConfigs.set(name, rc);
 
         let self = this;
@@ -216,12 +216,12 @@ class Scenegraph {
         }));
     }
 
-    getRenderConfig(name: string): RenderConfig | null {
+    getRenderConfig(name: string): FxRenderConfig | null {
         let rc = this._renderConfigs.get(name) || null;
         return rc;
     }
 
-    userc(name: string): RenderConfig | null {
+    userc(name: string): FxRenderConfig | null {
         let rc = this.getRenderConfig(name);
         if (this.currentrc && rc !== this.currentrc) {
             this.currentrc.restore();
@@ -234,14 +234,14 @@ class Scenegraph {
     // AddRenderConfig(name: string, vertshaderUrl: string, fragshaderUrl: string) {
     //     let self = this;
     //     this.shaderSrcFiles.push(new Utils.ShaderLoader(vertshaderUrl, fragshaderUrl, (vertShaderSource: string, fragShaderSource: string) => {
-    //         let rc = new RenderConfig(this.fx);
+    //         let rc = new FxRenderConfig(this.fx);
     //         rc.compile(vertShaderSource, fragShaderSource);
     //         self._renderConfigs.set(name, rc);
     //         hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + vertshaderUrl + " and " + fragshaderUrl);
     //     }));
     // }
 
-    // GetRenderConfig(name: string): RenderConfig | null {
+    // GetRenderConfig(name: string): FxRenderConfig | null {
     //     let rc = this._renderConfigs.get(name);
     //     if (rc) {
     //         return rc;
@@ -249,7 +249,7 @@ class Scenegraph {
     //     return null;
     // }
 
-    // UseRenderConfig(name: string): RenderConfig | null {
+    // UseRenderConfig(name: string): FxRenderConfig | null {
     //     let rc = this._renderConfigs.get(name);
     //     if (rc) {
     //         rc.use();
@@ -258,7 +258,7 @@ class Scenegraph {
     //     return null;
     // }
 
-    getMaterial(mtllib: string, mtl: string): Material | null {
+    getMaterial(mtllib: string, mtl: string): FxMaterial | null {
         let material = this._materials.get(mtllib + mtl) || null;
         return material;
         // for (let ml of this._materials) {
@@ -341,7 +341,7 @@ class Scenegraph {
         // }
     }
 
-    RenderMesh(name: string, rc: RenderConfig) {
+    RenderMesh(name: string, rc: FxRenderConfig) {
         if (name.length == 0) {
             for (let mesh of this._meshes) {
                 mesh["1"].render(rc, this);
@@ -397,7 +397,7 @@ class Scenegraph {
         return result;
     }
 
-    GetNode(sceneName: string, objectName: string): ScenegraphNode | null {
+    GetNode(sceneName: string, objectName: string): FxScenegraphNode | null {
         for (let node of this._nodes) {
             if (sceneName.length > 0 && node.sceneName != sceneName) {
                 continue;
@@ -409,8 +409,8 @@ class Scenegraph {
         return null;
     }
 
-    GetChildren(parentName: string): ScenegraphNode[] {
-        let children: ScenegraphNode[] = [];
+    GetChildren(parentName: string): FxScenegraphNode[] {
+        let children: FxScenegraphNode[] = [];
         for (let node of this._nodes) {
             if (node.parent == parentName)
                 children.push(node);
@@ -420,7 +420,7 @@ class Scenegraph {
 
     UpdateChildTransforms(parentName: string = ""): void {
         let nodeWorldMatrix;
-        let children: ScenegraphNode[] = [];
+        let children: FxScenegraphNode[] = [];
         if (parentName.length == 0) {
             nodeWorldMatrix = Matrix4.makeIdentity();
             children = this._nodes;
@@ -436,10 +436,10 @@ class Scenegraph {
         }
     }
 
-    AddNode(sceneName: string, objectName: string, parentNode: string = ""): ScenegraphNode {
+    AddNode(sceneName: string, objectName: string, parentNode: string = ""): FxScenegraphNode {
         let sn = this.GetNode(sceneName, objectName);
         if (!sn) {
-            sn = new ScenegraphNode(objectName, sceneName);
+            sn = new FxScenegraphNode(objectName, sceneName);
             this._nodes.push(sn);
         }
         return sn;
@@ -460,16 +460,16 @@ class Scenegraph {
         return false;
     }
 
-    GetMesh(meshName: string): IndexedGeometryMesh | null {
+    GetMesh(meshName: string): FxIndexedGeometryMesh | null {
         let mesh = this._meshes.get(meshName);
         if (!mesh) {
-            mesh = new IndexedGeometryMesh(this.fx)
+            mesh = new FxIndexedGeometryMesh(this.fx)
             this._meshes.set(meshName, mesh);
         }
         return mesh;
     }
 
-    SetGlobalParameters(rc: RenderConfig) {
+    SetGlobalParameters(rc: FxRenderConfig) {
         if (rc) {
             rc.use();
             rc.uniform1f("uWindowWidth", this.width);
@@ -503,7 +503,7 @@ class Scenegraph {
         gl.viewport(0, 0, this.width, this.height);
     }
 
-    // configureFBO(rc: RenderConfig, name: string, colorUnit: number, depthUnit: number) {
+    // configureFBO(rc: FxRenderConfig, name: string, colorUnit: number, depthUnit: number) {
     //     const colorUniform = name + "Color";
     //     const depthUniform = name + "Depth";
     //     const resolutionUnifom = name + "Resolution";
@@ -590,23 +590,23 @@ class Scenegraph {
         rc.restore();
     }
 
-    private processTextFile(data: string, name: string, path: string, assetType: SGAssetType): void {
+    private processTextFile(data: string, name: string, path: string, assetType: FxSGAssetType): void {
         let textParser = new FxTextParser(data);
 
         switch (assetType) {
             // ".SCN"
-            case SGAssetType.Scene:
+            case FxSGAssetType.Scene:
                 this.loadScene(textParser.lines, name, path);
                 break;
             // ".OBJ"
-            case SGAssetType.GeometryGroup:
+            case FxSGAssetType.GeometryGroup:
                 this.loadOBJ(textParser.lines, name, path);
                 break;
             // ".MTL"
-            case SGAssetType.MaterialLibrary:
+            case FxSGAssetType.MaterialLibrary:
                 this.loadMTL(textParser.lines, name, path);
                 break;
-            case SGAssetType.Text:
+            case FxSGAssetType.Text:
                 this.textFiles.set(name, textParser.lines);
                 break;
         }
@@ -660,7 +660,7 @@ class Scenegraph {
                     this.load(path + filename);
                 }
                 this._nodes.push(this._tempNode);
-                this._tempNode = new ScenegraphNode();
+                this._tempNode = new FxScenegraphNode();
             }
             else if (tokens[0] == "node") {
                 // node name
@@ -672,7 +672,7 @@ class Scenegraph {
                 this._tempNode.sceneName = name;
                 this._tempNode.geometryGroup = "";
                 this._nodes.push(this._tempNode);
-                this._tempNode = new ScenegraphNode();
+                this._tempNode = new FxScenegraphNode();
             }
             else if (tokens[0] == "renderconfig") {
                 let name = tokens[1];
@@ -699,7 +699,7 @@ class Scenegraph {
         // g <newSmoothingGroup: string>
         // s <newSmoothingGroup: string>
 
-        let mesh: IndexedGeometryMesh = new IndexedGeometryMesh(this.fx);
+        let mesh: FxIndexedGeometryMesh = new FxIndexedGeometryMesh(this.fx);
 
         // let gl = this.fx.gl;
         // let positions: Vector3[] = [];
@@ -775,12 +775,12 @@ class Scenegraph {
         // map_normal <url: string>
         let mtl = "";
         let mtllib = FxTextParser.MakeIdentifier(name);
-        let curmtl: Material | undefined;
+        let curmtl: FxMaterial | undefined;
         for (let tokens of lines) {
             if (tokens.length >= 2) {
                 if (tokens[0] == "newmtl") {
                     mtl = FxTextParser.MakeIdentifier(tokens[1]);
-                    curmtl = new Material(mtl);
+                    curmtl = new FxMaterial(mtl);
                     this._materials.set(mtllib + mtl, curmtl);
                 }
                 else if (tokens[0] == "map_Kd") {

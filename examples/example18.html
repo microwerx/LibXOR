@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+    <meta name="description" content="">
+    <meta name="robots" content="index/nofollow">
+    <meta name="author" content="Jonathan B. Metzgar">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="../styles.css">
+    <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+
+    <script>
+        function toggle(id) {
+            let e = document.getElementById(id);
+            if (e) {
+                e.style.display = e.style.display === 'none' ? '' : 'none';
+            }
+        }
+    </script>
+
+    <script src="../examples.js"></script>
+    <script>
+        var coursemeta = new ExampleMetadata();
+        coursemeta.writeHeadTitle();
+    </script>
+</head>
+
+<body>
+    <article>
+        <script>
+            coursemeta.writeArticleHeader()
+            coursemeta.writeDesc();
+        </script>
+    </article>
+    <article>
+        <div id="project" class="centered"></div>
+
+        <h3 onclick='toggle("desc")'>Description &amp; Notes</h3>
+
+        <!-- Write your main description here -->
+        <p id="desc">This example shows basic usage of the LibXOR library.</p>
+
+        <h3 onclick='toggle("controls")'>Controls</h3>
+
+        <div id="controls"></div>
+
+        <h3 onclick='toggle("log")'>Log</h3>
+
+        <div id='log' class='log'>Log items here...</div>
+
+        <footer>
+            <hr class="goldhr" />
+        </footer>
+    </article>
+    <article>
+        <script>
+            coursemeta.writeArticleFooter();
+        </script>
+    </article>
+
+    <script src="htmlutils.js"></script>
+    <script src="LibXOR.js"></script>
+    <script src="example18-sph.js"></script>
+</body>
+
+</html>

@@ -8,7 +8,7 @@ class App {
         this.xor.graphics.setVideoMode(1.5 * 384, 384);
         let gl = this.xor.graphics.gl;
 
-        let rc = this.xor.renderconfigs.load('default', 'basic.vert', 'basic.frag');
+        let rc = this.xor.renderconfigs.load('default', 'shaders/basic.vert', 'shaders/basic.frag');
         rc.useDepthTest = true;
 
         let rect = this.xor.meshes.load('rect', 'teapot.obj');

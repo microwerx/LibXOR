@@ -1,5 +1,5 @@
 
-class DirectionalLight {
+class FxDirectionalLight {
     private _direction: Vector3 = new Vector3(0.34816, 0.87039, 0.34816);
     private _center: Vector3 = new Vector3();
     private _eye: Vector3 = new Vector3();

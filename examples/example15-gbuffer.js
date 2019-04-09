@@ -17,16 +17,16 @@ class App {
         this.xor.graphics.setVideoMode(1.5 * 384, 384);
         this.xor.input.init();
 
-        this.xor.fluxions.textures.load("test2D", "models/textures/test_texture_2d.png");
+        this.xor.fluxions.textures.load("test2D", "models/textures/test_texture.png");
         this.xor.fluxions.fbos.add("gbuffer", true, true, 512, 256, 0);
 
-        let rc = this.xor.renderconfigs.load('gbuffer', 'basic.vert', 'gbuffer.frag');
+        let rc = this.xor.renderconfigs.load('gbuffer', 'shaders/basic.vert', 'shaders/gbuffer.frag');
         rc.useDepthTest = true;
-        rc.textures.push = [ new FxTextureUniform("test2D", "map_kd") ];
+        rc.addTexture("test2D", "map_kd");
         rc.writeToFBO = "gbuffer";
         
-        rc = this.xor.renderconfigs.load('r2t', 'basic.vert', 'r2t.frag');
-        rc.textures.push = [ new FxTextureUniform("test2D", "map_kd") ];
+        rc = this.xor.renderconfigs.load('r2t', 'shaders/r2t.vert', 'shaders/r2t.frag');
+        rc.addTexture("test2D", "map_kd");
         rc.readFromFBOs = ["gbuffer"];
 
         this.xor.meshes.load('teapot', 'models/mitsuba.obj');
@@ -71,7 +71,7 @@ class App {
             let cmatrix = Matrix4.makeIdentity();
             rc.uniformMatrix4f('ProjectionMatrix', pmatrix);
             rc.uniformMatrix4f('CameraMatrix', cmatrix);
-                rc.uniformMatrix4f('WorldMatrix', Matrix4.makeScale(0.5, 0.5, 0.5));
+                rc.uniformMatrix4f('WorldMatrix', Matrix4.makeScale(1.0, 1.0, 1.0));
                 rc.uniform3f('iResolution', GTE.vec3(xor.graphics.width, xor.graphics.height, 0));
                 rc.uniform1f('iTime', xor.t1);
                 rc.uniform1f('iTimeDelta', xor.dt);

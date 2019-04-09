@@ -1,6 +1,6 @@
 
 
-class Camera {
+class FxCamera {
     _transform: Matrix4 = Matrix4.makeIdentity();
     private _center: Vector3 = new Vector3();
     private _eye: Vector3 = new Vector3(0.0, 0.0, 10.0);

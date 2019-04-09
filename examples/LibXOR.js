@@ -1757,7 +1757,195 @@ var XORUtils;
         [WebGLRenderingContext.SAMPLER_CUBE, new GLTypeInfo(WebGLRenderingContext.SAMPLER_CUBE, WebGLRenderingContext.FLOAT, 1, 4)],
     ]);
 })(XORUtils || (XORUtils = {}));
-class Camera {
+/// <reference path="Fluxions.ts" />
+class FxFBO {
+    constructor(_renderingContext, depth, color, width = 512, height = 512, colorType = 0, colorUnit = 11, depthUnit = 12, shouldAutoResize = false) {
+        this._renderingContext = _renderingContext;
+        this.depth = depth;
+        this.color = color;
+        this.width = width;
+        this.height = height;
+        this.colorType = colorType;
+        this.colorUnit = colorUnit;
+        this.depthUnit = depthUnit;
+        this.shouldAutoResize = shouldAutoResize;
+        this._colorTexture = null;
+        this._depthTexture = null;
+        this._colorType = 0;
+        this._complete = false;
+        this._colorUnit = -1;
+        this._depthUnit = -1;
+        this.clearColor = Vector3.make(0.2, 0.2, 0.2);
+        let gl = _renderingContext.gl;
+        let fbo = gl.createFramebuffer();
+        if (fbo) {
+            this._fbo = fbo;
+        }
+        else {
+            throw "Unable to create FBO";
+        }
+        // width = 1 << ((0.5 + Math.log2(width)) | 0);
+        // height = 1 << ((0.5 + Math.log2(height)) | 0);
+        // this._powerOfTwoDimensions = Vector2.make(
+        //     width, height
+        // );
+        if (colorType == 0)
+            this._colorType = gl.UNSIGNED_BYTE;
+        else
+            this._colorType = gl.FLOAT;
+        this.make();
+    }
+    // private _powerOfTwoDimensions: Vector2;
+    get complete() { return this._complete; }
+    get dimensions() { return Vector2.make(this.width, this.height); }
+    autoResize(width, height) {
+        if (!this.shouldAutoResize)
+            return;
+        if (this.width == width && this.height == height)
+            return;
+        let gl = this._renderingContext.gl;
+        this.width = width;
+        this.height = height;
+        if (this._colorTexture)
+            gl.deleteTexture(this._colorTexture);
+        if (this._depthTexture)
+            gl.deleteTexture(this._depthTexture);
+        this._colorTexture = null;
+        this._depthTexture = null;
+        this.make();
+    }
+    make() {
+        let gl = this._renderingContext.gl;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
+        gl.activeTexture(gl.TEXTURE0);
+        if (this.color && !this._colorTexture) {
+            this._colorTexture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, this._colorTexture);
+            // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
+            //     this._powerOfTwoDimensions.x, this._powerOfTwoDimensions.y, 0, gl.RGBA, this._colorType, null);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, this._colorType, null);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._colorTexture, 0);
+        }
+        if (this.depth && !this._depthTexture) {
+            this._depthTexture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, this._depthTexture);
+            // gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT,
+            //     this._powerOfTwoDimensions.x, this._powerOfTwoDimensions.y, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, this.width, this.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this._depthTexture, 0);
+        }
+        let resolutionSizeText = this.width + "x" + this.height;
+        let fboStatus = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+        if (fboStatus != gl.FRAMEBUFFER_COMPLETE) {
+            if (this._colorType == gl.FLOAT) {
+                this._colorType = gl.UNSIGNED_BYTE;
+                this.colorType = 0;
+                gl.deleteTexture(this._colorTexture);
+                this._colorTexture = null;
+                this.make();
+                hflog.warn("FBO::make() --> Can't create FLOAT texture, trying UNSIGNED_BYTE");
+                return;
+            }
+            this._complete = false;
+            hflog.error("Unable to create a complete framebuffer " + resolutionSizeText, "| status: " + FxFBO.statusToText(fboStatus));
+        }
+        else {
+            this._complete = true;
+            hflog.log("Framebuffer is okay! size is " + resolutionSizeText);
+            // hflog.log("Framebuffer is okay! size is " + this.width + "x" + this.height + " texture: " +
+            //     this._powerOfTwoDimensions.x + "x" + this._powerOfTwoDimensions.y);
+        }
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+    use(clearScreen = true, disableColorWrites = false) {
+        let gl = this._renderingContext.gl;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
+        if (disableColorWrites)
+            gl.colorMask(false, false, false, false);
+        this._savedViewport = gl.getParameter(gl.VIEWPORT);
+        gl.viewport(0, 0, this.width, this.height);
+        if (clearScreen) {
+            gl.clearColor(this.clearColor.x, this.clearColor.y, this.clearColor.z, 1.0);
+            let bits = 0;
+            if (this.color)
+                bits |= gl.COLOR_BUFFER_BIT;
+            if (this.depth)
+                bits |= gl.DEPTH_BUFFER_BIT;
+            gl.clear(bits);
+        }
+    }
+    restore() {
+        let gl = this._renderingContext.gl;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        if (this.color && this._colorTexture) {
+            gl.bindTexture(gl.TEXTURE_2D, this._colorTexture);
+            gl.generateMipmap(gl.TEXTURE_2D);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+        }
+        gl.colorMask(true, true, true, true);
+        if (this._savedViewport) {
+            gl.viewport(this._savedViewport[0], this._savedViewport[1], this._savedViewport[2], this._savedViewport[3]);
+            this._savedViewport = undefined;
+        }
+    }
+    bindTextures(colorUnit = 15, depthUnit = 16) {
+        let gl = this._renderingContext.gl;
+        this._colorUnit = colorUnit;
+        this._depthUnit = depthUnit;
+        if (this._colorUnit >= 0) {
+            gl.activeTexture(this._colorUnit + gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this._colorTexture);
+        }
+        if (this._depthUnit >= 0) {
+            gl.activeTexture(this._depthUnit + gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this._depthTexture);
+        }
+        gl.activeTexture(gl.TEXTURE0);
+    }
+    unbindTextures() {
+        let gl = this._renderingContext.gl;
+        if (this._colorUnit >= 0) {
+            gl.activeTexture(this._colorUnit + gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            this._colorUnit = -1;
+        }
+        if (this._depthUnit >= 0) {
+            gl.activeTexture(this._depthUnit + gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            this._depthUnit = -1;
+        }
+        gl.activeTexture(gl.TEXTURE0);
+    }
+    static statusToText(status) {
+        let gl = WebGLRenderingContext;
+        switch (status) {
+            case gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+                return "Incomplete attachment";
+                break;
+            case gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+                return "Incomplete dimensions";
+                break;
+            case gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+                return "Missing attachment";
+                break;
+            case gl.FRAMEBUFFER_UNSUPPORTED:
+                return "Unsupported";
+                break;
+        }
+        return "Unknown error: " + status;
+    }
+}
+class FxCamera {
     constructor() {
         this._transform = Matrix4.makeIdentity();
         this._center = new Vector3();
@@ -1865,7 +2053,7 @@ class Camera {
     }
 }
 /// <reference path="Fluxions.ts" />
-class Texture {
+class FxTexture {
     constructor(fx, name, url, target, texture) {
         this.fx = fx;
         this.name = name;
@@ -1876,7 +2064,7 @@ class Texture {
     }
 }
 /// <reference path="Fluxions.ts" />
-class Material {
+class FxMaterial {
     constructor(name) {
         this.name = name;
         this.Kd = Vector3.make(0.8, 0.8, 0.8);
@@ -1896,7 +2084,7 @@ class Material {
         this.magFilter = 0;
     }
 }
-class DirectionalLight {
+class FxDirectionalLight {
     constructor() {
         this._direction = new Vector3(0.34816, 0.87039, 0.34816);
         this._center = new Vector3();
@@ -2053,7 +2241,7 @@ class FxTextParser {
         return [...v1, ...v2, ...v3];
     }
 }
-class Vertex {
+class FxVertex {
     constructor(position = new Vector3(0, 0, 0), normal = new Vector3(0, 0, 1), color = new Vector3(1, 1, 1), texcoord = new Vector3(0, 0, 0)) {
         this.position = position;
         this.normal = normal;
@@ -2078,7 +2266,7 @@ class Vertex {
     }
 }
 ;
-class Surface {
+class FxSurface {
     constructor(mode, offset, mtllib, mtl) {
         this.mode = mode;
         this.offset = offset;
@@ -2090,9 +2278,709 @@ class Surface {
         this.count++;
     }
 }
+/// <reference path="FxFBO.ts" />
+/// <reference path="FxRenderingContext.ts" />
+class FxFboSystem {
+    constructor(fx) {
+        this.fx = fx;
+        this._fbo = new Map();
+        this.currentFBO = null;
+    }
+    /**
+     * Returns null or the FBO referred to by name
+     * @param name The name of the FBO
+     */
+    get(name) {
+        return this._fbo.get(name) || null;
+    }
+    /**
+     * Creates a new FBO and adds it to the scene graph
+     * @param name The name of the FBO
+     * @param hasDepth Does the FBO have a depth attachment
+     * @param hasColor Does the FBO have a color attachment
+     * @param width The width of the FBO (should be power of two)
+     * @param height The height of the FBO (should be power of two)
+     * @param colorType 0 for gl.UNSIGNED_BYTE or 1 for gl.FLOAT
+     */
+    add(name, hasDepth, hasColor, width, height, colorType) {
+        this._fbo.set(name, new FxFBO(this.fx, hasDepth, hasColor, width, height, colorType));
+        return this.get(name);
+    }
+    /**
+     * autoresize
+     */
+    autoresize() {
+        let fx = this.fx;
+        this._fbo.forEach((fbo) => {
+            if (fbo.width != fx.width || fbo.height != fx.height) {
+                fbo.autoResize(fx.width, fx.height);
+            }
+        });
+    }
+    restore() {
+        if (this.currentFBO) {
+            this.currentFBO.restore();
+            this.currentFBO = null;
+        }
+        else {
+            for (let fbo of this._fbo) {
+                if (fbo[1].complete)
+                    fbo[1].unbindTextures();
+            }
+        }
+    }
+    configure(rc, startUnit = 11) {
+        if (rc.writeToFBO != "") {
+            let fbo = this.get(rc.writeToFBO);
+            if (fbo) {
+                fbo.use(rc.clearWriteToFBO, rc.disableWriteToFBOColorWrites);
+                this.currentFBO = fbo;
+            }
+        }
+        else {
+            let unit = startUnit;
+            for (let fbo of rc.readFromFBOs) {
+                this.configureFBO(rc, fbo, unit, unit + 1);
+                unit += 2;
+            }
+        }
+    }
+    configureFBO(rc, name, colorUnit, depthUnit) {
+        const colorUniform = name + "Color";
+        const depthUniform = name + "Depth";
+        const resolutionUnifom = name + "Resolution";
+        const usingUniform = "Using" + name;
+        let fbo = this._fbo.get(name) || null;
+        if (!fbo)
+            return;
+        rc.uniform2f(resolutionUnifom, fbo.dimensions);
+        rc.uniform1i(usingUniform, rc.writesToFBO ? 1 : 0);
+        if (!rc.writesToFBO && fbo.complete) {
+            fbo.bindTextures(colorUnit, depthUnit);
+            if (fbo.color)
+                rc.uniform1i(colorUniform, colorUnit);
+            if (fbo.depth)
+                rc.uniform1i(depthUniform, depthUnit);
+        }
+        else {
+            rc.uniform1i(colorUniform, 0);
+            rc.uniform1i(depthUniform, 0);
+        }
+    }
+}
+/// <reference path="./FxRenderingContext.ts" />
+/// <reference path="../XORUtils.ts" />
+class FxTextureSystem {
+    /**
+     *
+     * @param {FxRenderingContext} fx The rendering context
+     */
+    constructor(fx) {
+        this.fx = fx;
+        this._textures = new Map();
+        this.imagefiles = [];
+        let gl = fx.gl;
+        let tex2D = gl.createTexture();
+        let texCube = gl.createTexture();
+        if (!texCube || !tex2D) {
+            throw TypeError("texCube or tex2D is not valid");
+        }
+        let pixels = new ImageData(new Uint8ClampedArray([0, 0, 0, 255, 255, 255, 255, 255, 0, 0, 0, 255, 255, 255, 255, 255]), 2, 2);
+        gl.bindTexture(gl.TEXTURE_2D, tex2D);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, pixels);
+        //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 2, 2, 0, gl.RGB, gl.UNSIGNED_BYTE, pixels);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        let xppixels = new ImageData(new Uint8ClampedArray([127, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 127, 0, 0, 255]), 2, 2);
+        let xnpixels = new ImageData(new Uint8ClampedArray([0, 127, 127, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 127, 127, 255]), 2, 2);
+        let yppixels = new ImageData(new Uint8ClampedArray([0, 127, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 127, 0, 255]), 2, 2);
+        let ynpixels = new ImageData(new Uint8ClampedArray([127, 0, 127, 255, 255, 0, 255, 255, 255, 0, 255, 255, 127, 0, 127, 255]), 2, 2);
+        let zppixels = new ImageData(new Uint8ClampedArray([0, 0, 127, 255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 127, 255]), 2, 2);
+        let znpixels = new ImageData(new Uint8ClampedArray([127, 127, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 127, 127, 0, 255]), 2, 2);
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, texCube);
+        gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, xnpixels);
+        gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, ynpixels);
+        gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, znpixels);
+        gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, xppixels);
+        gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, yppixels);
+        gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, zppixels);
+        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+        this._default2D = new FxTexture(this.fx, "__texture2D__", "", WebGLRenderingContext.TEXTURE_2D, tex2D);
+        this._defaultCube = new FxTexture(this.fx, "__textureCube__", "", gl.TEXTURE_CUBE_MAP, texCube);
+        this._textures.set("__texture2D__", this._default2D);
+        this._textures.set("__textureCube__", this._defaultCube);
+    }
+    has(name) {
+        if (this._textures.has(name))
+            return true;
+        return false;
+    }
+    get(name) {
+        let t = this._textures.get(name);
+        if (t)
+            return t;
+        return null;
+    }
+    /**
+     *
+     * @param {string} name name of the texture
+     * @param {FxTexture} value
+     */
+    set(name, value) {
+        this._textures.set(name, value);
+    }
+    get loaded() {
+        for (let i of this.imagefiles) {
+            if (!i.loaded)
+                return false;
+        }
+        return true;
+    }
+    get failed() {
+        for (let i of this.imagefiles) {
+            if (i.failed)
+                return true;
+        }
+        return false;
+    }
+    get length() {
+        return this.imagefiles.length;
+    }
+    get percentLoaded() {
+        let a = 0;
+        for (let i of this.imagefiles) {
+            if (i.loaded)
+                a++;
+        }
+        return 100.0 * a / this.imagefiles.length;
+    }
+    /**
+     * @param {string} name the key to find this texture
+     * @param {string} url  the url to load this texture
+     */
+    load(name, url) {
+        if (this._textures.has(name))
+            return;
+        let self = this;
+        let tname = name;
+        this.imagefiles.push(new XORUtils.ImageFileLoader(url, (data, name) => {
+            self.processTextureMap(data, tname);
+            hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + tname);
+        }));
+    }
+    wasRequested(name) {
+        for (let img of this.imagefiles) {
+            if (img.name == name)
+                return true;
+        }
+        return false;
+    }
+    processTextureMap(image, name) {
+        let gl = this.fx.gl;
+        let minFilter = gl.NEAREST;
+        let magFilter = gl.NEAREST;
+        let maxAnisotropy = 1.0;
+        let ext = this.fx.getExtension("EXT_texture_filter_anisotropic");
+        if (ext) {
+            let maxAnisotropy = gl.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+        }
+        else {
+            hflog.debug("cannot use anisotropic filtering");
+        }
+        if (image.width == 6 * image.height) {
+            let images = new Array(6);
+            XORUtils.SeparateCubeMapImages(image, images);
+            let texture = gl.createTexture();
+            if (texture) {
+                gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+                for (let i = 0; i < 6; i++) {
+                    if (!images[i]) {
+                        continue;
+                    }
+                    else {
+                        hflog.debug("image " + i + " w:" + images[i].width + "/h:" + images[i].height);
+                    }
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[i]);
+                }
+                gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+                let t = new FxTexture(this.fx, name, name, gl.TEXTURE_CUBE_MAP, texture);
+                this.fx.textures.set(name, t);
+            }
+        }
+        else {
+            let texture = gl.createTexture();
+            if (texture) {
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                gl.generateMipmap(gl.TEXTURE_2D);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
+                if (ext) {
+                    gl.texParameterf(gl.TEXTURE_2D, ext.TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy);
+                }
+                let t = new FxTexture(this.fx, name, name, gl.TEXTURE_2D, texture);
+                this.fx.textures.set(name, t);
+            }
+        }
+    }
+}
 /// <reference path="Fluxions.ts" />
-/// <reference path="Vertex.ts" />
-/// <reference path="Surface.ts" />
+/// <reference path="FxFboSystem.ts" />
+/// <reference path="FxTextureSystem.ts" />
+class FxRenderingContext {
+    constructor(xor) {
+        this.xor = xor;
+        this.enabledExtensions = new Map();
+        this._visible = false;
+        this._resized = true;
+        if (!xor.graphics.gl)
+            throw "Unable to start Fluxions without valid gl context";
+        this.gl = xor.graphics.gl;
+        this.textures = new FxTextureSystem(this);
+        this.fbos = new FxFboSystem(this);
+        let debugInfo = this.gl.getExtension('WEBGL_debug_renderer_info');
+        if (debugInfo) {
+            let vendor = this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+            let renderer = this.gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+            hflog.log(vendor);
+            hflog.log(renderer);
+        }
+        this.enableExtensions([
+            "EXT_texture_filter_anisotropic",
+            "WEBGL_depth_texture",
+            "WEBGL_debug_renderer_info",
+            "OES_element_index_uint",
+            "OES_standard_derivatives",
+            "OES_texture_float_linear",
+            "OES_texture_float",
+        ]);
+        let standardDerivatives = this.gl.getExtension('OES_standard_derivatives');
+        if (standardDerivatives) {
+            this.gl.hint(standardDerivatives.FRAGMENT_SHADER_DERIVATIVE_HINT_OES, this.gl.NICEST);
+        }
+        this.scenegraph = new FxScenegraph(this);
+    }
+    get width() { return this.xor.graphics.width; }
+    get height() { return this.xor.graphics.height; }
+    get aspectRatio() { return this.width / this.height; }
+    // get visible(): boolean {
+    //     return this._visible;
+    // }
+    // get canvas(): HTMLCanvasElement {
+    //     if (!this.canvasElement_)
+    //         return new HTMLCanvasElement();
+    //     return this.canvasElement_;
+    // }
+    // ...
+    enableExtensions(names) {
+        let supportedExtensions = this.gl.getSupportedExtensions();
+        if (!supportedExtensions)
+            return false;
+        let allFound = true;
+        for (let name of names) {
+            let found = false;
+            for (let ext of supportedExtensions) {
+                if (name == ext) {
+                    this.enabledExtensions.set(name, this.gl.getExtension(name));
+                    hflog.log("Extension " + name + " enabled");
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                hflog.log("Extension " + name + " not enabled");
+                allFound = false;
+                break;
+            }
+        }
+        return allFound;
+    }
+    getExtension(name) {
+        if (this.enabledExtensions.has(name)) {
+            return this.enabledExtensions.get(name);
+        }
+        return null;
+    }
+    update() {
+        return;
+        // if (this._resized) {
+        //     this._resized = false;
+        //     let w = (window.innerWidth) | 0;
+        //     let h = (w / this.aspectRatio) | 0;
+        //     this.canvas.width = w;
+        //     this.canvas.height = h;
+        //     this.width = w;
+        //     this.height = h;
+        // }
+    }
+}
+/// <reference path="FxRenderingContext.ts" />
+class FxTextureUniform {
+    /**
+     *
+     * @param {string} textureName The name of the textures from the fx.textures[] array
+     * @param {string} uniformName The name of the uniform to apply this texture to
+     * @param {string} samplerName The name of the sampler params to apply (default "")
+     */
+    constructor(textureName, uniformName, samplerName = "") {
+        this.textureName = textureName;
+        this.uniformName = uniformName;
+        this.samplerName = samplerName;
+        this.texture = null;
+        this.sampler = null;
+    }
+    getTexture(fx) {
+        if (this.texture)
+            return this.texture;
+        let t = fx.textures.get(this.textureName);
+        if (t) {
+            this.texture = t.texture;
+        }
+        return this.texture;
+    }
+}
+// LibXOR Library
+// Copyright (c) 2017 - 2018 Jonathan Metzgar
+// All Rights Reserved.
+//
+// MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+/// <reference path="Fluxions.ts"/>
+/// <reference path="FxTextureUniform.ts" />
+class FxRenderConfig {
+    constructor(fx) {
+        this.fx = fx;
+        this._isCompiled = false;
+        this._isLinked = false;
+        this._vertShader = null;
+        this._fragShader = null;
+        this._program = null;
+        this._vertShaderSource = "";
+        this._fragShaderSource = "";
+        this._vertShaderInfoLog = "";
+        this._fragShaderInfoLog = "";
+        this._vertShaderCompileStatus = false;
+        this._fragShaderCompileStatus = false;
+        this._programInfoLog = "";
+        this._programLinkStatus = false;
+        this.uniforms = new Map();
+        this.uniformInfo = new Map();
+        this.useDepthTest = true;
+        this.depthTest = WebGLRenderingContext.LESS;
+        this.depthMask = true;
+        this.useBlending = false;
+        this.blendSrcFactor = WebGLRenderingContext.ONE;
+        this.blendDstFactor = WebGLRenderingContext.ZERO;
+        this.useStencilTest = false;
+        this.stencilFunc = WebGLRenderingContext.ALWAYS;
+        this.stencilFuncRef = 0.0;
+        this.stencilMask = 1;
+        this.renderShadowMap = false;
+        this.renderGBuffer = false;
+        this.renderImage = false;
+        this.renderEdges = false;
+        this.writesToFBO = false;
+        this.writeToFBO = "";
+        this.clearWriteToFBO = true;
+        this.disableWriteToFBOColorWrites = false;
+        this.readFromFBOs = [];
+        this.textures = [];
+        this._texturesBound = 0;
+    }
+    get usable() { return this.isCompiledAndLinked(); }
+    isCompiledAndLinked() {
+        if (this._isCompiled && this._isLinked)
+            return true;
+        return false;
+    }
+    use() {
+        let fx = this.fx;
+        let gl = this.fx.gl;
+        gl.useProgram(this._program);
+        if (this.useDepthTest) {
+            gl.enable(gl.DEPTH_TEST);
+            gl.depthFunc(this.depthTest);
+        }
+        if (this.useBlending) {
+            gl.enable(gl.BLEND);
+            gl.blendFunc(this.blendSrcFactor, this.blendDstFactor);
+        }
+        if (this.useStencilTest) {
+            gl.enable(gl.STENCIL_TEST);
+            gl.stencilFunc(this.stencilFunc, this.stencilFuncRef, this.stencilMask);
+        }
+        gl.depthMask(this.depthMask);
+        let unit = 0;
+        for (let texture of this.textures) {
+            let u = this.uniforms.get(texture.uniformName);
+            if (!u)
+                continue;
+            let t = fx.textures.get(texture.textureName);
+            if (!t)
+                continue;
+            gl.activeTexture(gl.TEXTURE0 + unit);
+            gl.bindTexture(t.target, t.texture);
+            gl.uniform1i(u, unit);
+            unit++;
+        }
+        this._texturesBound = unit;
+        this.fx.fbos.configure(this, unit);
+    }
+    restore() {
+        let gl = this.fx.gl;
+        gl.useProgram(null);
+        if (this.useDepthTest) {
+            gl.disable(gl.DEPTH_TEST);
+            gl.depthFunc(gl.LESS);
+        }
+        if (this.useBlending) {
+            gl.disable(gl.BLEND);
+            gl.blendFunc(gl.ONE, gl.ZERO);
+        }
+        if (this.useStencilTest) {
+            gl.disable(gl.STENCIL_TEST);
+            gl.stencilFunc(gl.ALWAYS, 0, 1);
+        }
+        gl.depthMask(true);
+        for (let i = 0; i < this._texturesBound; i++) {
+            gl.activeTexture(gl.TEXTURE0 + i);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+        }
+        this.fx.fbos.restore();
+    }
+    uniformMatrix4f(uniformName, m) {
+        let gl = this.fx.gl;
+        if (!this._program)
+            return;
+        let location = gl.getUniformLocation(this._program, uniformName);
+        if (location != null) {
+            gl.uniformMatrix4fv(location, false, m.toColMajorArray());
+        }
+    }
+    uniform1i(uniformName, x) {
+        let gl = this.fx.gl;
+        if (!this._program)
+            return;
+        let location = gl.getUniformLocation(this._program, uniformName);
+        if (location != null) {
+            gl.uniform1i(location, x);
+        }
+    }
+    uniform1f(uniformName, x) {
+        let gl = this.fx.gl;
+        if (!this._program)
+            return;
+        let location = gl.getUniformLocation(this._program, uniformName);
+        if (location != null) {
+            gl.uniform1f(location, x);
+        }
+    }
+    uniform2f(uniformName, v) {
+        let gl = this.fx.gl;
+        if (!this._program)
+            return;
+        let location = gl.getUniformLocation(this._program, uniformName);
+        if (location != null) {
+            gl.uniform2fv(location, v.toFloat32Array());
+        }
+    }
+    uniform3f(uniformName, v) {
+        let gl = this.fx.gl;
+        if (!this._program)
+            return;
+        let location = gl.getUniformLocation(this._program, uniformName);
+        if (location != null) {
+            gl.uniform3fv(location, v.toFloat32Array());
+        }
+    }
+    uniform4f(uniformName, v) {
+        let gl = this.fx.gl;
+        if (!this._program)
+            return;
+        let location = gl.getUniformLocation(this._program, uniformName);
+        if (location) {
+            gl.uniform4fv(location, v.toFloat32Array());
+        }
+    }
+    getAttribLocation(name) {
+        let gl = this.fx.gl;
+        if (!gl)
+            return -1;
+        if (!this._program)
+            return -1;
+        return gl.getAttribLocation(this._program, name);
+    }
+    getUniformLocation(name) {
+        let gl = this.fx.gl;
+        if (!gl)
+            return null;
+        if (!this._program)
+            return null;
+        let uloc = gl.getUniformLocation(this._program, name);
+        if (!uloc)
+            return null;
+        return uloc;
+    }
+    compile(vertShaderSource, fragShaderSource) {
+        let gl = this.fx.gl;
+        let vertShader = gl.createShader(gl.VERTEX_SHADER);
+        if (vertShader) {
+            gl.shaderSource(vertShader, vertShaderSource);
+            gl.compileShader(vertShader);
+            let status = gl.getShaderParameter(vertShader, gl.COMPILE_STATUS);
+            let infoLog = null;
+            if (!status) {
+                infoLog = gl.getShaderInfoLog(vertShader);
+                hflog.error("VERTEX SHADER COMPILE ERROR:");
+                hflog.error(infoLog ? infoLog : "");
+                hflog.error("--------------------------------------------");
+                let errorElement = document.getElementById("errors");
+                if (!errorElement && infoLog) {
+                    let newDiv = document.createElement("div");
+                    newDiv.appendChild(document.createTextNode("Vertex shader info log"));
+                    newDiv.appendChild(document.createElement("br"));
+                    newDiv.appendChild(document.createTextNode(infoLog));
+                    let pre = document.createElement("pre");
+                    pre.textContent = this._vertShaderSource;
+                    pre.style.width = "50%";
+                    newDiv.appendChild(pre);
+                    document.body.appendChild(newDiv);
+                }
+            }
+            if (status)
+                this._vertShaderCompileStatus = true;
+            if (infoLog)
+                this._vertShaderInfoLog = infoLog;
+            this._vertShader = vertShader;
+        }
+        else {
+            return false;
+        }
+        let fragShader = gl.createShader(gl.FRAGMENT_SHADER);
+        if (fragShader) {
+            gl.shaderSource(fragShader, fragShaderSource);
+            gl.compileShader(fragShader);
+            let status = gl.getShaderParameter(fragShader, gl.COMPILE_STATUS);
+            let infoLog = null;
+            if (!status) {
+                infoLog = gl.getShaderInfoLog(fragShader);
+                hflog.error("FRAGMENT SHADER COMPILE ERROR:");
+                hflog.error(infoLog ? infoLog : "");
+                hflog.error("--------------------------------------------");
+                let errorElement = document.getElementById("errors");
+                if (!errorElement && infoLog) {
+                    let newDiv = document.createElement("div");
+                    newDiv.appendChild(document.createTextNode("Fragment shader info log"));
+                    newDiv.appendChild(document.createElement("br"));
+                    newDiv.appendChild(document.createTextNode(infoLog));
+                    let pre = document.createElement("pre");
+                    pre.textContent = this._fragShaderSource;
+                    pre.style.width = "50%";
+                    newDiv.appendChild(pre);
+                    document.body.appendChild(newDiv);
+                }
+            }
+            if (status)
+                this._fragShaderCompileStatus = true;
+            if (infoLog)
+                this._fragShaderInfoLog = infoLog;
+            this._fragShader = fragShader;
+        }
+        else {
+            return false;
+        }
+        if (this._vertShaderCompileStatus && this._fragShaderCompileStatus) {
+            this._isCompiled = true;
+            this._program = gl.createProgram();
+            if (this._program) {
+                gl.attachShader(this._program, this._vertShader);
+                gl.attachShader(this._program, this._fragShader);
+                gl.linkProgram(this._program);
+                if (gl.getProgramParameter(this._program, gl.LINK_STATUS)) {
+                    this._programLinkStatus = true;
+                    this._isLinked = true;
+                }
+                else {
+                    this._programLinkStatus = false;
+                    let infoLog = gl.getProgramInfoLog(this._program);
+                    console.error("PROGRAM LINK ERROR:");
+                    console.error(infoLog);
+                    console.error("--------------------------------------------");
+                    if (infoLog) {
+                        this._programInfoLog = infoLog;
+                        let errorElement = document.getElementById("errors");
+                        if (!errorElement && infoLog) {
+                            let newDiv = document.createElement("div");
+                            newDiv.appendChild(document.createTextNode("PROGRAM INFO LOG"));
+                            newDiv.appendChild(document.createElement("br"));
+                            newDiv.appendChild(document.createTextNode(infoLog));
+                            document.body.appendChild(newDiv);
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            return false;
+        }
+        this.updateActiveUniforms();
+        return true;
+    }
+    updateActiveUniforms() {
+        let gl = this.fx.gl;
+        if (!this._program)
+            return false;
+        let numUniforms = gl.getProgramParameter(this._program, gl.ACTIVE_UNIFORMS);
+        this.uniforms.clear();
+        this.uniformInfo.clear();
+        for (let i = 0; i < numUniforms; i++) {
+            let uniform = gl.getActiveUniform(this._program, i);
+            if (!uniform)
+                continue;
+            this.uniformInfo.set(uniform.name, uniform);
+            this.uniforms.set(uniform.name, gl.getUniformLocation(this._program, uniform.name));
+        }
+        return true;
+    }
+    addTexture(textureName, uniformName) {
+        this.textures.push(new FxTextureUniform(textureName, uniformName));
+    }
+    clearTextures() {
+        this.textures = [];
+    }
+}
+/// <reference path="Fluxions.ts" />
+/// <reference path="FxVertex.ts" />
+/// <reference path="FxSurface.ts" />
+/// <reference path="FxRenderConfig.ts" />
 var FluxionsImpl;
 (function (FluxionsImpl) {
     class Edge {
@@ -2263,7 +3151,7 @@ var FluxionsImpl;
     }
     FluxionsImpl.EdgeMesh = EdgeMesh;
 })(FluxionsImpl || (FluxionsImpl = {}));
-class IndexedGeometryMesh {
+class FxIndexedGeometryMesh {
     constructor(fx) {
         this.fx = fx;
         this.vertices = [];
@@ -2272,7 +3160,7 @@ class IndexedGeometryMesh {
         this.edgeMesh = new FluxionsImpl.EdgeMesh();
         this._mtllib = "";
         this._mtl = "";
-        this._vertex = new Vertex();
+        this._vertex = new FxVertex();
         this._dirty = true;
         this._vboData = new Float32Array(0);
         this._iboData = new Uint32Array(0);
@@ -2292,7 +3180,7 @@ class IndexedGeometryMesh {
         this.indices = [];
         this.surfaces = [];
         this._dirty = true;
-        this._vertex = new Vertex();
+        this._vertex = new FxVertex();
         this._mtllib = "";
         this._mtl = "";
         this.aabb.reset();
@@ -2358,11 +3246,11 @@ class IndexedGeometryMesh {
     begin(mode) {
         if (this.surfaces.length == 0) {
             // if no surfaces exist, add one
-            this.surfaces.push(new Surface(mode, this.indices.length, this._mtllib, this._mtl));
+            this.surfaces.push(new FxSurface(mode, this.indices.length, this._mtllib, this._mtl));
         }
         else if (this.currentIndexCount != 0) {
             // do not add a surface if the most recent one is empty
-            this.surfaces.push(new Surface(mode, this.indices.length, this._mtllib, this._mtl));
+            this.surfaces.push(new FxSurface(mode, this.indices.length, this._mtllib, this._mtl));
         }
         if (this.surfaces.length > 0) {
             // simply update the important details
@@ -2618,25 +3506,25 @@ class IndexedGeometryMesh {
     }
 }
 /// <reference path="Fluxions.ts" />
-/// <reference path="FBO.ts" />
-/// <reference path="Camera.ts" />
-/// <reference path="Texture.ts" />
-/// <reference path="Material.ts" />
-/// <reference path="DirectionalLight.ts" />
+/// <reference path="FxFBO.ts" />
+/// <reference path="FxCamera.ts" />
+/// <reference path="FxTexture.ts" />
+/// <reference path="FxMaterial.ts" />
+/// <reference path="FxDirectionalLight.ts" />
 /// <reference path="FxTextParser.ts" />
 /// <reference path="../XORUtils.ts" />
-/// <reference path="IndexedGeometryMesh.ts" />
-var SGAssetType;
-(function (SGAssetType) {
-    SGAssetType[SGAssetType["Scene"] = 0] = "Scene";
-    SGAssetType[SGAssetType["GeometryGroup"] = 1] = "GeometryGroup";
-    SGAssetType[SGAssetType["MaterialLibrary"] = 2] = "MaterialLibrary";
-    SGAssetType[SGAssetType["ShaderProgram"] = 3] = "ShaderProgram";
-    SGAssetType[SGAssetType["Image"] = 4] = "Image";
-    SGAssetType[SGAssetType["Text"] = 5] = "Text";
-})(SGAssetType || (SGAssetType = {}));
+/// <reference path="FxIndexedGeometryMesh.ts" />
+var FxSGAssetType;
+(function (FxSGAssetType) {
+    FxSGAssetType[FxSGAssetType["Scene"] = 0] = "Scene";
+    FxSGAssetType[FxSGAssetType["GeometryGroup"] = 1] = "GeometryGroup";
+    FxSGAssetType[FxSGAssetType["MaterialLibrary"] = 2] = "MaterialLibrary";
+    FxSGAssetType[FxSGAssetType["ShaderProgram"] = 3] = "ShaderProgram";
+    FxSGAssetType[FxSGAssetType["Image"] = 4] = "Image";
+    FxSGAssetType[FxSGAssetType["Text"] = 5] = "Text";
+})(FxSGAssetType || (FxSGAssetType = {}));
 ;
-class ScenegraphNode {
+class FxScenegraphNode {
     constructor(name = "unknown", sceneName = "default", parent = "") {
         this.name = name;
         this.sceneName = sceneName;
@@ -2656,7 +3544,7 @@ class ScenegraphNode {
     get posttransform() { return this.posttransform_; }
     get transform() { return this.transform_; }
 }
-class Scenegraph {
+class FxScenegraph {
     constructor(fx) {
         this.fx = fx;
         this.shaderSrcFiles = [];
@@ -2667,16 +3555,16 @@ class Scenegraph {
         this._sceneResources = new Map();
         this._nodes = [];
         this._meshes = new Map();
-        this._tempNode = new ScenegraphNode("", "");
+        this._tempNode = new FxScenegraphNode("", "");
         this.textFiles = new Map();
-        this.camera = new Camera();
-        this.sunlight = new DirectionalLight();
+        this.camera = new FxCamera();
+        this.sunlight = new FxDirectionalLight();
         this.currentrc = null;
         this.currentmtllib = "";
         this.currentmtl = "";
         this.currentobj = "";
         this.currentscn = "";
-        this._defaultRenderConfig = new RenderConfig(this.fx);
+        this._defaultRenderConfig = new FxRenderConfig(this.fx);
         this._defaultRenderConfig.compile(`attribute vec4 aPosition;
              void main() {
                  gl_Position = aPosition;
@@ -2690,7 +3578,7 @@ class Scenegraph {
         // this._fbo.set("gbuffer", new FBO(this.fx, true, true, width, height, 1, true));
         // this._fbo.set("image", new FBO(this.fx, true, true, width, height, 1, true));
         let gl = this.fx.gl;
-        this._deferredMesh = new IndexedGeometryMesh(this.fx);
+        this._deferredMesh = new FxIndexedGeometryMesh(this.fx);
         this._deferredMesh.texcoord3(Vector3.make(0.0, 0.0, 0.0));
         this._deferredMesh.vertex3(Vector3.make(-1.0, -1.0, 0.0));
         this._deferredMesh.texcoord3(Vector3.make(1.0, 0.0, 0.0));
@@ -2756,26 +3644,26 @@ class Scenegraph {
         let ext = XORUtils.GetExtension(name);
         let path = XORUtils.GetURLPath(url);
         if (ext == "scn")
-            assetType = SGAssetType.Scene;
+            assetType = FxSGAssetType.Scene;
         else if (ext == "obj")
-            assetType = SGAssetType.GeometryGroup;
+            assetType = FxSGAssetType.GeometryGroup;
         else if (ext == "mtl")
-            assetType = SGAssetType.MaterialLibrary;
+            assetType = FxSGAssetType.MaterialLibrary;
         else if (ext == "png")
-            assetType = SGAssetType.Image;
+            assetType = FxSGAssetType.Image;
         else if (ext == "jpg")
-            assetType = SGAssetType.Image;
+            assetType = FxSGAssetType.Image;
         else if (ext == "txt")
-            assetType = SGAssetType.Text;
+            assetType = FxSGAssetType.Text;
         else
             return;
         if (this.wasRequested(name))
             return;
-        if (assetType == SGAssetType.Image) {
+        if (assetType == FxSGAssetType.Image) {
             fx.textures.load(name, url);
         }
         else {
-            if (assetType == SGAssetType.Scene) {
+            if (assetType == FxSGAssetType.Scene) {
                 this._scenegraphs.set(name, false);
             }
             fx.xor.textfiles.load(name, url, (data, name, assetType) => {
@@ -2812,7 +3700,7 @@ class Scenegraph {
         return true;
     }
     addRenderConfig(name, vertshaderUrl, fragshaderUrl) {
-        let rc = new RenderConfig(this.fx);
+        let rc = new FxRenderConfig(this.fx);
         this._renderConfigs.set(name, rc);
         let self = this;
         this.shaderSrcFiles.push(new XORUtils.ShaderLoader(vertshaderUrl, fragshaderUrl, (vertShaderSource, fragShaderSource) => {
@@ -2838,20 +3726,20 @@ class Scenegraph {
     // AddRenderConfig(name: string, vertshaderUrl: string, fragshaderUrl: string) {
     //     let self = this;
     //     this.shaderSrcFiles.push(new Utils.ShaderLoader(vertshaderUrl, fragshaderUrl, (vertShaderSource: string, fragShaderSource: string) => {
-    //         let rc = new RenderConfig(this.fx);
+    //         let rc = new FxRenderConfig(this.fx);
     //         rc.compile(vertShaderSource, fragShaderSource);
     //         self._renderConfigs.set(name, rc);
     //         hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + vertshaderUrl + " and " + fragshaderUrl);
     //     }));
     // }
-    // GetRenderConfig(name: string): RenderConfig | null {
+    // GetRenderConfig(name: string): FxRenderConfig | null {
     //     let rc = this._renderConfigs.get(name);
     //     if (rc) {
     //         return rc;
     //     }
     //     return null;
     // }
-    // UseRenderConfig(name: string): RenderConfig | null {
+    // UseRenderConfig(name: string): FxRenderConfig | null {
     //     let rc = this._renderConfigs.get(name);
     //     if (rc) {
     //         rc.use();
@@ -3029,7 +3917,7 @@ class Scenegraph {
     AddNode(sceneName, objectName, parentNode = "") {
         let sn = this.GetNode(sceneName, objectName);
         if (!sn) {
-            sn = new ScenegraphNode(objectName, sceneName);
+            sn = new FxScenegraphNode(objectName, sceneName);
             this._nodes.push(sn);
         }
         return sn;
@@ -3051,7 +3939,7 @@ class Scenegraph {
     GetMesh(meshName) {
         let mesh = this._meshes.get(meshName);
         if (!mesh) {
-            mesh = new IndexedGeometryMesh(this.fx);
+            mesh = new FxIndexedGeometryMesh(this.fx);
             this._meshes.set(meshName, mesh);
         }
         return mesh;
@@ -3087,7 +3975,7 @@ class Scenegraph {
         let gl = this.fx.gl;
         gl.viewport(0, 0, this.width, this.height);
     }
-    // configureFBO(rc: RenderConfig, name: string, colorUnit: number, depthUnit: number) {
+    // configureFBO(rc: FxRenderConfig, name: string, colorUnit: number, depthUnit: number) {
     //     const colorUniform = name + "Color";
     //     const depthUniform = name + "Depth";
     //     const resolutionUnifom = name + "Resolution";
@@ -3167,18 +4055,18 @@ class Scenegraph {
         let textParser = new FxTextParser(data);
         switch (assetType) {
             // ".SCN"
-            case SGAssetType.Scene:
+            case FxSGAssetType.Scene:
                 this.loadScene(textParser.lines, name, path);
                 break;
             // ".OBJ"
-            case SGAssetType.GeometryGroup:
+            case FxSGAssetType.GeometryGroup:
                 this.loadOBJ(textParser.lines, name, path);
                 break;
             // ".MTL"
-            case SGAssetType.MaterialLibrary:
+            case FxSGAssetType.MaterialLibrary:
                 this.loadMTL(textParser.lines, name, path);
                 break;
-            case SGAssetType.Text:
+            case FxSGAssetType.Text:
                 this.textFiles.set(name, textParser.lines);
                 break;
         }
@@ -3230,7 +4118,7 @@ class Scenegraph {
                     this.load(path + filename);
                 }
                 this._nodes.push(this._tempNode);
-                this._tempNode = new ScenegraphNode();
+                this._tempNode = new FxScenegraphNode();
             }
             else if (tokens[0] == "node") {
                 // node name
@@ -3242,7 +4130,7 @@ class Scenegraph {
                 this._tempNode.sceneName = name;
                 this._tempNode.geometryGroup = "";
                 this._nodes.push(this._tempNode);
-                this._tempNode = new ScenegraphNode();
+                this._tempNode = new FxScenegraphNode();
             }
             else if (tokens[0] == "renderconfig") {
                 let name = tokens[1];
@@ -3267,7 +4155,7 @@ class Scenegraph {
         // o <objectName: string>
         // g <newSmoothingGroup: string>
         // s <newSmoothingGroup: string>
-        let mesh = new IndexedGeometryMesh(this.fx);
+        let mesh = new FxIndexedGeometryMesh(this.fx);
         // let gl = this.fx.gl;
         // let positions: Vector3[] = [];
         // let normals: Vector3[] = [];
@@ -3344,7 +4232,7 @@ class Scenegraph {
             if (tokens.length >= 2) {
                 if (tokens[0] == "newmtl") {
                     mtl = FxTextParser.MakeIdentifier(tokens[1]);
-                    curmtl = new Material(mtl);
+                    curmtl = new FxMaterial(mtl);
                     this._materials.set(mtllib + mtl, curmtl);
                 }
                 else if (tokens[0] == "map_Kd") {
@@ -3412,566 +4300,8 @@ class Scenegraph {
         }
     }
 }
-/// <reference path="Fluxions.ts" />
-class FxFBO {
-    constructor(_renderingContext, depth, color, width = 512, height = 512, colorType = 0, colorUnit = 11, depthUnit = 12, shouldAutoResize = false) {
-        this._renderingContext = _renderingContext;
-        this.depth = depth;
-        this.color = color;
-        this.width = width;
-        this.height = height;
-        this.colorType = colorType;
-        this.colorUnit = colorUnit;
-        this.depthUnit = depthUnit;
-        this.shouldAutoResize = shouldAutoResize;
-        this._colorTexture = null;
-        this._depthTexture = null;
-        this._colorType = 0;
-        this._complete = false;
-        this._colorUnit = -1;
-        this._depthUnit = -1;
-        this.clearColor = Vector3.make(0.2, 0.2, 0.2);
-        let gl = _renderingContext.gl;
-        let fbo = gl.createFramebuffer();
-        if (fbo) {
-            this._fbo = fbo;
-        }
-        else {
-            throw "Unable to create FBO";
-        }
-        // width = 1 << ((0.5 + Math.log2(width)) | 0);
-        // height = 1 << ((0.5 + Math.log2(height)) | 0);
-        // this._powerOfTwoDimensions = Vector2.make(
-        //     width, height
-        // );
-        if (colorType == 0)
-            this._colorType = gl.UNSIGNED_BYTE;
-        else
-            this._colorType = gl.FLOAT;
-        this.make();
-    }
-    // private _powerOfTwoDimensions: Vector2;
-    get complete() { return this._complete; }
-    get dimensions() { return Vector2.make(this.width, this.height); }
-    autoResize(width, height) {
-        if (!this.shouldAutoResize)
-            return;
-        if (this.width == width && this.height == height)
-            return;
-        let gl = this._renderingContext.gl;
-        this.width = width;
-        this.height = height;
-        if (this._colorTexture)
-            gl.deleteTexture(this._colorTexture);
-        if (this._depthTexture)
-            gl.deleteTexture(this._depthTexture);
-        this._colorTexture = null;
-        this._depthTexture = null;
-        this.make();
-    }
-    make() {
-        let gl = this._renderingContext.gl;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
-        gl.activeTexture(gl.TEXTURE0);
-        if (this.color && !this._colorTexture) {
-            this._colorTexture = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, this._colorTexture);
-            // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
-            //     this._powerOfTwoDimensions.x, this._powerOfTwoDimensions.y, 0, gl.RGBA, this._colorType, null);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, this._colorType, null);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-            gl.bindTexture(gl.TEXTURE_2D, null);
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._colorTexture, 0);
-        }
-        if (this.depth && !this._depthTexture) {
-            this._depthTexture = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, this._depthTexture);
-            // gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT,
-            //     this._powerOfTwoDimensions.x, this._powerOfTwoDimensions.y, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, this.width, this.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-            gl.bindTexture(gl.TEXTURE_2D, null);
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this._depthTexture, 0);
-        }
-        let resolutionSizeText = this.width + "x" + this.height;
-        let fboStatus = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-        if (fboStatus != gl.FRAMEBUFFER_COMPLETE) {
-            if (this._colorType == gl.FLOAT) {
-                this._colorType = gl.UNSIGNED_BYTE;
-                this.colorType = 0;
-                gl.deleteTexture(this._colorTexture);
-                this._colorTexture = null;
-                this.make();
-                hflog.warn("FBO::make() --> Can't create FLOAT texture, trying UNSIGNED_BYTE");
-                return;
-            }
-            this._complete = false;
-            hflog.error("Unable to create a complete framebuffer " + resolutionSizeText, "| status: " + FxFBO.statusToText(fboStatus));
-        }
-        else {
-            this._complete = true;
-            hflog.log("Framebuffer is okay! size is " + resolutionSizeText);
-            // hflog.log("Framebuffer is okay! size is " + this.width + "x" + this.height + " texture: " +
-            //     this._powerOfTwoDimensions.x + "x" + this._powerOfTwoDimensions.y);
-        }
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    }
-    use(clearScreen = true, disableColorWrites = false) {
-        let gl = this._renderingContext.gl;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
-        if (disableColorWrites)
-            gl.colorMask(false, false, false, false);
-        this._savedViewport = gl.getParameter(gl.VIEWPORT);
-        gl.viewport(0, 0, this.width, this.height);
-        if (clearScreen) {
-            gl.clearColor(this.clearColor.x, this.clearColor.y, this.clearColor.z, 1.0);
-            let bits = 0;
-            if (this.color)
-                bits |= gl.COLOR_BUFFER_BIT;
-            if (this.depth)
-                bits |= gl.DEPTH_BUFFER_BIT;
-            gl.clear(bits);
-        }
-    }
-    restore() {
-        let gl = this._renderingContext.gl;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        if (this.color && this._colorTexture) {
-            gl.bindTexture(gl.TEXTURE_2D, this._colorTexture);
-            gl.generateMipmap(gl.TEXTURE_2D);
-            gl.bindTexture(gl.TEXTURE_2D, null);
-        }
-        gl.colorMask(true, true, true, true);
-        if (this._savedViewport) {
-            gl.viewport(this._savedViewport[0], this._savedViewport[1], this._savedViewport[2], this._savedViewport[3]);
-            this._savedViewport = undefined;
-        }
-    }
-    bindTextures(colorUnit = 15, depthUnit = 16) {
-        let gl = this._renderingContext.gl;
-        this._colorUnit = colorUnit;
-        this._depthUnit = depthUnit;
-        if (this._colorUnit >= 0) {
-            gl.activeTexture(this._colorUnit + gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, this._colorTexture);
-        }
-        if (this._depthUnit >= 0) {
-            gl.activeTexture(this._depthUnit + gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, this._depthTexture);
-        }
-        gl.activeTexture(gl.TEXTURE0);
-    }
-    unbindTextures() {
-        let gl = this._renderingContext.gl;
-        if (this._colorUnit >= 0) {
-            gl.activeTexture(this._colorUnit + gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, null);
-            this._colorUnit = -1;
-        }
-        if (this._depthUnit >= 0) {
-            gl.activeTexture(this._depthUnit + gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, null);
-            this._depthUnit = -1;
-        }
-        gl.activeTexture(gl.TEXTURE0);
-    }
-    static statusToText(status) {
-        let gl = WebGLRenderingContext;
-        switch (status) {
-            case gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-                return "Incomplete attachment";
-                break;
-            case gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
-                return "Incomplete dimensions";
-                break;
-            case gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-                return "Missing attachment";
-                break;
-            case gl.FRAMEBUFFER_UNSUPPORTED:
-                return "Unsupported";
-                break;
-        }
-        return "Unknown error: " + status;
-    }
-}
-/// <reference path="FxFBO.ts" />
-/// <reference path="FxRenderingContext.ts" />
-class FxFboSystem {
-    constructor(fx) {
-        this.fx = fx;
-        this._fbo = new Map();
-        this.currentFBO = null;
-    }
-    /**
-     * Returns null or the FBO referred to by name
-     * @param name The name of the FBO
-     */
-    get(name) {
-        return this._fbo.get(name) || null;
-    }
-    /**
-     * Creates a new FBO and adds it to the scene graph
-     * @param name The name of the FBO
-     * @param hasDepth Does the FBO have a depth attachment
-     * @param hasColor Does the FBO have a color attachment
-     * @param width The width of the FBO (should be power of two)
-     * @param height The height of the FBO (should be power of two)
-     * @param colorType 0 for gl.UNSIGNED_BYTE or 1 for gl.FLOAT
-     */
-    add(name, hasDepth, hasColor, width, height, colorType) {
-        this._fbo.set(name, new FxFBO(this.fx, hasDepth, hasColor, width, height, colorType));
-        return this.get(name);
-    }
-    /**
-     * autoresize
-     */
-    autoresize() {
-        let fx = this.fx;
-        this._fbo.forEach((fbo) => {
-            if (fbo.width != fx.width || fbo.height != fx.height) {
-                fbo.autoResize(fx.width, fx.height);
-            }
-        });
-    }
-    restore() {
-        if (this.currentFBO) {
-            this.currentFBO.restore();
-            this.currentFBO = null;
-        }
-        else {
-            for (let fbo of this._fbo) {
-                if (fbo[1].complete)
-                    fbo[1].unbindTextures();
-            }
-        }
-    }
-    configure(rc, startUnit = 11) {
-        if (rc.writeToFBO != "") {
-            let fbo = this.get(rc.writeToFBO);
-            if (fbo) {
-                fbo.use(rc.clearWriteToFBO, rc.disableWriteToFBOColorWrites);
-                this.currentFBO = fbo;
-            }
-        }
-        else {
-            let unit = startUnit;
-            for (let fbo of rc.readFromFBOs) {
-                this.configureFBO(rc, fbo, unit, unit + 1);
-                unit += 2;
-            }
-        }
-    }
-    configureFBO(rc, name, colorUnit, depthUnit) {
-        const colorUniform = name + "Color";
-        const depthUniform = name + "Depth";
-        const resolutionUnifom = name + "Resolution";
-        const usingUniform = "Using" + name;
-        let fbo = this._fbo.get(name) || null;
-        if (!fbo)
-            return;
-        rc.uniform2f(resolutionUnifom, fbo.dimensions);
-        rc.uniform1i(usingUniform, rc.writesToFBO ? 1 : 0);
-        if (!rc.writesToFBO && fbo.complete) {
-            fbo.bindTextures(colorUnit, depthUnit);
-            if (fbo.color)
-                rc.uniform1i(colorUniform, colorUnit);
-            if (fbo.depth)
-                rc.uniform1i(depthUniform, depthUnit);
-        }
-        else {
-            rc.uniform1i(colorUniform, 0);
-            rc.uniform1i(depthUniform, 0);
-        }
-    }
-}
-/// <reference path="./FxRenderingContext.ts" />
-/// <reference path="../XORUtils.ts" />
-class FxTextureSystem {
-    /**
-     *
-     * @param {FxRenderingContext} fx The rendering context
-     */
-    constructor(fx) {
-        this.fx = fx;
-        this._textures = new Map();
-        this.imagefiles = [];
-        let gl = fx.gl;
-        let tex2D = gl.createTexture();
-        let texCube = gl.createTexture();
-        if (!texCube || !tex2D) {
-            throw TypeError("texCube or tex2D is not valid");
-        }
-        let pixels = new ImageData(new Uint8ClampedArray([0, 0, 0, 255, 255, 255, 255, 255, 0, 0, 0, 255, 255, 255, 255, 255]), 2, 2);
-        gl.bindTexture(gl.TEXTURE_2D, tex2D);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, pixels);
-        //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 2, 2, 0, gl.RGB, gl.UNSIGNED_BYTE, pixels);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.generateMipmap(gl.TEXTURE_2D);
-        gl.bindTexture(gl.TEXTURE_2D, null);
-        let xppixels = new ImageData(new Uint8ClampedArray([127, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 127, 0, 0, 255]), 2, 2);
-        let xnpixels = new ImageData(new Uint8ClampedArray([0, 127, 127, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 127, 127, 255]), 2, 2);
-        let yppixels = new ImageData(new Uint8ClampedArray([0, 127, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 127, 0, 255]), 2, 2);
-        let ynpixels = new ImageData(new Uint8ClampedArray([127, 0, 127, 255, 255, 0, 255, 255, 255, 0, 255, 255, 127, 0, 127, 255]), 2, 2);
-        let zppixels = new ImageData(new Uint8ClampedArray([0, 0, 127, 255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 127, 255]), 2, 2);
-        let znpixels = new ImageData(new Uint8ClampedArray([127, 127, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 127, 127, 0, 255]), 2, 2);
-        gl.bindTexture(gl.TEXTURE_CUBE_MAP, texCube);
-        gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, xnpixels);
-        gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, ynpixels);
-        gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, znpixels);
-        gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, xppixels);
-        gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, yppixels);
-        gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, zppixels);
-        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-        gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
-        this._default2D = new Texture(this.fx, "__texture2D__", "", WebGLRenderingContext.TEXTURE_2D, tex2D);
-        this._defaultCube = new Texture(this.fx, "__textureCube__", "", gl.TEXTURE_CUBE_MAP, texCube);
-        this._textures.set("__texture2D__", this._default2D);
-        this._textures.set("__textureCube__", this._defaultCube);
-    }
-    has(name) {
-        if (this._textures.has(name))
-            return true;
-        return false;
-    }
-    get(name) {
-        let t = this._textures.get(name);
-        if (t)
-            return t;
-        return null;
-    }
-    /**
-     *
-     * @param {string} name name of the texture
-     * @param {Texture} value
-     */
-    set(name, value) {
-        this._textures.set(name, value);
-    }
-    get loaded() {
-        for (let i of this.imagefiles) {
-            if (!i.loaded)
-                return false;
-        }
-        return true;
-    }
-    get failed() {
-        for (let i of this.imagefiles) {
-            if (i.failed)
-                return true;
-        }
-        return false;
-    }
-    get length() {
-        return this.imagefiles.length;
-    }
-    get percentLoaded() {
-        let a = 0;
-        for (let i of this.imagefiles) {
-            if (i.loaded)
-                a++;
-        }
-        return 100.0 * a / this.imagefiles.length;
-    }
-    /**
-     * @param {string} name the key to find this texture
-     * @param {string} url  the url to load this texture
-     */
-    load(name, url) {
-        if (this._textures.has(name))
-            return;
-        let self = this;
-        let tname = name;
-        this.imagefiles.push(new XORUtils.ImageFileLoader(url, (data, name) => {
-            self.processTextureMap(data, tname);
-            hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + tname);
-        }));
-    }
-    wasRequested(name) {
-        for (let img of this.imagefiles) {
-            if (img.name == name)
-                return true;
-        }
-        return false;
-    }
-    processTextureMap(image, name) {
-        let gl = this.fx.gl;
-        let minFilter = gl.NEAREST;
-        let magFilter = gl.NEAREST;
-        let maxAnisotropy = 1.0;
-        let ext = this.fx.getExtension("EXT_texture_filter_anisotropic");
-        if (ext) {
-            let maxAnisotropy = gl.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
-        }
-        else {
-            hflog.debug("cannot use anisotropic filtering");
-        }
-        if (image.width == 6 * image.height) {
-            let images = new Array(6);
-            XORUtils.SeparateCubeMapImages(image, images);
-            let texture = gl.createTexture();
-            if (texture) {
-                gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
-                for (let i = 0; i < 6; i++) {
-                    if (!images[i]) {
-                        continue;
-                    }
-                    else {
-                        hflog.debug("image " + i + " w:" + images[i].width + "/h:" + images[i].height);
-                    }
-                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[i]);
-                }
-                gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-                let t = new Texture(this.fx, name, name, gl.TEXTURE_CUBE_MAP, texture);
-                this.fx.textures.set(name, t);
-            }
-        }
-        else {
-            let texture = gl.createTexture();
-            if (texture) {
-                gl.bindTexture(gl.TEXTURE_2D, texture);
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-                gl.generateMipmap(gl.TEXTURE_2D);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
-                if (ext) {
-                    gl.texParameterf(gl.TEXTURE_2D, ext.TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy);
-                }
-                let t = new Texture(this.fx, name, name, gl.TEXTURE_2D, texture);
-                this.fx.textures.set(name, t);
-            }
-        }
-    }
-}
-/// <reference path="Fluxions.ts" />
-/// <reference path="FxFboSystem.ts" />
-/// <reference path="FxTextureSystem.ts" />
-class FxRenderingContext {
-    constructor(xor) {
-        this.xor = xor;
-        this.enabledExtensions = new Map();
-        this._visible = false;
-        this._resized = true;
-        if (!xor.graphics.gl)
-            throw "Unable to start Fluxions without valid gl context";
-        this.gl = xor.graphics.gl;
-        this.textures = new FxTextureSystem(this);
-        this.fbos = new FxFboSystem(this);
-        let debugInfo = this.gl.getExtension('WEBGL_debug_renderer_info');
-        if (debugInfo) {
-            let vendor = this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
-            let renderer = this.gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-            hflog.log(vendor);
-            hflog.log(renderer);
-        }
-        this.enableExtensions([
-            "EXT_texture_filter_anisotropic",
-            "WEBGL_depth_texture",
-            "WEBGL_debug_renderer_info",
-            "OES_element_index_uint",
-            "OES_standard_derivatives",
-            "OES_texture_float_linear",
-            "OES_texture_float",
-        ]);
-        let standardDerivatives = this.gl.getExtension('OES_standard_derivatives');
-        if (standardDerivatives) {
-            this.gl.hint(standardDerivatives.FRAGMENT_SHADER_DERIVATIVE_HINT_OES, this.gl.NICEST);
-        }
-        this.scenegraph = new Scenegraph(this);
-    }
-    get width() { return this.xor.graphics.width; }
-    get height() { return this.xor.graphics.height; }
-    get aspectRatio() { return this.width / this.height; }
-    // get visible(): boolean {
-    //     return this._visible;
-    // }
-    // get canvas(): HTMLCanvasElement {
-    //     if (!this.canvasElement_)
-    //         return new HTMLCanvasElement();
-    //     return this.canvasElement_;
-    // }
-    // ...
-    enableExtensions(names) {
-        let supportedExtensions = this.gl.getSupportedExtensions();
-        if (!supportedExtensions)
-            return false;
-        let allFound = true;
-        for (let name of names) {
-            let found = false;
-            for (let ext of supportedExtensions) {
-                if (name == ext) {
-                    this.enabledExtensions.set(name, this.gl.getExtension(name));
-                    hflog.log("Extension " + name + " enabled");
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                hflog.log("Extension " + name + " not enabled");
-                allFound = false;
-                break;
-            }
-        }
-        return allFound;
-    }
-    getExtension(name) {
-        if (this.enabledExtensions.has(name)) {
-            return this.enabledExtensions.get(name);
-        }
-        return null;
-    }
-    update() {
-        return;
-        // if (this._resized) {
-        //     this._resized = false;
-        //     let w = (window.innerWidth) | 0;
-        //     let h = (w / this.aspectRatio) | 0;
-        //     this.canvas.width = w;
-        //     this.canvas.height = h;
-        //     this.width = w;
-        //     this.height = h;
-        // }
-    }
-}
-/// <reference path="FxRenderingContext.ts" />
-class FxTextureUniform {
-    /**
-     *
-     * @param {string} textureName The name of the textures from the fx.textures[] array
-     * @param {string} uniformName The name of the uniform to apply this texture to
-     * @param {string} samplerName The name of the sampler params to apply (default "")
-     */
-    constructor(textureName, uniformName, samplerName = "") {
-        this.textureName = textureName;
-        this.uniformName = uniformName;
-        this.samplerName = samplerName;
-        this.texture = null;
-        this.sampler = null;
-    }
-    getTexture(fx) {
-        if (this.texture)
-            return this.texture;
-        let t = fx.textures.get(this.textureName);
-        if (t) {
-            this.texture = t.texture;
-        }
-        return this.texture;
-    }
-}
 /// <reference path="../LibXOR.ts" />
-/// <reference path="Scenegraph.ts" />
+/// <reference path="FxScenegraph.ts" />
 /// <reference path="FxRenderingContext.ts" />
 /// <reference path="FxTextureUniform.ts" />
 /// <reference path="LibXOR.ts" />
@@ -5245,335 +5575,6 @@ class PaletteSystem {
         return GTE.vec3(h, s, l);
     }
 }
-// LibXOR Library
-// Copyright (c) 2017 - 2018 Jonathan Metzgar
-// All Rights Reserved.
-//
-// MIT License
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-//
-/// <reference path="Fluxions.ts"/>
-/// <reference path="FxTextureUniform.ts" />
-class RenderConfig {
-    constructor(fx) {
-        this.fx = fx;
-        this._isCompiled = false;
-        this._isLinked = false;
-        this._vertShader = null;
-        this._fragShader = null;
-        this._program = null;
-        this._vertShaderSource = "";
-        this._fragShaderSource = "";
-        this._vertShaderInfoLog = "";
-        this._fragShaderInfoLog = "";
-        this._vertShaderCompileStatus = false;
-        this._fragShaderCompileStatus = false;
-        this._programInfoLog = "";
-        this._programLinkStatus = false;
-        this.uniforms = new Map();
-        this.uniformInfo = new Map();
-        this.useDepthTest = true;
-        this.depthTest = WebGLRenderingContext.LESS;
-        this.depthMask = true;
-        this.useBlending = false;
-        this.blendSrcFactor = WebGLRenderingContext.ONE;
-        this.blendDstFactor = WebGLRenderingContext.ZERO;
-        this.useStencilTest = false;
-        this.stencilFunc = WebGLRenderingContext.ALWAYS;
-        this.stencilFuncRef = 0.0;
-        this.stencilMask = 1;
-        this.renderShadowMap = false;
-        this.renderGBuffer = false;
-        this.renderImage = false;
-        this.renderEdges = false;
-        this.writesToFBO = false;
-        this.writeToFBO = "";
-        this.clearWriteToFBO = true;
-        this.disableWriteToFBOColorWrites = false;
-        this.readFromFBOs = [];
-        this.textures = [];
-        this._texturesBound = 0;
-    }
-    get usable() { return this.isCompiledAndLinked(); }
-    isCompiledAndLinked() {
-        if (this._isCompiled && this._isLinked)
-            return true;
-        return false;
-    }
-    use() {
-        let fx = this.fx;
-        let gl = this.fx.gl;
-        gl.useProgram(this._program);
-        if (this.useDepthTest) {
-            gl.enable(gl.DEPTH_TEST);
-            gl.depthFunc(this.depthTest);
-        }
-        if (this.useBlending) {
-            gl.enable(gl.BLEND);
-            gl.blendFunc(this.blendSrcFactor, this.blendDstFactor);
-        }
-        if (this.useStencilTest) {
-            gl.enable(gl.STENCIL_TEST);
-            gl.stencilFunc(this.stencilFunc, this.stencilFuncRef, this.stencilMask);
-        }
-        gl.depthMask(this.depthMask);
-        let unit = 0;
-        for (let texture of this.textures) {
-            let u = this.uniforms.get(texture.uniformName);
-            if (!u)
-                continue;
-            let t = fx.textures.get(texture.textureName);
-            if (!t)
-                continue;
-            gl.activeTexture(gl.TEXTURE0 + unit);
-            gl.bindTexture(t.target, t.texture);
-            gl.uniform1i(u, unit);
-            unit++;
-        }
-        this._texturesBound = unit;
-        this.fx.fbos.configure(this, unit);
-    }
-    restore() {
-        let gl = this.fx.gl;
-        gl.useProgram(null);
-        if (this.useDepthTest) {
-            gl.disable(gl.DEPTH_TEST);
-            gl.depthFunc(gl.LESS);
-        }
-        if (this.useBlending) {
-            gl.disable(gl.BLEND);
-            gl.blendFunc(gl.ONE, gl.ZERO);
-        }
-        if (this.useStencilTest) {
-            gl.disable(gl.STENCIL_TEST);
-            gl.stencilFunc(gl.ALWAYS, 0, 1);
-        }
-        gl.depthMask(true);
-        for (let i = 0; i < this._texturesBound; i++) {
-            gl.activeTexture(gl.TEXTURE0 + i);
-            gl.bindTexture(gl.TEXTURE_2D, null);
-            gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
-        }
-        this.fx.fbos.restore();
-    }
-    uniformMatrix4f(uniformName, m) {
-        let gl = this.fx.gl;
-        if (!this._program)
-            return;
-        let location = gl.getUniformLocation(this._program, uniformName);
-        if (location != null) {
-            gl.uniformMatrix4fv(location, false, m.toColMajorArray());
-        }
-    }
-    uniform1i(uniformName, x) {
-        let gl = this.fx.gl;
-        if (!this._program)
-            return;
-        let location = gl.getUniformLocation(this._program, uniformName);
-        if (location != null) {
-            gl.uniform1i(location, x);
-        }
-    }
-    uniform1f(uniformName, x) {
-        let gl = this.fx.gl;
-        if (!this._program)
-            return;
-        let location = gl.getUniformLocation(this._program, uniformName);
-        if (location != null) {
-            gl.uniform1f(location, x);
-        }
-    }
-    uniform2f(uniformName, v) {
-        let gl = this.fx.gl;
-        if (!this._program)
-            return;
-        let location = gl.getUniformLocation(this._program, uniformName);
-        if (location != null) {
-            gl.uniform2fv(location, v.toFloat32Array());
-        }
-    }
-    uniform3f(uniformName, v) {
-        let gl = this.fx.gl;
-        if (!this._program)
-            return;
-        let location = gl.getUniformLocation(this._program, uniformName);
-        if (location != null) {
-            gl.uniform3fv(location, v.toFloat32Array());
-        }
-    }
-    uniform4f(uniformName, v) {
-        let gl = this.fx.gl;
-        if (!this._program)
-            return;
-        let location = gl.getUniformLocation(this._program, uniformName);
-        if (location) {
-            gl.uniform4fv(location, v.toFloat32Array());
-        }
-    }
-    getAttribLocation(name) {
-        let gl = this.fx.gl;
-        if (!gl)
-            return -1;
-        if (!this._program)
-            return -1;
-        return gl.getAttribLocation(this._program, name);
-    }
-    getUniformLocation(name) {
-        let gl = this.fx.gl;
-        if (!gl)
-            return null;
-        if (!this._program)
-            return null;
-        let uloc = gl.getUniformLocation(this._program, name);
-        if (!uloc)
-            return null;
-        return uloc;
-    }
-    compile(vertShaderSource, fragShaderSource) {
-        let gl = this.fx.gl;
-        let vertShader = gl.createShader(gl.VERTEX_SHADER);
-        if (vertShader) {
-            gl.shaderSource(vertShader, vertShaderSource);
-            gl.compileShader(vertShader);
-            let status = gl.getShaderParameter(vertShader, gl.COMPILE_STATUS);
-            let infoLog = null;
-            if (!status) {
-                infoLog = gl.getShaderInfoLog(vertShader);
-                hflog.error("VERTEX SHADER COMPILE ERROR:");
-                hflog.error(infoLog ? infoLog : "");
-                hflog.error("--------------------------------------------");
-                let errorElement = document.getElementById("errors");
-                if (!errorElement && infoLog) {
-                    let newDiv = document.createElement("div");
-                    newDiv.appendChild(document.createTextNode("Vertex shader info log"));
-                    newDiv.appendChild(document.createElement("br"));
-                    newDiv.appendChild(document.createTextNode(infoLog));
-                    let pre = document.createElement("pre");
-                    pre.textContent = this._vertShaderSource;
-                    pre.style.width = "50%";
-                    newDiv.appendChild(pre);
-                    document.body.appendChild(newDiv);
-                }
-            }
-            if (status)
-                this._vertShaderCompileStatus = true;
-            if (infoLog)
-                this._vertShaderInfoLog = infoLog;
-            this._vertShader = vertShader;
-        }
-        else {
-            return false;
-        }
-        let fragShader = gl.createShader(gl.FRAGMENT_SHADER);
-        if (fragShader) {
-            gl.shaderSource(fragShader, fragShaderSource);
-            gl.compileShader(fragShader);
-            let status = gl.getShaderParameter(fragShader, gl.COMPILE_STATUS);
-            let infoLog = null;
-            if (!status) {
-                infoLog = gl.getShaderInfoLog(fragShader);
-                hflog.error("FRAGMENT SHADER COMPILE ERROR:");
-                hflog.error(infoLog ? infoLog : "");
-                hflog.error("--------------------------------------------");
-                let errorElement = document.getElementById("errors");
-                if (!errorElement && infoLog) {
-                    let newDiv = document.createElement("div");
-                    newDiv.appendChild(document.createTextNode("Fragment shader info log"));
-                    newDiv.appendChild(document.createElement("br"));
-                    newDiv.appendChild(document.createTextNode(infoLog));
-                    let pre = document.createElement("pre");
-                    pre.textContent = this._fragShaderSource;
-                    pre.style.width = "50%";
-                    newDiv.appendChild(pre);
-                    document.body.appendChild(newDiv);
-                }
-            }
-            if (status)
-                this._fragShaderCompileStatus = true;
-            if (infoLog)
-                this._fragShaderInfoLog = infoLog;
-            this._fragShader = fragShader;
-        }
-        else {
-            return false;
-        }
-        if (this._vertShaderCompileStatus && this._fragShaderCompileStatus) {
-            this._isCompiled = true;
-            this._program = gl.createProgram();
-            if (this._program) {
-                gl.attachShader(this._program, this._vertShader);
-                gl.attachShader(this._program, this._fragShader);
-                gl.linkProgram(this._program);
-                if (gl.getProgramParameter(this._program, gl.LINK_STATUS)) {
-                    this._programLinkStatus = true;
-                    this._isLinked = true;
-                }
-                else {
-                    this._programLinkStatus = false;
-                    let infoLog = gl.getProgramInfoLog(this._program);
-                    console.error("PROGRAM LINK ERROR:");
-                    console.error(infoLog);
-                    console.error("--------------------------------------------");
-                    if (infoLog) {
-                        this._programInfoLog = infoLog;
-                        let errorElement = document.getElementById("errors");
-                        if (!errorElement && infoLog) {
-                            let newDiv = document.createElement("div");
-                            newDiv.appendChild(document.createTextNode("PROGRAM INFO LOG"));
-                            newDiv.appendChild(document.createElement("br"));
-                            newDiv.appendChild(document.createTextNode(infoLog));
-                            document.body.appendChild(newDiv);
-                        }
-                    }
-                }
-            }
-        }
-        else {
-            return false;
-        }
-        this.updateActiveUniforms();
-        return true;
-    }
-    updateActiveUniforms() {
-        let gl = this.fx.gl;
-        if (!this._program)
-            return false;
-        let numUniforms = gl.getProgramParameter(this._program, gl.ACTIVE_UNIFORMS);
-        this.uniforms.clear();
-        this.uniformInfo.clear();
-        for (let i = 0; i < numUniforms; i++) {
-            let uniform = gl.getActiveUniform(this._program, i);
-            if (!uniform)
-                continue;
-            this.uniformInfo.set(uniform.name, uniform);
-            this.uniforms.set(uniform.name, gl.getUniformLocation(this._program, uniform.name));
-        }
-        return true;
-    }
-    addTexture(textureName, uniformName) {
-        this.textures.push(new FxTextureUniform(textureName, uniformName));
-    }
-    clearTextures() {
-        this.textures = [];
-    }
-}
 /// <reference path="LibXOR.ts" />
 /// <reference path="Fluxions/RenderConfig.ts" />
 class RenderConfigSystem {
@@ -5625,14 +5626,14 @@ class MeshSystem {
     create(name) {
         if (!this.xor.fluxions)
             throw "Fluxions is not initialized";
-        let mesh = new IndexedGeometryMesh(this.xor.fluxions);
+        let mesh = new FxIndexedGeometryMesh(this.xor.fluxions);
         this.meshes.set(name, mesh);
         return mesh;
     }
     load(name, url) {
         if (!this.xor.fluxions)
             throw "Fluxions is not initialized";
-        let mesh = new IndexedGeometryMesh(this.xor.fluxions);
+        let mesh = new FxIndexedGeometryMesh(this.xor.fluxions);
         this.meshes.set(name, mesh);
         let tl = new XORUtils.TextFileLoader(url, (data, name, p) => {
             let textParser = new FxTextParser(data);

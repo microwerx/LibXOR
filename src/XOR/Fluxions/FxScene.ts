@@ -1,6 +1,6 @@
 /// <reference path="Fluxions.ts" />
 
-class Scene {
+class FxScene {
     constructor() {
 
     }

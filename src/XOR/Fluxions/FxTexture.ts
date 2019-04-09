@@ -1,6 +1,6 @@
 /// <reference path="Fluxions.ts" />
 
-class Texture {
+class FxTexture {
     public id: string = "";
 
     constructor(private fx: FxRenderingContext,

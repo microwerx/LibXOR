@@ -4,7 +4,7 @@
 
 class FxRenderingContext {
     gl: WebGLRenderingContext;
-    scenegraph: Scenegraph;
+    scenegraph: FxScenegraph;
     textures: FxTextureSystem;
     fbos: FxFboSystem;
 
@@ -42,7 +42,7 @@ class FxRenderingContext {
             this.gl.hint(standardDerivatives.FRAGMENT_SHADER_DERIVATIVE_HINT_OES, this.gl.NICEST);
         }
 
-        this.scenegraph = new Scenegraph(this);
+        this.scenegraph = new FxScenegraph(this);
     }
 
     private enabledExtensions: Map<string, any> = new Map<string, any>();

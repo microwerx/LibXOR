@@ -1,4 +1,4 @@
-class Vertex {
+class FxVertex {
     constructor(public position: Vector3 = new Vector3(0, 0, 0),
         public normal: Vector3 = new Vector3(0, 0, 1),
         public color: Vector3 = new Vector3(1, 1, 1),

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* global Vector3 */
 
 // START HELPFUL HTML5 FUNCTIONS
@@ -72,6 +73,24 @@ function createButtonRow(parent, id, caption, callback) {
 }
 
 /**
+ * createCheckButton adds a button to the control list
+ * @param {HTMLElement} parent The parent HTMLElement
+ * @param {string} id The name of the button's id
+ * @param {boolean} checked Is it checked or not
+ */
+function createCheckRow(parent, id, checked) {
+    let lContent = "<div class='column left'><label for='" + id + "'>" + id + "<label></div>";
+    let rContent = "<div class='column right'>";
+    let c = checked ? " checked" : "";
+    rContent += "<input type='checkbox' id='" + id + "' " + c + "/>";
+    rContent += "</div>";
+    let row = createRow(lContent, rContent);
+    row.id = "row" + id;
+    row.className = "row";
+    parent.appendChild(row);
+}
+
+/**
  * getRangeValue returns the number of a range control
  * @param {number} id 
  * @returns the value of the range control or 0
@@ -82,6 +101,17 @@ function getRangeValue(id) {
     let l = document.getElementById(id + "_value");
     if (l) l.innerHTML = e.value.toString();
     return e.value * 1.0;
+}
+
+/**
+ * Returns if control is checked or not
+ * @param {string} id 
+ * @returns {boolean}
+ */
+function getCheckValue(id) {
+    let e = document.getElementById(id);
+    if (!e) return false;
+    return e.checked;
 }
 
 /**

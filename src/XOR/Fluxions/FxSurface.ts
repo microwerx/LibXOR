@@ -1,4 +1,4 @@
-class Surface {
+class FxSurface {
     public count: number = 0;
 
     constructor(readonly mode: number, readonly offset: number,

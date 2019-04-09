@@ -92,7 +92,7 @@ class App {
         this.xor.graphics.setVideoMode(1.5 * 384, 384);
         this.xor.input.init();
 
-        let rc = this.xor.renderconfigs.load('default', 'basic.vert', 'basic.frag');
+        let rc = this.xor.renderconfigs.load('default', 'shaders/basic.vert', 'shaders/basic.frag');
         rc.useDepthTest = false;
 
         let pal = this.xor.palette;

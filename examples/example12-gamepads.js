@@ -95,7 +95,7 @@ class App {
         this.xor.input.init();
         this.xor.graphics.gl;
 
-        let rc = this.xor.renderconfigs.load('default', 'basic.vert', 'basic.frag');
+        let rc = this.xor.renderconfigs.load('default', 'shaders/basic.vert', 'shaders/basic.frag');
         rc.useDepthTest = true;
 
         let pal = this.xor.palette;

@@ -490,13 +490,13 @@ class App {
         createRangeRow(controls, "fWindSpeed", 0, 0, 5, 0.1);
         createRangeRow(controls, "G", 0.0, -10.0, 10.0, 0.1);
         createRangeRow(controls, "p", 2, -4, 4, 0.1);
-        createRangeRow(controls, "collisions", 0, 0, 1);
-        createRangeRow(controls, "objects", 10, 1, 500);
+        createRangeRow(controls, "collisions", 1, 0, 1);
+        createRangeRow(controls, "objects", 500, 1, 500);
         createRangeRow(controls, "randoma", 0.0, 0.0, 10.0, 0.1);
         createRangeRow(controls, "randomP", 0.0, 0.0, 1.0, 0.001);
-        createRangeRow(controls, "fMassMean", 50.0, 0.0, 50.0, 0.1);
-        createRangeRow(controls, "fMassSigma", 25.0, 0.0, 25.0, 0.1);
-        createRangeRow(controls, "fInitialP", 0.75, 0.0, 1.0, 0.05);
+        createRangeRow(controls, "fMassMean", 25.0, 0.0, 50.0, 0.1);
+        createRangeRow(controls, "fMassSigma", 0.0, 0.0, 25.0, 0.1);
+        createRangeRow(controls, "fInitialP", 1.0, 0.0, 1.0, 0.05);
     }
 
     init() {
@@ -504,7 +504,7 @@ class App {
         this.xor.graphics.setVideoMode(1.5 * 384, 384);
         this.xor.input.init();
 
-        let rc = this.xor.renderconfigs.load('default', 'basic.vert', 'particles.frag');
+        let rc = this.xor.renderconfigs.load('default', 'shaders/basic.vert', 'shaders/particles.frag');
         rc.useDepthTest = false;
 
         let pal = this.xor.palette;

@@ -1,6 +1,5 @@
 /// <reference path="htmlutils.js" />
 /// <reference path="LibXOR.js" />
-/* global Vector3 FxTextureUniform */
 
 class App {
     constructor() {
@@ -26,16 +25,16 @@ class App {
         fx.textures.load("parrot", "models/textures/parrot.png");
         fx.fbos.add("gbuffer", true, true, 512, 256, 0);
 
-        let rc = this.xor.renderconfigs.load('gbuffer', 'basic.vert', 'gbuffer.frag');
+        let rc = this.xor.renderconfigs.load('gbuffer', 'shaders/basic.vert', 'shaders/gbuffer.frag');
         rc.useDepthTest = true;
         rc.addTexture("test2D", "map_kd");
         rc.writeToFBO = "gbuffer";
 
-        rc = xor.renderconfigs.load('default', 'basic.vert', 'basic.frag');
+        rc = xor.renderconfigs.load('default', 'shaders/basic.vert', 'shaders/basic.frag');
         rc.useDepthTest = true;
         rc.addTexture("godzilla", "map_kd");
 
-        rc = this.xor.renderconfigs.load('r2t', 'basic.vert', 'r2t.frag');
+        rc = this.xor.renderconfigs.load('r2t', 'shaders/basic.vert', 'shaders/r2t.frag');
         rc.addTexture("test2D", "map_kd");
         rc.readFromFBOs = ["gbuffer"];
 
@@ -61,6 +60,7 @@ class App {
 
     render() {
         let xor = this.xor;
+        let gl = this.xor.fluxions.gl;
         xor.graphics.clear(xor.palette.AZURE);
 
         if (this.useRenderToTexture) {
@@ -89,6 +89,18 @@ class App {
             rc.uniform3f('kd', Vector3.make(1.0, 0.0, 0.0));
             rc.uniform1f('map_kd_mix', 1.0);
 
+            gl.activeTexture(gl.TEXTURE0);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+            let ext = xor.fluxions.getExtension('EXT_texture_filter_anisotropic');
+            if (ext) {
+                let max = gl.getParameter(gl.TEXTURE_MAX_ANISOTROPY_EXT);
+                gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAX_ANISOTROPY_EXT, max);
+            }
+
             rc.uniformMatrix4f('WorldMatrix', Matrix4.makeTranslation(0, 0, 0));
             xor.meshes.render('rect', rc);
         }
@@ -97,8 +109,9 @@ class App {
         if (this.useRenderToTexture) {
             let rc = xor.renderconfigs.use('r2t');
             if (rc) {
-                let pmatrix = Matrix4.makeOrtho2D(0, xor.graphics.width, 0, xor.graphics.height);
-                let cmatrix = Matrix4.makeIdentity();
+                //let pmatrix = Matrix4.makeOrtho2D(0, xor.graphics.width, 0, xor.graphics.height);
+                let pmatrix = Matrix4.makePerspectiveY(45.0, 1.5, 1.0, 100.0);
+                let cmatrix = Matrix4.makeOrbit(-xor.t1 * 5.0, 0, 3.0);
                 rc.uniformMatrix4f('ProjectionMatrix', pmatrix);
                 rc.uniformMatrix4f('CameraMatrix', cmatrix);
                 rc.uniformMatrix4f('WorldMatrix', Matrix4.makeScale(0.5, 0.5, 0.5));
@@ -107,7 +120,7 @@ class App {
                 rc.uniform1f('iTimeDelta', xor.dt);
                 rc.uniform1i('iFrame', xor.frameCount);
                 rc.uniform1i('iSkyMode', getRangeValue('iSkyMode'));
-                xor.meshes.render('fullscreenquad', rc);
+                xor.meshes.render('rect', rc);
             }
             rc.restore();
         }
