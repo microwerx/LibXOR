@@ -9,6 +9,8 @@ class App {
         let p = document.getElementById('desc');
         p.innerHTML = `Display G-Buffer.`;
 
+        this.useRenderToTexture = false;
+
         let controls = document.getElementById('controls');
     }
 
@@ -16,20 +18,29 @@ class App {
         hflog.logElement = "log";
         this.xor.graphics.setVideoMode(1.5 * 384, 384);
         this.xor.input.init();
+        let xor = this.xor;
+        let fx = this.xor.fluxions;
 
-        this.xor.fluxions.textures.load("test2D", "models/textures/test_texture_2d.png");
-        this.xor.fluxions.fbos.add("gbuffer", true, true, 512, 256, 0);
+        fx.textures.load("test2D", "models/textures/test_texture.png");
+        fx.textures.load("godzilla", "models/textures/godzilla.png");
+        fx.textures.load("parrot", "models/textures/parrot.png");
+        fx.fbos.add("gbuffer", true, true, 512, 256, 0);
 
         let rc = this.xor.renderconfigs.load('gbuffer', 'basic.vert', 'gbuffer.frag');
         rc.useDepthTest = true;
-        rc.textures.push = [ new FxTextureUniform("test2D", "map_kd") ];
+        rc.addTexture("test2D", "map_kd");
         rc.writeToFBO = "gbuffer";
-        
+
+        rc = xor.renderconfigs.load('default', 'basic.vert', 'basic.frag');
+        rc.useDepthTest = true;
+        rc.addTexture("godzilla", "map_kd");
+
         rc = this.xor.renderconfigs.load('r2t', 'basic.vert', 'r2t.frag');
-        rc.textures.push = [ new FxTextureUniform("test2D", "map_kd") ];
+        rc.addTexture("test2D", "map_kd");
         rc.readFromFBOs = ["gbuffer"];
 
         this.xor.meshes.load('teapot', 'models/mitsuba.obj');
+        this.xor.meshes.load('rect', 'rect.obj');
 
         let screen = this.xor.meshes.create('fullscreenquad');
         let pal = this.xor.palette;
@@ -44,6 +55,7 @@ class App {
     update() {
         let xor = this.xor;
         if (xor.input.checkKeys([" ", "Space"])) {
+            this.useRenderToTexture = !this.useRenderToTexture;
         }
     }
 
@@ -51,26 +63,44 @@ class App {
         let xor = this.xor;
         xor.graphics.clear(xor.palette.AZURE);
 
-        let pmatrix = Matrix4.makePerspectiveY(45.0, 1.5, 1.0, 100.0);
-        let cmatrix = Matrix4.makeOrbit(-xor.t1*5.0, 0, 3.0);
-        let rc = xor.renderconfigs.use('gbuffer');
+        if (this.useRenderToTexture) {
+            let rc = xor.renderconfigs.use('gbuffer');
+            if (rc) {
+                let pmatrix = Matrix4.makePerspectiveY(45.0, 1.5, 1.0, 100.0);
+                let cmatrix = Matrix4.makeOrbit(-xor.t1 * 5.0, 0, 3.0);
+                rc.uniformMatrix4f('ProjectionMatrix', pmatrix);
+                rc.uniformMatrix4f('CameraMatrix', cmatrix);
+                rc.uniform3f('kd', Vector3.make(1.0, 0.0, 0.0));
+                rc.uniform1f('map_kd_mix', 1.0);
+                rc.uniform3f('sunDirTo', Vector3.make(1.0, 1.0, 1.0));
+
+                rc.uniformMatrix4f('WorldMatrix', Matrix4.makeTranslation(0, 0, 0));
+                xor.meshes.render('teapot', rc);
+            }
+            rc.restore();
+        }
+
+        let rc = xor.renderconfigs.use('default');
         if (rc) {
+            let pmatrix = Matrix4.makePerspectiveY(45.0, 1.5, 1.0, 100.0);
+            let cmatrix = Matrix4.makeOrbit(-xor.t1 * 5.0, 0, 3.0);
             rc.uniformMatrix4f('ProjectionMatrix', pmatrix);
             rc.uniformMatrix4f('CameraMatrix', cmatrix);
             rc.uniform3f('kd', Vector3.make(1.0, 0.0, 0.0));
-            rc.uniform3f('sunDirTo', Vector3.make(1.0, 1.0, 1.0));
+            rc.uniform1f('map_kd_mix', 1.0);
 
             rc.uniformMatrix4f('WorldMatrix', Matrix4.makeTranslation(0, 0, 0));
-            xor.meshes.render('teapot', rc);
+            xor.meshes.render('rect', rc);
         }
         rc.restore();
 
-        rc = xor.renderconfigs.use('r2t');
-        if (rc) {
-            let pmatrix = Matrix4.makeOrtho2D(0, xor.graphics.width, 0, xor.graphics.height);
-            let cmatrix = Matrix4.makeIdentity();
-            rc.uniformMatrix4f('ProjectionMatrix', pmatrix);
-            rc.uniformMatrix4f('CameraMatrix', cmatrix);
+        if (this.useRenderToTexture) {
+            let rc = xor.renderconfigs.use('r2t');
+            if (rc) {
+                let pmatrix = Matrix4.makeOrtho2D(0, xor.graphics.width, 0, xor.graphics.height);
+                let cmatrix = Matrix4.makeIdentity();
+                rc.uniformMatrix4f('ProjectionMatrix', pmatrix);
+                rc.uniformMatrix4f('CameraMatrix', cmatrix);
                 rc.uniformMatrix4f('WorldMatrix', Matrix4.makeScale(0.5, 0.5, 0.5));
                 rc.uniform3f('iResolution', GTE.vec3(xor.graphics.width, xor.graphics.height, 0));
                 rc.uniform1f('iTime', xor.t1);
@@ -78,8 +108,9 @@ class App {
                 rc.uniform1i('iFrame', xor.frameCount);
                 rc.uniform1i('iSkyMode', getRangeValue('iSkyMode'));
                 xor.meshes.render('fullscreenquad', rc);
+            }
+            rc.restore();
         }
-        rc.restore();
         xor.renderconfigs.use(null);
     }
 

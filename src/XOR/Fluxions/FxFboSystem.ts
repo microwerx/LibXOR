@@ -1,9 +1,9 @@
-/// <reference path="FBO.ts" />
+/// <reference path="FxFBO.ts" />
 /// <reference path="FxRenderingContext.ts" />
 
 class FxFboSystem {
-    private _fbo: Map<string, FBO> = new Map<string, FBO>();
-    private currentFBO: FBO | null = null;
+    private _fbo: Map<string, FxFBO> = new Map<string, FxFBO>();
+    private currentFBO: FxFBO | null = null;
 
     constructor(public fx: FxRenderingContext) {
 
@@ -13,7 +13,7 @@ class FxFboSystem {
      * Returns null or the FBO referred to by name
      * @param name The name of the FBO
      */
-    get(name: string): FBO | null {
+    get(name: string): FxFBO | null {
         return this._fbo.get(name) || null;
     }
 
@@ -26,8 +26,8 @@ class FxFboSystem {
      * @param height The height of the FBO (should be power of two)
      * @param colorType 0 for gl.UNSIGNED_BYTE or 1 for gl.FLOAT
      */
-    add(name: string, hasDepth: boolean, hasColor: boolean, width: number, height: number, colorType: number): FBO | null {
-        this._fbo.set(name, new FBO(this.fx, hasDepth, hasColor, width, height, colorType));
+    add(name: string, hasDepth: boolean, hasColor: boolean, width: number, height: number, colorType: number): FxFBO | null {
+        this._fbo.set(name, new FxFBO(this.fx, hasDepth, hasColor, width, height, colorType));
         return this.get(name);
     }
 

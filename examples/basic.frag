@@ -20,5 +20,12 @@ varying vec3 vColor;
 
 void main() {
     // set to white
-    gl_FragColor = vec4(vColor, 1.0);
+    vec3 color = vec3(0.0);
+    if (map_kd_mix > 0.0) {
+        vec3 map = texture2D(map_kd, vTexcoord.st).rgb;
+        color += map;    
+    } else {
+        color += vec3(1.0, 0.0, 0.0);
+    }
+    gl_FragColor = vec4(color, 1.0);
 }

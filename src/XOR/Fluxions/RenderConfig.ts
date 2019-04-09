@@ -327,4 +327,12 @@ class RenderConfig {
         }
         return true;
     }
+
+    addTexture(textureName: string, uniformName: string) {
+        this.textures.push(new FxTextureUniform(textureName, uniformName));
+    }
+
+    clearTextures() {
+        this.textures = [];
+    }
 }

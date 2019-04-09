@@ -111,9 +111,10 @@ class FxTextureSystem {
             return;
 
         let self = this;
+        let tname = name;
         this.imagefiles.push(new XORUtils.ImageFileLoader(url, (data, name) => {
-            self.processTextureMap(data, name);
-            hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + name);
+            self.processTextureMap(data, tname);
+            hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + tname);
         }));
     }
 

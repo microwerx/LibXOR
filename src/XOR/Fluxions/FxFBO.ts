@@ -1,6 +1,6 @@
 /// <reference path="Fluxions.ts" />
 
-class FBO {
+class FxFBO {
     private _fbo: WebGLFramebuffer;
     private _colorTexture: WebGLTexture | null = null;
     private _depthTexture: WebGLTexture | null = null;
@@ -107,7 +107,7 @@ class FBO {
             }
 
             this._complete = false;
-            hflog.error("Unable to create a complete framebuffer " + resolutionSizeText, "| status: " + FBO.statusToText(fboStatus));
+            hflog.error("Unable to create a complete framebuffer " + resolutionSizeText, "| status: " + FxFBO.statusToText(fboStatus));
         } else {
             this._complete = true;
             hflog.log("Framebuffer is okay! size is " + resolutionSizeText);
