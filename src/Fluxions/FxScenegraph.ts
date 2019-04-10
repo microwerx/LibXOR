@@ -95,11 +95,12 @@ namespace Fluxions {
             if (!this.fx.xor.textfiles.loaded) {
                 return false;
             }
-            if (!this.fx.textures.loaded)
+            if (!this.fx.textures.loaded) {
                 return false;
-            // for (let s of this.shaderSrcFiles) {
-            //     if (!s.loaded) return false;
-            // }
+            }
+            if (!this.fx.renderconfigs.loaded) {
+                return false;
+            }
             return true;
         }
 
@@ -110,7 +111,7 @@ namespace Fluxions {
             if (this.fx.textures.failed) {
                 return true;
             }
-            if (this.fx.renderconfigs.failed){
+            if (this.fx.renderconfigs.failed) {
                 return true;
             }
             return false;
@@ -148,10 +149,6 @@ namespace Fluxions {
                     self.processTextFile(data, name, path, assetType);
                     hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + name);
                 }, assetType);
-                // this.textFiles.push(new XOR.TextFileLoader(url, (data, name, assetType) => {
-                //     self.processTextFile(data, name, path, assetType);
-                //     hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + name);
-                // }, assetType));
             }
             hflog.debug("MyScenegraph::Load() => Requesting " + url);
         }
@@ -180,68 +177,9 @@ namespace Fluxions {
             return true;
         }
 
-        // addRenderConfig(name: string, vertshaderUrl: string, fragshaderUrl: string) {
-        //     let rc = new FxRenderConfig(this.fx);
-        //     this._renderConfigs.set(name, rc);
-
-        //     let self = this;
-        //     this.shaderSrcFiles.push(new XOR.ShaderLoader(vertshaderUrl, fragshaderUrl, (vertShaderSource: string, fragShaderSource: string) => {
-        //         rc.compile(vertShaderSource, fragShaderSource);
-        //         hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + vertshaderUrl + " and " + fragshaderUrl);
-        //     }));
-        // }
-
-        // getRenderConfig(name: string): FxRenderConfig | null {
-        //     let rc = this._renderConfigs.get(name) || null;
-        //     return rc;
-        // }
-
-        // userc(name: string): FxRenderConfig | null {
-        //     let rc = this.getRenderConfig(name);
-        //     if (this.currentrc && rc !== this.currentrc) {
-        //         this.currentrc.restore();
-        //     }
-        //     this.currentrc = rc;
-        //     if (this.currentrc) { this.currentrc.use(); }
-        //     return this.currentrc;
-        // }
-
-        // AddRenderConfig(name: string, vertshaderUrl: string, fragshaderUrl: string) {
-        //     let self = this;
-        //     this.shaderSrcFiles.push(new Utils.ShaderLoader(vertshaderUrl, fragshaderUrl, (vertShaderSource: string, fragShaderSource: string) => {
-        //         let rc = new FxRenderConfig(this.fx);
-        //         rc.compile(vertShaderSource, fragShaderSource);
-        //         self._renderConfigs.set(name, rc);
-        //         hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + vertshaderUrl + " and " + fragshaderUrl);
-        //     }));
-        // }
-
-        // GetRenderConfig(name: string): FxRenderConfig | null {
-        //     let rc = this._renderConfigs.get(name);
-        //     if (rc) {
-        //         return rc;
-        //     }
-        //     return null;
-        // }
-
-        // UseRenderConfig(name: string): FxRenderConfig | null {
-        //     let rc = this._renderConfigs.get(name);
-        //     if (rc) {
-        //         rc.use();
-        //         return rc;
-        //     }
-        //     return null;
-        // }
-
         getMaterial(mtllib: string, mtl: string): FxMaterial | null {
             let material = this._materials.get(mtllib + mtl) || null;
             return material;
-            // for (let ml of this._materials) {
-            //     if (ml["0"] == mtllib + mtl) {
-            //         return ml["1"];
-            //     }
-            // }
-            // return null;
         }
 
         usemtl(mtllib: string, mtl: string) {
@@ -280,40 +218,6 @@ namespace Fluxions {
                     }
                 }
             }
-            // for (let ml of this._materials) {
-            //     if (ml["0"] == mtllib + mtl) {// && ml["1"].name == mtl) {
-            //         let m = ml["1"];
-            //         let tnames = ["map_Kd", "map_Ks", "map_normal"];
-            //         let textures = [m.map_Kd, m.map_Ks, m.map_normal];
-            //         for (let i = 0; i < textures.length; i++) {
-            //             if (textures[i].length == 0)
-            //                 continue;
-            //             let loc = rc.getUniformLocation(tnames[i]);
-            //             if (loc) {
-            //                 this.useTexture(textures[i], i);
-            //                 rc.uniform1i(tnames[i], i);
-            //             }
-            //         }
-
-            //         let v1fnames = ["map_Kd_mix", "map_Ks_mix", "map_normal_mix", "PBKdm", "PBKsm", "PBn2", "PBk2"];
-            //         let v1fvalues = [m.map_Kd_mix, m.map_Ks_mix, m.map_normal_mix, m.PBKdm, m.PBKsm, m.PBn2, m.PBk2];
-            //         for (let i = 0; i < v1fnames.length; i++) {
-            //             let uloc = rc.getUniformLocation(v1fnames[i]);
-            //             if (uloc) {
-            //                 rc.uniform1f(v1fnames[i], v1fvalues[i]);
-            //             }
-            //         }
-
-            //         let v3fnames = ["Kd", "Ks", "Ka"];
-            //         let v3fvalues = [m.Kd, m.Ks, m.Ka];
-            //         for (let i = 0; i < v3fnames.length; i++) {
-            //             let uloc = rc.getUniformLocation(v3fnames[i]);
-            //             if (uloc) {
-            //                 rc.uniform3f(v3fnames[i], v3fvalues[i]);
-            //             }
-            //         }
-            //     }
-            // }
         }
 
         RenderMesh(name: string, rc: FxRenderConfig) {
@@ -467,57 +371,10 @@ namespace Fluxions {
                     rc.uniformMatrix4f("SunShadowViewMatrix", this.sunlight.lightMatrix);
                 }
 
-                // let unit = 11;
-                // for (let fbo of rc.readFromFBOs) {
-                //     this.configureFBO(rc, fbo, unit, unit + 1);
-                //     unit += 2;
-                // }
                 this.fx.fbos.configure(rc);
             }
             let gl = this.fx.gl;
             gl.viewport(0, 0, this.width, this.height);
-        }
-
-        // configureFBO(rc: FxRenderConfig, name: string, colorUnit: number, depthUnit: number) {
-        //     const colorUniform = name + "Color";
-        //     const depthUniform = name + "Depth";
-        //     const resolutionUnifom = name + "Resolution";
-        //     const usingUniform = "Using" + name;
-        //     let fbo = this._fbo.get(name) || null;
-        //     if (!fbo) return;
-        //     rc.uniform2f(resolutionUnifom, fbo.dimensions);
-        //     rc.uniform1i(usingUniform, rc.writesToFBO ? 1 : 0);
-        //     if (rc.writesToFBO && fbo.complete) {
-        //         fbo.bindTextures(colorUnit, depthUnit);
-        //         if (fbo.color) rc.uniform1i(colorUniform, colorUnit);
-        //         if (fbo.depth) rc.uniform1i(depthUniform, depthUnit);
-        //     } else {
-        //         rc.uniform1i(colorUniform, 0);
-        //         rc.uniform1i(depthUniform, 0);
-        //     }
-        // }
-
-        Restore() {
-            let gl = this.fx.gl;
-            for (let i = 0; i < 10; i++) {
-                gl.activeTexture(i + gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, null);
-            }
-            this.useTexture("enviroCube", 10, false);
-            // for (let fbo of this._fbo) {
-            //     if (fbo[1].complete) fbo[1].unbindTextures()
-            // }
-            this.fx.fbos.restore();
-        }
-
-        Update() {
-            // check FBOs
-            // this._fbo.forEach((fbo) => {
-            //     if (fbo.width != this.width || fbo.height != this.height) {
-            //         fbo.autoResize(this.width, this.height);
-            //     }
-            // });
-            this.fx.fbos.autoresize();
         }
 
         RenderScene(renderConfigName: string, sceneName: string = "") {
@@ -660,82 +517,7 @@ namespace Fluxions {
         }
 
         private loadOBJ(lines: string[][], name: string, path: string): void {
-            // mtllib <mtlUrl: string>
-            // usemtl <name: string>
-            // v <position: Vector3>
-            // vn <normal: Vector3>
-            // vt <texcoord: Vector2|Vector3>
-            // vc <color: Vector4>
-            // f <v1: number> <v2: number> <v3: number>
-            // f <v1: number>/<vt1:number> <v2: number>/<vt2:number> <v2: number>/<vt2:number>
-            // f <v1: number>//<vt1:number> <v2: number>//<vt2:number> <v2: number>//<vt2:number>
-            // f <v1: number>/<vn1:number>/<vt1:number> <v2: number>/<vn2:number>/<vt2:number> <v2: number>/<vn3:number>/<vt2:number>
-            // o <objectName: string>
-            // g <newSmoothingGroup: string>
-            // s <newSmoothingGroup: string>
-
             let mesh: FxIndexedGeometryMesh = new FxIndexedGeometryMesh(this.fx);
-
-            // let gl = this.fx.gl;
-            // let positions: Vector3[] = [];
-            // let normals: Vector3[] = [];
-            // let colors: Vector3[] = [];
-            // let texcoords: Vector3[] = [];
-
-            // // in case there are no mtllib's, usemtl's, o's, g's, or s's
-            // mesh.begin(gl.TRIANGLES);
-            // for (let tokens of lines) {
-            //     if (tokens.length >= 3) {
-            //         if (tokens[0] == "v") {
-            //             let position = TextParser.ParseVector(tokens);
-            //             positions.push(position);
-            //             mesh.edgeMesh.addVertex(position);
-            //         } else if (tokens[0] == "vn") {
-            //             normals.push(TextParser.ParseVector(tokens));
-            //         } else if (tokens[0] == "vt") {
-            //             texcoords.push(TextParser.ParseVector(tokens));
-            //         } else if (tokens[0] == "vc") {
-            //             let color = TextParser.ParseVector(tokens);
-            //             colors.push(color);
-            //             mesh.color(color.x, color.y, color.z);
-            //         } else if (tokens[0] == "f") {
-            //             let indices = TextParser.ParseFace(tokens);
-            //             let edgeIndices: number[] = [];
-            //             for (let i = 0; i < 3; i++) {
-            //                 try {
-            //                     if (indices[i * 3 + 2] >= 0)
-            //                         mesh.normal3(normals[indices[i * 3 + 2]]);
-            //                     if (indices[i * 3 + 1] >= 0)
-            //                         mesh.texcoord3(texcoords[indices[i * 3 + 1]]);
-            //                     mesh.vertex3(positions[indices[i * 3 + 0]]);
-            //                     mesh.addIndex(-1);
-            //                     edgeIndices.push(indices[i * 3]);
-            //                 }
-            //                 catch (s) {
-            //                     hflog.debug(s);
-            //                 }
-            //                 mesh.edgeMesh.addFace(edgeIndices);
-            //             }
-            //         }
-            //     }
-            //     else if (tokens.length >= 2) {
-            //         if (tokens[0] == "mtllib") {
-            //             this.load(path + tokens[1]);
-            //             mesh.mtllib(TextParser.ParseIdentifier(tokens));
-            //             mesh.begin(gl.TRIANGLES);
-            //         } else if (tokens[0] == "usemtl") {
-            //             mesh.usemtl(TextParser.ParseIdentifier(tokens));
-            //             mesh.begin(gl.TRIANGLES);
-            //         } else if (tokens[0] == "o") {
-            //             mesh.begin(gl.TRIANGLES);
-            //         } else if (tokens[0] == "g") {
-            //             mesh.begin(gl.TRIANGLES);
-            //         } else if (tokens[0] == "s") {
-            //             mesh.begin(gl.TRIANGLES);
-            //         }
-            //     }
-            // }
-
             mesh.loadOBJ(lines, this, path);
             mesh.build();
             this._meshes.set(name, mesh);
