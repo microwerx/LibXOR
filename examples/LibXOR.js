@@ -4333,27 +4333,9 @@ class FxTextParser {
         return [...v1, ...v2, ...v3];
     }
 }
-/// <reference path="../XOR/XorUtils.ts" />
 /// <reference path="Fluxions.ts" />
-/// <reference path="FxFBO.ts" />
-/// <reference path="FxCamera.ts" />
-/// <reference path="FxTexture.ts" />
-/// <reference path="FxMaterial.ts" />
-/// <reference path="FxDirectionalLight.ts" />
-/// <reference path="FxTextParser.ts" />
-/// <reference path="FxIndexedGeometryMesh.ts" />
 var Fluxions;
 (function (Fluxions) {
-    let FxSGAssetType;
-    (function (FxSGAssetType) {
-        FxSGAssetType[FxSGAssetType["Scene"] = 0] = "Scene";
-        FxSGAssetType[FxSGAssetType["GeometryGroup"] = 1] = "GeometryGroup";
-        FxSGAssetType[FxSGAssetType["MaterialLibrary"] = 2] = "MaterialLibrary";
-        FxSGAssetType[FxSGAssetType["ShaderProgram"] = 3] = "ShaderProgram";
-        FxSGAssetType[FxSGAssetType["Image"] = 4] = "Image";
-        FxSGAssetType[FxSGAssetType["Text"] = 5] = "Text";
-    })(FxSGAssetType = Fluxions.FxSGAssetType || (Fluxions.FxSGAssetType = {}));
-    ;
     class FxScenegraphNode {
         constructor(name = "unknown", sceneName = "default", parent = "") {
             this.name = name;
@@ -4375,6 +4357,29 @@ var Fluxions;
         get transform() { return this.transform_; }
     }
     Fluxions.FxScenegraphNode = FxScenegraphNode;
+})(Fluxions || (Fluxions = {}));
+/// <reference path="../XOR/XorUtils.ts" />
+/// <reference path="Fluxions.ts" />
+/// <reference path="FxFBO.ts" />
+/// <reference path="FxCamera.ts" />
+/// <reference path="FxTexture.ts" />
+/// <reference path="FxMaterial.ts" />
+/// <reference path="FxDirectionalLight.ts" />
+/// <reference path="FxTextParser.ts" />
+/// <reference path="FxIndexedGeometryMesh.ts" />
+/// <reference path="FxScenegraphNode.ts" />
+var Fluxions;
+(function (Fluxions) {
+    let FxSGAssetType;
+    (function (FxSGAssetType) {
+        FxSGAssetType[FxSGAssetType["Scene"] = 0] = "Scene";
+        FxSGAssetType[FxSGAssetType["GeometryGroup"] = 1] = "GeometryGroup";
+        FxSGAssetType[FxSGAssetType["MaterialLibrary"] = 2] = "MaterialLibrary";
+        FxSGAssetType[FxSGAssetType["ShaderProgram"] = 3] = "ShaderProgram";
+        FxSGAssetType[FxSGAssetType["Image"] = 4] = "Image";
+        FxSGAssetType[FxSGAssetType["Text"] = 5] = "Text";
+    })(FxSGAssetType = Fluxions.FxSGAssetType || (Fluxions.FxSGAssetType = {}));
+    ;
     class FxScenegraph {
         constructor(fx) {
             this.fx = fx;
@@ -4386,7 +4391,7 @@ var Fluxions;
             this._sceneResources = new Map();
             this._nodes = [];
             this._meshes = new Map();
-            this._tempNode = new FxScenegraphNode("", "");
+            this._tempNode = new Fluxions.FxScenegraphNode("", "");
             this.textFiles = new Map();
             this.camera = new Fluxions.FxCamera();
             this.sunlight = new Fluxions.DirectionalLight();
@@ -4746,7 +4751,7 @@ var Fluxions;
         AddNode(sceneName, objectName, parentNode = "") {
             let sn = this.GetNode(sceneName, objectName);
             if (!sn) {
-                sn = new FxScenegraphNode(objectName, sceneName);
+                sn = new Fluxions.FxScenegraphNode(objectName, sceneName);
                 this._nodes.push(sn);
             }
             return sn;
@@ -4947,7 +4952,7 @@ var Fluxions;
                         this.load(path + filename);
                     }
                     this._nodes.push(this._tempNode);
-                    this._tempNode = new FxScenegraphNode();
+                    this._tempNode = new Fluxions.FxScenegraphNode();
                 }
                 else if (tokens[0] == "node") {
                     // node name
@@ -4959,7 +4964,7 @@ var Fluxions;
                     this._tempNode.sceneName = name;
                     this._tempNode.geometryGroup = "";
                     this._nodes.push(this._tempNode);
-                    this._tempNode = new FxScenegraphNode();
+                    this._tempNode = new Fluxions.FxScenegraphNode();
                 }
                 else if (tokens[0] == "renderconfig") {
                     let name = tokens[1];
