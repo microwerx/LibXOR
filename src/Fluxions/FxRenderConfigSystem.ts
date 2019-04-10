@@ -3,8 +3,35 @@
 namespace Fluxions {
     export class FxRenderConfigSystem {
         renderconfigs = new Map<string, FxRenderConfig>();
+        private shaderLoaders: XOR.ShaderLoader[] = [];
 
         constructor(public fx: FxRenderingContext) {
+        }
+
+        get loaded(): boolean {
+            for (let i of this.shaderLoaders) {
+                if (!i.loaded) return false;
+            }
+            return true;
+        }
+
+        get failed(): boolean {
+            for (let i of this.shaderLoaders) {
+                if (i.failed) return true;
+            }
+            return false;
+        }
+
+        get length(): number {
+            return this.shaderLoaders.length;
+        }
+
+        get percentLoaded(): number {
+            let a = 0;
+            for (let i of this.shaderLoaders) {
+                if (i.loaded) a++;
+            }
+            return 100.0 * a / this.shaderLoaders.length;
         }
 
         create(name: string): FxRenderConfig {
@@ -21,6 +48,7 @@ namespace Fluxions {
                 rc.compile(vsource, fsource);
                 hflog.log("Loaded " + vshaderUrl + " and " + fshaderUrl);
             });
+            this.shaderLoaders.push(sl);
             return rc;
         }
 

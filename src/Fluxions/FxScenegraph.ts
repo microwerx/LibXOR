@@ -21,7 +21,7 @@ namespace Fluxions {
 
 
     export class FxScenegraph {
-        private shaderSrcFiles: XOR.ShaderLoader[] = [];
+        // private shaderSrcFiles: XOR.ShaderLoader[] = [];
 
         // private _defaultFBO: FBO | null;
         private _scenegraphs: Map<string, boolean> = new Map<string, boolean>();
@@ -97,9 +97,9 @@ namespace Fluxions {
             }
             if (!this.fx.textures.loaded)
                 return false;
-            for (let s of this.shaderSrcFiles) {
-                if (!s.loaded) return false;
-            }
+            // for (let s of this.shaderSrcFiles) {
+            //     if (!s.loaded) return false;
+            // }
             return true;
         }
 
@@ -110,18 +110,14 @@ namespace Fluxions {
             if (this.fx.textures.failed) {
                 return true;
             }
-            for (let s of this.shaderSrcFiles) {
-                if (s.failed) return true;
+            if (this.fx.renderconfigs.failed){
+                return true;
             }
             return false;
         }
 
         get percentLoaded(): number {
-            let a = 0;
-            for (let s of this.shaderSrcFiles) {
-                if (s.loaded) a++;
-            }
-            return 100.0 * a / (this.shaderSrcFiles.length) + this.fx.textures.percentLoaded / 3.0 + this.fx.xor.textfiles.percentLoaded / 3.0;
+            return 0.33 * (this.fx.renderconfigs.percentLoaded + this.fx.textures.percentLoaded + this.fx.xor.textfiles.percentLoaded);
         }
 
         load(url: string): void {

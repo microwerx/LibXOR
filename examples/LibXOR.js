@@ -3699,6 +3699,32 @@ var Fluxions;
         constructor(fx) {
             this.fx = fx;
             this.renderconfigs = new Map();
+            this.shaderLoaders = [];
+        }
+        get loaded() {
+            for (let i of this.shaderLoaders) {
+                if (!i.loaded)
+                    return false;
+            }
+            return true;
+        }
+        get failed() {
+            for (let i of this.shaderLoaders) {
+                if (i.failed)
+                    return true;
+            }
+            return false;
+        }
+        get length() {
+            return this.shaderLoaders.length;
+        }
+        get percentLoaded() {
+            let a = 0;
+            for (let i of this.shaderLoaders) {
+                if (i.loaded)
+                    a++;
+            }
+            return 100.0 * a / this.shaderLoaders.length;
         }
         create(name) {
             if (!this.fx)
@@ -3714,6 +3740,7 @@ var Fluxions;
                 rc.compile(vsource, fsource);
                 hflog.log("Loaded " + vshaderUrl + " and " + fshaderUrl);
             });
+            this.shaderLoaders.push(sl);
             return rc;
         }
         use(name) {
@@ -4383,7 +4410,7 @@ var Fluxions;
     class FxScenegraph {
         constructor(fx) {
             this.fx = fx;
-            this.shaderSrcFiles = [];
+            // private shaderSrcFiles: XOR.ShaderLoader[] = [];
             // private _defaultFBO: FBO | null;
             this._scenegraphs = new Map();
             // private _renderConfigs: Map<string, FxRenderConfig> = new Map<string, FxRenderConfig>();
@@ -4445,10 +4472,9 @@ var Fluxions;
             }
             if (!this.fx.textures.loaded)
                 return false;
-            for (let s of this.shaderSrcFiles) {
-                if (!s.loaded)
-                    return false;
-            }
+            // for (let s of this.shaderSrcFiles) {
+            //     if (!s.loaded) return false;
+            // }
             return true;
         }
         get failed() {
@@ -4458,19 +4484,13 @@ var Fluxions;
             if (this.fx.textures.failed) {
                 return true;
             }
-            for (let s of this.shaderSrcFiles) {
-                if (s.failed)
-                    return true;
+            if (this.fx.renderconfigs.failed) {
+                return true;
             }
             return false;
         }
         get percentLoaded() {
-            let a = 0;
-            for (let s of this.shaderSrcFiles) {
-                if (s.loaded)
-                    a++;
-            }
-            return 100.0 * a / (this.shaderSrcFiles.length) + this.fx.textures.percentLoaded / 3.0 + this.fx.xor.textfiles.percentLoaded / 3.0;
+            return 0.33 * (this.fx.renderconfigs.percentLoaded + this.fx.textures.percentLoaded + this.fx.xor.textfiles.percentLoaded);
         }
         load(url) {
             let fx = this.fx;
