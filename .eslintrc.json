@@ -10,9 +10,15 @@
         "LibXOR": true,
         "hflog": true,
         "createRow": "readonly",
+        "createCheckRow": "readonly",
         "createRangeRow": "readonly",
         "getRangeValue": "readonly",
+        "Matrix2": true,
+        "Matrix3": true,
         "Matrix4": true,
+        "Vector2": true,
+        "Vector3": true,
+        "Vector4": true,
         "GTE": true
     },
     "parserOptions": {

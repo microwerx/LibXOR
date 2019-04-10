@@ -26,7 +26,7 @@ class App {
         let rc = this.xor.renderconfigs.load('default', 'shaders/basic.vert', 'shaders/basic.frag');
         rc.useDepthTest = false;
 
-        this.xor.meshes.load('rect', 'rect.obj');
+        this.xor.meshes.load('rect', 'models/smallrect.obj');
     }
 
     start() {

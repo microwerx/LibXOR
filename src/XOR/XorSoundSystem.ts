@@ -1,9 +1,10 @@
 /// <reference path="LibXOR.ts" />
-/// <reference path="Audio/Sampler.ts" />
+/// <reference path="../Toadfish/TfSampler.ts" />
+
 namespace XOR
 {
     export class SoundSystem {
-        sampler = new XOR.Sampler(this);
+        sampler = new TF.Sampler(this);
         context = new AudioContext();
         private masterVolume = this.context.createGain();
 

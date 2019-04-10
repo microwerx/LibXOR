@@ -1,4 +1,4 @@
-/* global Vector3 createButtonRow createRangeRow */
+/* global Vector3 createButtonRow createRangeRow createCheckRow */
 /// <reference path="LibXOR.js" />
 /// <reference path="htmlutils.js" />
 
@@ -6,6 +6,17 @@ function accum(a, b, bscale) {
     a.x += b.x * bscale;
     a.y += b.y * bscale;
     a.z += b.z * bscale;
+}
+
+/**
+ * 
+ * @param {string} variable name of variable
+ * @param {number} x value to check
+ */
+function checkFinite(variable, x) {
+    if (!isFinite(x)) {
+        hflog.error(variable, x);
+    }    
 }
 
 /**
@@ -196,7 +207,7 @@ class Simulation {
 
     syncControls() {
         this.supportRadius = getRangeValue("fSupportRadius");
-        this.density = getRangeValue("fDensity");
+        this.density = Math.exp(getRangeValue("fDensity"));
         this.Ks = getRangeValue("fKs");
         this.c2 = this.Ks / this.density;
         this.nu = Math.pow(10.0, getRangeValue("fnu"));
@@ -351,9 +362,11 @@ class Simulation {
 
                 let w = sphW(o1, o2, this.supportRadius);
                 o1.d += w;
+                let dw = sphdW(o1, o2, this.supportRadius);
+                let ddw = sphddW(o1, o2, this.supportRadius);
                 this.sphW[i][j] = w;
-                this.sphdW[i][j] = sphdW(o1, o2, this.supportRadius);
-                this.sphddW[i][j] = sphddW(o1, o2, this.supportRadius);
+                this.sphdW[i][j] = dw;
+                this.sphddW[i][j] = ddw;
 
                 //if (w <= 0.0) continue;
 
@@ -499,7 +512,7 @@ class App {
         createCheckRow(controls, "bUMag", true);
         createCheckRow(controls, "bPMag", true);
         createRangeRow(controls, "fSupportRadius", 0.50, 0.0, 3.0, 0.01);
-        createRangeRow(controls, "fDensity", 0.00, 0.0, 10.0, 0.1);
+        createRangeRow(controls, "fDensity", 1.00, 0.0, 10.0, 0.1);
         createRangeRow(controls, "fKs", 2.2, 0.0, 3.0, 0.1);
         createRangeRow(controls, "fnu", 1.0, 0.0, 10.0, 0.1);
         createRangeRow(controls, "fDrag", 0.00, -0.99, 0.99, 0.01);
@@ -529,7 +542,7 @@ class App {
 
         let pal = this.xor.palette;
 
-        this.xor.meshes.load('rect', 'rect.obj');
+        this.xor.meshes.load('rect', 'models/smallrect.obj');
         let spiral = this.xor.meshes.create('spiral');
         spiral.color3(pal.calcColor(pal.BROWN, pal.BLACK, 2, 0, 0, 0));
         spiral.spiral(1.0, 4.0, 64.0);

@@ -1,4 +1,4 @@
-/// <reference path="../../Fluxions/GTE.ts" />
+/// <reference path="../GTE/GTE.ts" />
 
 class XORMouseEvent {
     constructor(

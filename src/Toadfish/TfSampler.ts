@@ -1,6 +1,6 @@
-/// <reference path="../SoundSystem.ts" />
+/// <reference path="../XOR/XorSoundSystem.ts" />
 
-namespace XOR {
+namespace TF {
     export class DAHDSREnvelope {
         constructor(
             public delay: number = 0.0,    // delay to start
@@ -57,7 +57,7 @@ namespace XOR {
                 this.VCFenvelope.sustainCV = 0.5;
             }
 
-        play(ss: SoundSystem, time: number = 0) {
+        play(ss: XOR.SoundSystem, time: number = 0) {
             let t = ss.context.currentTime;
             let source = ss.context.createBufferSource();
             let VCF = ss.context.createBiquadFilter();
@@ -130,7 +130,7 @@ namespace XOR {
     export class Sampler {
         samples = new Map<number, Sample>();
 
-        constructor(private ss: SoundSystem) {
+        constructor(private ss: XOR.SoundSystem) {
 
         }
 

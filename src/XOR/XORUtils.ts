@@ -26,7 +26,7 @@
 ///- <reference path="RenderConfig.ts" />
 ///- <reference path="TextParser.ts" />
 
-namespace XORUtils {
+namespace XOR {
     // return last part of the url name ignoring possible ending slash
     export function GetURLResource(url: string): string {
         let parts = url.split('/');

@@ -25,7 +25,7 @@ void main() {
         vec3 map = texture2D(map_kd, vTexcoord.st).rgb;
         color += map;    
     } else {
-        color += kd;
+        color += vColor;
     }
     gl_FragColor = vec4(color, 1.0);
 }

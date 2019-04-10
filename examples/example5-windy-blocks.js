@@ -97,7 +97,7 @@ class App {
 
         let pal = this.xor.palette;
 
-        this.xor.meshes.load('rect', 'rect.obj');
+        this.xor.meshes.load('rect', 'models/smallrect.obj');
         let bg = this.xor.meshes.create('bg');
         bg.color3(pal.getColor(pal.BROWN));
         bg.rect(-5, -1, 5, -5);

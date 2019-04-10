@@ -21,7 +21,7 @@ class App {
         this.xor.input.init();
         let gl = this.xor.graphics.gl;
 
-        let rc = this.xor.renderconfigs.load('default', 'raytracer.vert', 'raytracer-oren.frag');
+        let rc = this.xor.renderconfigs.load('default', 'shaders/raytracer.vert', 'shaders/raytracer-oren.frag');
         rc.useDepthTest = false;
 
         let pal = this.xor.palette;

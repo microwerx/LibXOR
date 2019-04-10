@@ -31,12 +31,13 @@ class App {
         // load some textures
         fx.textures.load("flame_map", "textures/flame_map.png");
 
-        let lb = this.xor.renderconfigs.load('lattice-boltzmann', 'fluids.vert', 'fluids-lattice-boltzmann.frag');
+        let lb = this.xor.renderconfigs.load('lattice-boltzmann', 'shaders/fluids.vert', 'shaders/fluids-lattice-boltzmann.frag');
         lb.useDepthTest = false;
-        // lb.fbos = ["lb"];
+        lb.writeToFBO = "lbm";
 
-        let rc = this.xor.renderconfigs.load('default', 'fluids.vert', 'fluids.frag');
+        let rc = this.xor.renderconfigs.load('default', 'shaders/fluids.vert', 'shaders/fluids.frag');
         rc.useDepthTest = false;
+        rc.readFromFBOs = ["lbm"];
 
         let pal = this.xor.palette;
 

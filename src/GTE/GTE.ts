@@ -32,6 +32,20 @@
 
 namespace GTE {
     /**
+     * @returns {number} Returns a number between 0 and 255
+     */
+    export function randomUint8() {
+        return (Math.random() * 255.99) | 0;
+    }
+    
+    /**
+     * @returns {number} Returns a number between 0 and 65535
+     */
+    export function randomUint16() {
+        return (Math.random() * 65535.99) | 0;
+    }    
+    
+    /**
      * Returns (x) < (a) ? (a) : (x) > (b) ? (b) : (x)
      * @param x number
      * @param a number

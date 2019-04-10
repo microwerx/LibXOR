@@ -285,7 +285,7 @@ class App {
 
         let pal = this.xor.palette;
 
-        let rect = this.xor.meshes.load('rect', 'rect.obj');
+        let rect = this.xor.meshes.load('rect', 'models/smallrect.obj');
         let spiral = this.xor.meshes.create('spiral');
         spiral.color3(pal.calcColor(pal.BROWN, pal.BLACK, 2, 0, 0, 0));
         spiral.spiral(1.0, 4.0, 64.0);

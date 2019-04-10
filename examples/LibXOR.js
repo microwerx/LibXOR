@@ -1361,6 +1361,20 @@ var GTE;
 var GTE;
 (function (GTE) {
     /**
+     * @returns {number} Returns a number between 0 and 255
+     */
+    function randomUint8() {
+        return (Math.random() * 255.99) | 0;
+    }
+    GTE.randomUint8 = randomUint8;
+    /**
+     * @returns {number} Returns a number between 0 and 65535
+     */
+    function randomUint16() {
+        return (Math.random() * 65535.99) | 0;
+    }
+    GTE.randomUint16 = randomUint16;
+    /**
      * Returns (x) < (a) ? (a) : (x) > (b) ? (b) : (x)
      * @param x number
      * @param a number
@@ -1478,8 +1492,8 @@ var GTE;
 ///- <reference path="FxRenderingContext.ts" />
 ///- <reference path="RenderConfig.ts" />
 ///- <reference path="TextParser.ts" />
-var XORUtils;
-(function (XORUtils) {
+var XOR;
+(function (XOR) {
     // return last part of the url name ignoring possible ending slash
     function GetURLResource(url) {
         let parts = url.split('/');
@@ -1491,7 +1505,7 @@ var XORUtils;
             return "unknown";
         }
     }
-    XORUtils.GetURLResource = GetURLResource;
+    XOR.GetURLResource = GetURLResource;
     function GetURLPath(url) {
         let parts = url.split('/');
         if (!parts.pop())
@@ -1504,7 +1518,7 @@ var XORUtils;
             return "";
         }
     }
-    XORUtils.GetURLPath = GetURLPath;
+    XOR.GetURLPath = GetURLPath;
     function IsExtension(sourceString, extensionWithDot) {
         let start = sourceString.length - extensionWithDot.length - 1;
         if (start >= 0 && sourceString.substr(start, extensionWithDot.length) == extensionWithDot) {
@@ -1512,7 +1526,7 @@ var XORUtils;
         }
         return false;
     }
-    XORUtils.IsExtension = IsExtension;
+    XOR.IsExtension = IsExtension;
     function GetExtension(sourceString) {
         let position = sourceString.lastIndexOf(".");
         if (position >= 0) {
@@ -1520,7 +1534,7 @@ var XORUtils;
         }
         return "";
     }
-    XORUtils.GetExtension = GetExtension;
+    XOR.GetExtension = GetExtension;
     class ShaderLoader {
         constructor(vertShaderUrl, fragShaderUrl, callbackfn) {
             this.vertShaderUrl = vertShaderUrl;
@@ -1573,7 +1587,7 @@ var XORUtils;
         get failed() { return this.vertFailed || this.fragFailed; }
         get loaded() { return this.vertLoaded && this.fragLoaded; }
     }
-    XORUtils.ShaderLoader = ShaderLoader;
+    XOR.ShaderLoader = ShaderLoader;
     class TextFileLoader {
         constructor(url, callbackfn, parameter = 0) {
             this.callbackfn = callbackfn;
@@ -1609,7 +1623,7 @@ var XORUtils;
         get loaded() { return this._loaded; }
         get failed() { return this._failed; }
     }
-    XORUtils.TextFileLoader = TextFileLoader;
+    XOR.TextFileLoader = TextFileLoader;
     class ImageFileLoader {
         constructor(url, callbackfn, parameter = 0) {
             this.callbackfn = callbackfn;
@@ -1635,7 +1649,7 @@ var XORUtils;
         get loaded() { return this._loaded; }
         get failed() { return this._failed; }
     }
-    XORUtils.ImageFileLoader = ImageFileLoader;
+    XOR.ImageFileLoader = ImageFileLoader;
     function SeparateCubeMapImages(image, images) {
         if (image.width != 6 * image.height) {
             return;
@@ -1654,37 +1668,37 @@ var XORUtils;
             }
         }
     }
-    XORUtils.SeparateCubeMapImages = SeparateCubeMapImages;
+    XOR.SeparateCubeMapImages = SeparateCubeMapImages;
     function niceTimestamp(timestamp) {
         return (Math.round(1000.0 * timestamp) / 1000.0).toString() + "ms";
     }
-    XORUtils.niceTimestamp = niceTimestamp;
+    XOR.niceTimestamp = niceTimestamp;
     function niceFramesPerSecond(t0, t1) {
         let s = (t1 - t0);
         return Math.round(1.0 / s).toString() + "fps";
     }
-    XORUtils.niceFramesPerSecond = niceFramesPerSecond;
+    XOR.niceFramesPerSecond = niceFramesPerSecond;
     function niceDuration(t0, t1) {
         return ((Math.round(1000.0 * (t1 - t0))) / 1000.0).toString() + "ms";
     }
-    XORUtils.niceDuration = niceDuration;
+    XOR.niceDuration = niceDuration;
     function round3(x) {
         return Math.round(x * 1000.0) / 1000.0;
     }
-    XORUtils.round3 = round3;
+    XOR.round3 = round3;
     function round3str(x) {
         return (Math.round(x * 1000.0) / 1000.0).toString();
     }
-    XORUtils.round3str = round3str;
+    XOR.round3str = round3str;
     function niceVector(v) {
         return "(" + round3str(v.x) + ", " + round3str(v.y) + ", " + round3str(v.z) + ")";
     }
-    XORUtils.niceVector = niceVector;
+    XOR.niceVector = niceVector;
     function niceNumber(x, digits) {
         let t = Math.pow(10.0, digits);
         return (Math.round(x * t) / t).toString();
     }
-    XORUtils.niceNumber = niceNumber;
+    XOR.niceNumber = niceNumber;
     function niceMatrix4(m) {
         return "("
             + round3str(m.m11) + ", " + round3str(m.m12) + ", " + round3str(m.m13) + ", " + round3str(m.m14) + ", "
@@ -1693,7 +1707,7 @@ var XORUtils;
             + round3str(m.m41) + ", " + round3str(m.m42) + ", " + round3str(m.m43) + ", " + round3str(m.m44)
             + ")";
     }
-    XORUtils.niceMatrix4 = niceMatrix4;
+    XOR.niceMatrix4 = niceMatrix4;
     class GLTypeInfo {
         constructor(type, baseType, components, sizeOfType) {
             this.type = type;
@@ -1730,7 +1744,7 @@ var XORUtils;
             return null;
         }
     }
-    XORUtils.WebGLTypeInfo = new Map([
+    XOR.WebGLTypeInfo = new Map([
         [WebGLRenderingContext.BYTE, new GLTypeInfo(WebGLRenderingContext.BYTE, WebGLRenderingContext.BYTE, 1, 1)],
         [WebGLRenderingContext.UNSIGNED_BYTE, new GLTypeInfo(WebGLRenderingContext.UNSIGNED_BYTE, WebGLRenderingContext.UNSIGNED_BYTE, 1, 1)],
         [WebGLRenderingContext.SHORT, new GLTypeInfo(WebGLRenderingContext.SHORT, WebGLRenderingContext.SHORT, 1, 2)],
@@ -1756,8 +1770,2068 @@ var XORUtils;
         // [WebGLRenderingContext.SAMPLER_3D, new GLTypeInfo(WebGLRenderingContext.SAMPLER_3D, WebGLRenderingContext.FLOAT, 1, 4)],
         [WebGLRenderingContext.SAMPLER_CUBE, new GLTypeInfo(WebGLRenderingContext.SAMPLER_CUBE, WebGLRenderingContext.FLOAT, 1, 4)],
     ]);
-})(XORUtils || (XORUtils = {}));
+})(XOR || (XOR = {}));
+/// <reference path="LibXOR.ts" />
+var XOR;
+(function (XOR) {
+    class MemorySystem {
+        constructor(xor) {
+            this.xor = xor;
+            this.mem = new Int32Array(65536);
+            // handy reminders
+            // 0x1000 = 4096
+            // 0x100 = 256
+            // 0x10 = 16
+            // Start of VIC memory
+            this.VICSTART = 0x1000;
+            this.VICCOUNT = 256;
+            this.PALETTESTART = 0x1100;
+            this.PALETTECOUNT = 16 * 16;
+            this.SPRITESHEETSTART = 0x2000;
+            this.SPRITESHEETCOUNT = 0x1000;
+        }
+        init() {
+            for (let i = 0; i < 65536; i++) {
+                this.mem[i] = 0;
+            }
+        }
+        PEEK(location) {
+            if (location < 0 || location > 65536) {
+                return 0;
+            }
+            return this.mem[location];
+        }
+        POKE(location, value) {
+            if (location < 0 || location > 65535) {
+                return;
+            }
+            this.mem[location] = value | 0;
+        }
+    }
+    XOR.MemorySystem = MemorySystem;
+})(XOR || (XOR = {}));
+/// <reference path="../GTE/GTE.ts" />
+/// <reference path="LibXOR.ts" />
+/// <reference path="XorMemorySystem.ts" />
+var XOR;
+(function (XOR) {
+    class GraphicsSprite {
+        constructor() {
+            this.position = GTE.vec3(0, 0, 0);
+            this.pivot = GTE.vec3(0, 0, 0);
+            this.palette = 0;
+            this.index = 0;
+            this.plane = 0;
+            this.enabled = true;
+            this.alpha = 1.0;
+            this.fliph = false;
+            this.flipv = false;
+            this.rotate90 = 0;
+            this.matrix = Matrix4.makeIdentity();
+        }
+        readFromMemory(mem, offset) {
+            this.position.x = mem.PEEK(offset + 0);
+            this.position.y = mem.PEEK(offset + 1);
+            this.pivot.x = mem.PEEK(offset + 2);
+            this.pivot.y = mem.PEEK(offset + 3);
+            this.palette = mem.PEEK(offset + 4);
+            this.index = mem.PEEK(offset + 5);
+            this.plane = mem.PEEK(offset + 6);
+            this.enabled = mem.PEEK(offset + 7) > 0.0 ? true : false;
+            this.alpha = mem.PEEK(offset + 8);
+            let rvh = mem.PEEK(offset + 9);
+            this.fliph = (rvh & 1) ? true : false;
+            this.flipv = (rvh & 2) ? true : false;
+            this.rotate90 = (rvh >> 2) & 3;
+            let M11 = mem.PEEK(offset + 10);
+            let M12 = mem.PEEK(offset + 11);
+            let M13 = mem.PEEK(offset + 12);
+            let M21 = mem.PEEK(offset + 13);
+            let M22 = mem.PEEK(offset + 14);
+            let M23 = mem.PEEK(offset + 15);
+            this.matrix.loadRowMajor(M11, M12, 0, M13, M21, M22, 0, M23, 0, 0, 1, 0, 0, 0, 0, 1);
+        }
+    }
+    XOR.GraphicsSprite = GraphicsSprite;
+})(XOR || (XOR = {}));
+/// <reference path="XorMemorySystem.ts" />
+var XOR;
+(function (XOR) {
+    class GraphicsTileLayer {
+        constructor() {
+            this.tiles = [];
+            this.layer = 0;
+        }
+        readFromMemory(mem, offset) {
+        }
+    }
+    XOR.GraphicsTileLayer = GraphicsTileLayer;
+})(XOR || (XOR = {}));
+/// <reference path="../GTE/GTE.ts" />
+/// <reference path="LibXOR.ts" />
+/// <reference path="XorGraphicsSprite.ts" />
+/// <reference path="XorGraphicsTileLayer.ts" />
+var XOR;
+(function (XOR) {
+    class GraphicsSystem {
+        constructor(xor) {
+            this.xor = xor;
+            this.gl = null;
+            this.canvas = null;
+            this.glcontextid = "GraphicsSystem" + GTE.randomUint8().toString();
+            this.sprites = [];
+            this.tileLayers = [];
+            this.spriteImage = new Uint8Array(128 * 128 * 4);
+            // VIC memory
+            this.layer1width = 0;
+            this.layer1height = 0;
+            this.layer2width = 0;
+            this.layer2height = 0;
+            this.layer3width = 0;
+            this.layer3height = 0;
+            this.layer4width = 0;
+            this.layer4height = 0;
+            this.worldMatrix = Matrix4.makeIdentity();
+            this.cameraMatrix = Matrix4.makeIdentity(); //Matrix4.makeTranslation(0, 0, Math.sin(this.xor.t1) - 10);
+            this.projectionMatrix = Matrix4.makeOrtho(0, 256, 0, 256, -100.0, 100.0);
+            //perspectiveMatrix = Matrix4.makePerspectiveX(45.0, 1.0, 0.01, 100.0);
+            this.MaxSprites = 128;
+            this.MaxTileLayers = 4;
+            this.SpriteSize = 16;
+            this.VICMemoryStart = 0x6000;
+            this.CharMatrixMemoryStart = 0x7000;
+            this.CharColorsMemoryStart = 0x8000;
+            this.CharBitmapMemoryStart = 0x9000;
+            this.SpriteInfoMemoryStart = 0xA000;
+            this.SpriteBitmapMemoryStart = 0xB000;
+            this.TileBitmapMemoryStart = 0xD000;
+            this.TileMatrixMemoryStart = 0xF000;
+            this.drawABO = null;
+            this.shaderProgram = null;
+            this.vertShader = null;
+            this.fragShader = null;
+            this.spriteTexture = null;
+            this.charTexture = null;
+            this.tileTexture = null;
+            this.drawList = [];
+            this.aPosition = -1;
+            this.aNormal = -1;
+            this.aTexcoord = -1;
+            this.aColor = -1;
+            this.aGeneric = -1;
+            this.uTexture0 = null;
+            this.uProjectionMatrix = null;
+            this.uCameraMatrix = null;
+            this.uWorldMatrix = null;
+            this.setVideoMode(320, 200);
+        }
+        get width() { return this.canvas ? this.canvas.width : 0; }
+        get height() { return this.canvas ? this.canvas.height : 0; }
+        init() {
+            this.sprites = [];
+            for (let i = 0; i < this.MaxSprites; i++) {
+                this.sprites.push(new XOR.GraphicsSprite());
+            }
+            this.tileLayers = [];
+            for (let i = 0; i < this.MaxTileLayers; i++) {
+                this.tileLayers.push(new XOR.GraphicsTileLayer());
+            }
+        }
+        setVideoMode(width, height) {
+            let p = this.xor.parentElement;
+            while (p.firstChild) {
+                p.removeChild(p.firstChild);
+            }
+            let canvas = document.createElement("canvas");
+            canvas.id = this.glcontextid;
+            canvas.width = width;
+            canvas.height = height;
+            canvas.style.borderRadius = "4px";
+            this.gl = canvas.getContext("webgl");
+            this.canvas = canvas;
+            p.appendChild(canvas);
+            // If this.xor.graphics is null, then LibXOR is in the constructor
+            if (this.xor.graphics && this.gl) {
+                this.xor.fluxions = new Fluxions.FxRenderingContext(this.xor);
+                this.xor.input.captureMouse(canvas);
+                hflog.info("Capturing mouse");
+            }
+        }
+        clear(index) {
+            let c = this.xor.palette.getColor(index);
+            this.clearrgba(c.r, c.g, c.b, 1.0);
+        }
+        clear3(color) {
+            this.clearrgba(color.x, color.y, color.z, 1.0);
+        }
+        clearrgba(r, g, b, a) {
+            if (!this.gl)
+                return;
+            let gl = this.gl;
+            gl.clearColor(r, g, b, a);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        }
+        readFromMemory() {
+            // Read VIC information
+            let mem = this.xor.memory;
+            let pos = this.VICMemoryStart;
+            this.layer1width = mem.PEEK(pos++);
+            this.layer1height = mem.PEEK(pos++);
+            this.layer2width = mem.PEEK(pos++);
+            this.layer2height = mem.PEEK(pos++);
+            this.layer3width = mem.PEEK(pos++);
+            this.layer3height = mem.PEEK(pos++);
+            this.layer4width = mem.PEEK(pos++);
+            this.layer4height = mem.PEEK(pos++);
+            // Read Sprite Info
+            for (let i = 0; i < this.MaxSprites; i++) {
+                this.sprites[i].readFromMemory(this.xor.memory, this.SpriteInfoMemoryStart + i * this.SpriteSize);
+            }
+            // Read Sprite Imagery        
+            let pixels = this.spriteImage;
+            let offset = this.SpriteBitmapMemoryStart;
+            let p = 0;
+            for (let spr = 0; spr < 256; spr++) {
+                for (let j = 0; j < 8; j++) {
+                    let pixel1 = mem.PEEK(offset++);
+                    let pixel2 = mem.PEEK(offset++);
+                    let pixel = (pixel1 & 0xFF) << 8 + (pixel2 & 0xFF);
+                    for (let i = 0; i < 8; i++) {
+                        let r = (pixel & 3) * 85;
+                        pixels[p++] = r;
+                        pixels[p++] = r;
+                        pixels[p++] = r;
+                        pixels[p++] = 255;
+                        pixel >>= 2;
+                    }
+                }
+            }
+            // for (let i = 0; i < this.MaxTileLayers; i++) {
+            //     this.tileLayers[i].readFromMemory(this.xor.memory, this.TileMatrixMemoryStart + i * this.TileLayerMemorySize)
+            // }
+        }
+        createBuffers() {
+            if (!this.gl)
+                return;
+            let gl = this.gl;
+            let vertices = [];
+            this.drawList = [];
+            this.drawList.push(gl.TRIANGLES);
+            this.drawList.push(vertices.length / 16);
+            // sprites ...
+            for (let i = 0; i < this.MaxSprites; i++) {
+                let spr = this.sprites[i];
+                let r = 1;
+                let g = 1;
+                let b = 1;
+                let a = spr.alpha;
+                let u1 = spr.fliph ? 1.0 : 0.0;
+                let u2 = spr.fliph ? 0.0 : 1.0;
+                let v1 = spr.flipv ? 1.0 : 0.0;
+                let v2 = spr.flipv ? 0.0 : 1.0;
+                let w = 0.0;
+                let scale = 1.0; // / this.canvas.width;
+                let x1 = spr.position.x; // - spr.pivot.x;
+                let y1 = spr.position.y; // - spr.pivot.y;
+                let x2 = spr.position.x + 8; // - spr.pivot.x;
+                let y2 = spr.position.y + 8; // - spr.pivot.y;
+                let z = 0.0; //spr.plane + 4;
+                let nx = 0.0;
+                let ny = 0.0;
+                let nz = 1.0;
+                let p1 = 0;
+                let p2 = 0;
+                let p3 = 0;
+                let ll = [scale * x1, scale * y1, z, nx, ny, nz, u1, v1, w, r, g, b, a, p1, p2, p3];
+                let lr = [scale * x2, scale * y1, z, nx, ny, nz, u2, v1, w, r, g, b, a, p1, p2, p3];
+                let ul = [scale * x1, scale * y2, z, nx, ny, nz, u1, v2, w, r, g, b, a, p1, p2, p3];
+                let ur = [scale * x2, scale * y2, z, nx, ny, nz, u2, v2, w, r, g, b, a, p1, p2, p3];
+                vertices.push(...ll);
+                vertices.push(...lr);
+                vertices.push(...ur);
+                vertices.push(...ur);
+                vertices.push(...ul);
+                vertices.push(...ll);
+                // vertices.push(...ll);
+                // vertices.push(...ul);
+                // vertices.push(...ur);
+            }
+            this.drawList.push(this.MaxSprites * 6);
+            // tiles ...
+            // characters ...
+            if (!this.drawABO) {
+                this.drawABO = gl.createBuffer();
+            }
+            if (this.drawABO) {
+                let data = new Float32Array(vertices);
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.drawABO);
+                gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+                gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            }
+            if (!this.shaderProgram) {
+                let vshader = `#version 100
+                uniform mat4 WorldMatrix;
+                uniform mat4 ProjectionMatrix;
+                uniform mat4 CameraMatrix;
+    
+                attribute vec3 aPosition;
+                attribute vec3 aNormal;
+                attribute vec3 aTexcoord;
+                attribute vec4 aColor;
+                attribute vec3 aGeneric;
+    
+                varying vec3 vPosition;
+                varying vec3 vNormal;
+                varying vec3 vTexcoord;
+                varying vec4 vColor;
+                varying vec3 vGeneric;
+    
+                mat3 getNormalMatrix(mat4 m) {
+                    return mat3(
+                        m[0][0], m[0][1], m[0][2],
+                        m[1][0], m[1][1], m[1][2],
+                        m[2][0], m[2][1], m[2][2]);
+                }
+    
+                void main() {
+                    vPosition = (WorldMatrix * vec4(aPosition, 1.0)).xyz;
+                    vNormal = getNormalMatrix(WorldMatrix) * aNormal;
+                    vTexcoord = aTexcoord;
+                    vColor = aColor;
+                    gl_Position = ProjectionMatrix * CameraMatrix * WorldMatrix * vec4(aPosition, 1.0);
+                }
+                `;
+                let fshader = `#version 100
+                
+                precision highp float;
+    
+                uniform sampler2D Texture0;
+                uniform sampler2D Palette;
+    
+                varying vec3 vPosition;
+                varying vec3 vNormal;
+                varying vec3 vTexcoord;
+                varying vec4 vColor;
+                varying vec3 vGeneric;
+    
+                vec3 getColor(int index) {
+                    if (index == 0) return vec3(0.000, 0.000, 0.000); //Black
+                    if (index == 1) return vec3(0.333, 0.333, 0.333); //Gray33
+                    if (index == 2) return vec3(0.667, 0.667, 0.667); //Gray67
+                    if (index == 3) return vec3(1.000, 1.000, 1.000); //White
+                    if (index == 4) return vec3(1.000, 0.000, 0.000); //Red
+                    if (index == 5) return vec3(0.894, 0.447, 0.000); //Orange
+                    if (index == 6) return vec3(0.894, 0.894, 0.000); //Yellow
+                    if (index == 7) return vec3(0.000, 1.000, 0.000); //Green
+                    if (index == 8) return vec3(0.000, 0.707, 0.707); //Cyan
+                    if (index == 9) return vec3(0.000, 0.447, 0.894); //Azure
+                    if (index == 10) return vec3(0.000, 0.000, 1.000); //Blue
+                    if (index == 11) return vec3(0.447, 0.000, 0.894); //Violet
+                    if (index == 12) return vec3(0.894, 0.000, 0.447); //Rose
+                    if (index == 13) return vec3(0.500, 0.250, 0.000); //Brown
+                    if (index == 14) return vec3(0.830, 0.670, 0.220); //Gold
+                    if (index == 15) return vec3(0.250, 0.500, 0.250); //ForestGreen
+                    return vec3(0.0);
+                }
+                            
+                void main() {
+                    gl_FragColor = vec4(vTexcoord.rg, 1.0, 1.0);
+                }
+                `;
+                let vs = gl.createShader(gl.VERTEX_SHADER);
+                if (vs) {
+                    gl.shaderSource(vs, vshader);
+                    gl.compileShader(vs);
+                    let status = gl.getShaderParameter(vs, gl.COMPILE_STATUS);
+                    let infoLog = gl.getShaderInfoLog(vs);
+                    if (!status && infoLog) {
+                        hflog.error("LibXOR Vertex Shader did not compile");
+                        hflog.error(infoLog);
+                        gl.deleteShader(vs);
+                        vs = null;
+                    }
+                }
+                let fs = gl.createShader(gl.FRAGMENT_SHADER);
+                if (fs) {
+                    gl.shaderSource(fs, fshader);
+                    gl.compileShader(fs);
+                    let status = gl.getShaderParameter(fs, gl.COMPILE_STATUS);
+                    let infoLog = gl.getShaderInfoLog(fs);
+                    if (!status && infoLog) {
+                        hflog.error("LibXOR Fragment Shader did not compile");
+                        hflog.error(infoLog);
+                        gl.deleteShader(fs);
+                        fs = null;
+                    }
+                }
+                let p = gl.createProgram();
+                if (p && fs && vs) {
+                    gl.attachShader(p, vs);
+                    gl.attachShader(p, fs);
+                    gl.linkProgram(p);
+                    let status = gl.getProgramParameter(p, gl.LINK_STATUS);
+                    let infoLog = gl.getProgramInfoLog(p);
+                    if (infoLog) {
+                        hflog.error("LibXOR Program did not link");
+                        hflog.error(infoLog);
+                        gl.deleteProgram(p);
+                        p = null;
+                    }
+                }
+                if (p) {
+                    this.shaderProgram = p;
+                    this.vertShader = vs;
+                    this.fragShader = fs;
+                    this.aPosition = gl.getAttribLocation(p, "aPosition");
+                    this.aNormal = gl.getAttribLocation(p, "aNormal");
+                    this.aTexcoord = gl.getAttribLocation(p, "aTexcoord");
+                    this.aColor = gl.getAttribLocation(p, "aColor");
+                    this.aGeneric = gl.getAttribLocation(p, "aGeneric");
+                    this.uTexture0 = gl.getUniformLocation(p, "Texture0");
+                    this.uProjectionMatrix = gl.getUniformLocation(p, "ProjectionMatrix");
+                    this.uCameraMatrix = gl.getUniformLocation(p, "CameraMatrix");
+                    this.uWorldMatrix = gl.getUniformLocation(p, "WorldMatrix");
+                }
+                // Textures
+                if (!this.spriteTexture) {
+                    this.spriteTexture = gl.createTexture();
+                }
+                if (this.spriteTexture) {
+                    gl.bindTexture(gl.TEXTURE_2D, this.spriteTexture);
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 128, 128, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.spriteImage);
+                    gl.generateMipmap(gl.TEXTURE_2D);
+                }
+                if (!this.charTexture) {
+                }
+                if (!this.tileTexture) {
+                }
+            }
+        }
+        enableVertexAttrib(gl, location, size, type, stride, offset) {
+            if (location < 0)
+                return;
+            gl.enableVertexAttribArray(location);
+            gl.vertexAttribPointer(location, size, type, false, stride, offset);
+        }
+        disableVertexAttrib(gl, location) {
+            if (location < 0)
+                return;
+            gl.disableVertexAttribArray(location);
+        }
+        render() {
+            if (!this.canvas || !this.gl)
+                return;
+            let gl = this.gl;
+            let xor = this.xor;
+            this.createBuffers();
+            let s = Math.sin(xor.t1);
+            gl.clearColor(0.3 * s, 0.1 * s, 0.2 * s, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            this.projectionMatrix = Matrix4.makeOrtho2D(0, this.canvas.width, this.canvas.height, 0);
+            gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+            // General Order of Drawing
+            // 1. Upload Palette ROM Textures
+            // 2. Upload Character ROM Textures
+            // 3. Upload Sprite ROM Textures
+            // 4. Upload 3D Geometry
+            // 5. Draw Tile Layer 0
+            // 6. Draw Sprites
+            // 7. Draw Tile Layer 1
+            gl.enable(gl.DEPTH_TEST);
+            gl.depthFunc(gl.LEQUAL);
+            // bind ABO and configure vertex array
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.drawABO);
+            this.enableVertexAttrib(gl, this.aPosition, 3, gl.FLOAT, 64, 0);
+            this.enableVertexAttrib(gl, this.aNormal, 3, gl.FLOAT, 64, 12);
+            this.enableVertexAttrib(gl, this.aTexcoord, 3, gl.FLOAT, 64, 24);
+            this.enableVertexAttrib(gl, this.aColor, 4, gl.FLOAT, 64, 36);
+            this.enableVertexAttrib(gl, this.aGeneric, 3, gl.FLOAT, 64, 52);
+            gl.useProgram(this.shaderProgram);
+            // set uniforms
+            if (this.uTexture0)
+                gl.uniform1i(this.uTexture0, 0);
+            if (this.uWorldMatrix)
+                gl.uniformMatrix4fv(this.uWorldMatrix, false, this.worldMatrix.toColMajorArray());
+            if (this.uCameraMatrix)
+                gl.uniformMatrix4fv(this.uCameraMatrix, false, this.cameraMatrix.toColMajorArray());
+            if (this.uProjectionMatrix)
+                gl.uniformMatrix4fv(this.uProjectionMatrix, false, this.projectionMatrix.toColMajorArray());
+            // draw sprites
+            // bind textures
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.spriteTexture);
+            gl.drawArrays(gl.TRIANGLES, 0, this.MaxSprites * 6);
+            // gl.activeTexture(gl.TEXTURE1);
+            // gl.bindTexture(gl.TEXTURE_2D, this.tileTexture);
+            // gl.activeTexture(gl.TEXTURE1);
+            // gl.bindTexture(gl.TEXTURE_2D, this.charTexture);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            gl.useProgram(null);
+            this.disableVertexAttrib(gl, this.aPosition);
+            this.disableVertexAttrib(gl, this.aNormal);
+            this.disableVertexAttrib(gl, this.aTexcoord);
+            this.disableVertexAttrib(gl, this.aColor);
+            this.disableVertexAttrib(gl, this.aGeneric);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        }
+    }
+    XOR.GraphicsSystem = GraphicsSystem;
+})(XOR || (XOR = {}));
+/// <reference path="../XOR/XorSoundSystem.ts" />
+var TF;
+(function (TF) {
+    class DAHDSREnvelope {
+        constructor(delay = 0.0, // delay to start
+        delayCV = 0.0, // level at start
+        attack = 0.0, // how long to ramp from 0 to 1
+        attackCV = 1.0, // Highest level (normally 1)
+        hold = 10.0, // how long to hold signal at highest amplitude
+        decay = 0.0, // how long to ramp from 1 to sustain
+        sustainCV = 1.0, // level of the sustain
+        release = 0.0, // how long to ramp from sustain to 0
+        releaseCV = 0.0 // lowest level of ramp (normally 0)
+        ) {
+            this.delay = delay;
+            this.delayCV = delayCV;
+            this.attack = attack;
+            this.attackCV = attackCV;
+            this.hold = hold;
+            this.decay = decay;
+            this.sustainCV = sustainCV;
+            this.release = release;
+            this.releaseCV = releaseCV;
+        }
+    }
+    TF.DAHDSREnvelope = DAHDSREnvelope;
+    class AttackReleaseEnvelope {
+        constructor(delay = 0.0, attack = 0.0, attackCV = 1.0, hold = 0.0, release = 0.0, releaseCV = 0.0) {
+            this.delay = delay;
+            this.attack = attack;
+            this.attackCV = attackCV;
+            this.hold = hold;
+            this.release = release;
+            this.releaseCV = releaseCV;
+        }
+    }
+    TF.AttackReleaseEnvelope = AttackReleaseEnvelope;
+    class SimpleSamplerPlaySettings {
+        constructor(VCFfrequency1 = 1000.0, VCFfrequency2 = 1000.0, VCFsweepTime = 1.0, VCFresonance = 500.0, VCAattack = 0.0, VCAhold = 1.0, VCArelease = 1.0, sampleLoop = true) {
+            this.VCFfrequency1 = VCFfrequency1;
+            this.VCFfrequency2 = VCFfrequency2;
+            this.VCFsweepTime = VCFsweepTime;
+            this.VCFresonance = VCFresonance;
+            this.VCAattack = VCAattack;
+            this.VCAhold = VCAhold;
+            this.VCArelease = VCArelease;
+            this.sampleLoop = sampleLoop;
+        }
+    }
+    TF.SimpleSamplerPlaySettings = SimpleSamplerPlaySettings;
+    class Sample {
+        constructor(buffer = null, loaded = false, haderror = false) {
+            this.buffer = buffer;
+            this.loaded = loaded;
+            this.haderror = haderror;
+            this.VCF = null;
+            this.VCA = null;
+            this.VCAenvelope = new DAHDSREnvelope();
+            this.VCOenvelope = new DAHDSREnvelope();
+            this.VCFenvelope = new DAHDSREnvelope();
+            this.VCFresonance = 1.0;
+            this.VCFenvelope.attack = 1;
+            this.VCFenvelope.decay = 1;
+            this.VCFenvelope.release = 1;
+            this.VCFenvelope.sustainCV = 0.5;
+        }
+        play(ss, time = 0) {
+            let t = ss.context.currentTime;
+            let source = ss.context.createBufferSource();
+            let VCF = ss.context.createBiquadFilter();
+            let VCA = ss.context.createGain();
+            source.buffer = this.buffer;
+            source.loop = true;
+            source.connect(VCF);
+            VCF.connect(ss.gainNode);
+            // source.connect(ss.gainNode);
+            // source.connect(VCF);
+            // VCF.connect(VCA);
+            // VCA.connect(ss.gainNode);
+            let detune1 = 8;
+            let detune2 = 1;
+            let detuneTime = 2;
+            source.playbackRate.setValueAtTime(detune1, t);
+            source.playbackRate.linearRampToValueAtTime(detune2, t + detuneTime);
+            let to = setTimeout(() => {
+                source.stop();
+            }, detuneTime * 1000);
+            VCF.type = 'lowpass';
+            VCF.frequency.value = 1440.0;
+            VCF.Q.value = 10.0; //100.0;//this.VCFresonance;
+            let vcfEnv = this.VCFenvelope;
+            vcfEnv.delayCV = 0.0;
+            vcfEnv.attack = 1.0;
+            vcfEnv.attackCV = 1200.0;
+            vcfEnv.hold = 0.0;
+            vcfEnv.release = 1.0;
+            vcfEnv.releaseCV = 0.0;
+            VCF.frequency.setValueAtTime(vcfEnv.delayCV, t);
+            t += vcfEnv.delay;
+            VCF.frequency.setValueAtTime(vcfEnv.delayCV, t);
+            t += vcfEnv.attack;
+            VCF.frequency.linearRampToValueAtTime(vcfEnv.attackCV, t);
+            t += vcfEnv.hold;
+            VCF.frequency.linearRampToValueAtTime(vcfEnv.attackCV, t);
+            t += vcfEnv.release;
+            VCF.frequency.linearRampToValueAtTime(vcfEnv.releaseCV, t);
+            let vcaEnv = this.VCAenvelope;
+            t = ss.context.currentTime;
+            VCA.gain.setValueAtTime(this.VCAenvelope.delayCV, t);
+            t += vcaEnv.delay;
+            VCA.gain.setValueAtTime(this.VCAenvelope.delayCV, t);
+            t += vcaEnv.attack;
+            VCA.gain.linearRampToValueAtTime(vcaEnv.attackCV, t);
+            t += vcaEnv.hold;
+            VCA.gain.setValueAtTime(vcaEnv.attackCV, t);
+            t += vcaEnv.decay;
+            VCA.gain.linearRampToValueAtTime(vcaEnv.sustainCV, t);
+            t += vcaEnv.release;
+            VCA.gain.linearRampToValueAtTime(vcaEnv.releaseCV, t);
+            // configure envelopes
+            source.start(time);
+            this.VCA = VCA;
+            this.VCF = VCF;
+        }
+    }
+    TF.Sample = Sample;
+    class Sampler {
+        constructor(ss) {
+            this.ss = ss;
+            this.samples = new Map();
+        }
+        loadSample(id, url, logErrors = true) {
+            let self = this;
+            let xhr = new XMLHttpRequest();
+            xhr.open('GET', url);
+            xhr.responseType = 'arraybuffer';
+            xhr.onload = () => {
+                self.ss.context.decodeAudioData(xhr.response, (buffer) => {
+                    // on success
+                    let s = new Sample(buffer, true, false);
+                    self.samples.set(id, s);
+                    if (logErrors)
+                        hflog.info('loaded ', url);
+                }, () => {
+                    // on error
+                    let s = new Sample(null, false, true);
+                    self.samples.set(id, s);
+                    if (logErrors)
+                        hflog.info('failed to load ', url);
+                });
+            };
+            xhr.onabort = () => {
+                if (logErrors)
+                    hflog.error('Could not load ', url);
+                self.samples.set(id, new Sample(null, false, true));
+            };
+            xhr.onerror = () => {
+                if (logErrors)
+                    hflog.error('Could not load ', url);
+                self.samples.set(id, new Sample(null, false, true));
+            };
+            this.samples.set(id, new Sample());
+            xhr.send();
+        }
+        playSample(id, time = 0) {
+            let s = this.samples.get(id);
+            if (!s)
+                return;
+            s.play(this.ss, time);
+        }
+    }
+    TF.Sampler = Sampler;
+})(TF || (TF = {}));
+/// <reference path="LibXOR.ts" />
+/// <reference path="../Toadfish/TfSampler.ts" />
+var XOR;
+(function (XOR) {
+    class SoundSystem {
+        constructor(xor) {
+            this.xor = xor;
+            this.sampler = new TF.Sampler(this);
+            this.context = new AudioContext();
+            this.masterVolume = this.context.createGain();
+            // let self = this;
+            // window.addEventListener("load", (e) => {
+            //     self.context = new AudioContext();
+            // }, false);
+        }
+        init() {
+            this.masterVolume.connect(this.context.destination);
+            this.masterVolume.gain.value = 0.5;
+        }
+        get volume() { return this.masterVolume.gain.value; }
+        set volume(v) { this.masterVolume.gain.value = GTE.clamp(v, 0.0, 1.0); }
+        get gainNode() { return this.masterVolume; }
+    }
+    XOR.SoundSystem = SoundSystem;
+})(XOR || (XOR = {}));
+/// <reference path="../GTE/GTE.ts" />
+class XORMouseEvent {
+    constructor(button = 0, clicks = 0, buttons = 0, position = Vector2.make(0, 0), screen = Vector2.make(0, 0), delta = Vector2.make(0, 0), ctrlKey = false, altKey = false, shiftKey = false, metaKey = false) {
+        this.button = button;
+        this.clicks = clicks;
+        this.buttons = buttons;
+        this.position = position;
+        this.screen = screen;
+        this.delta = delta;
+        this.ctrlKey = ctrlKey;
+        this.altKey = altKey;
+        this.shiftKey = shiftKey;
+        this.metaKey = metaKey;
+    }
+    copyMouseEvent(e) {
+        this.delta.x = e.offsetX - this.position.x;
+        this.delta.y = e.offsetY - this.position.y;
+        this.position.x = e.offsetX;
+        this.position.y = e.offsetY;
+        this.screen.x = e.screenX;
+        this.screen.y = e.screenY;
+        this.buttons = e.buttons;
+        this.button = e.button;
+        this.clicks = e.detail;
+        this.ctrlKey = e.ctrlKey;
+        this.altKey = e.altKey;
+        this.shiftKey = e.shiftKey;
+        this.metaKey = e.metaKey;
+    }
+}
+/// <reference path="../GTE/GTE.ts" />
+/// <reference path="LibXOR.ts" />
+var XOR;
+(function (XOR) {
+    /**
+     * @member buttons Map<number, number>
+     * @member axes Map<number, number>
+     * @member enabled boolean
+     */
+    class XORGamepadState {
+        constructor() {
+            this.buttons = new Map();
+            this.axes = new Map();
+            this.lastButtons = 0;
+            this.currentButtons = 0;
+            this.anyButtonPressed = true;
+            this.numButtons = 0;
+            this.numAxes = 0;
+            this.enabled = false;
+            this.id = null;
+            for (let i = 0; i < 17; i++) {
+                this.buttons.set(i, 0.0);
+            }
+        }
+        copyInfo(state) {
+            this.lastButtons = this.currentButtons;
+            this.currentButtons = 0;
+            let bit = 1;
+            for (let i = 0; i < state.buttons.length; i++) {
+                this.buttons.set(i, state.buttons[i].value);
+                if (state.buttons[i].value != 0.0)
+                    this.currentButtons |= bit;
+                bit <<= 1;
+            }
+            if (this.currentButtons > 0 && this.currentButtons != this.lastButtons) {
+                this.anyButtonPressed = true;
+            }
+            for (let i = 0; i < state.axes.length; i++) {
+                this.axes.set(i, state.axes[i]);
+            }
+        }
+        button(i) {
+            let v = this.buttons.get(i);
+            if (v)
+                return v;
+            return 0.0;
+        }
+        axe(i) {
+            let v = this.axes.get(i);
+            if (v)
+                return v;
+            return 0.0;
+        }
+        get left() { return this.button(14) > 0.5 || this.axe(0) < -0.5; }
+        get right() { return this.button(15) > 0.5 || this.axe(0) > 0.5; }
+        get up() { return this.button(12) > 0.5 || this.axe(1) < -0.5; }
+        get down() { return this.button(13) > 0.5 || this.axe(1) > 0.5; }
+        get b0() { return this.button(0) > 0.5; }
+        get b1() { return this.button(1) > 0.5; }
+        get b2() { return this.button(2) > 0.5; }
+        get b3() { return this.button(3) > 0.5; }
+        get leftright() { return (this.left ? -1.0 : 0.0) + (this.right ? 1.0 : 0.0); }
+        get updown() { return (this.down ? -1.0 : 0.0) + (this.up ? 1.0 : 0.0); }
+    }
+    XOR.XORGamepadState = XORGamepadState;
+})(XOR || (XOR = {}));
+/// <reference path="LibXOR.ts" />
+/// <reference path="XorMouseEvent.ts" />
+/// <reference path="XorGamepadState.ts" />
+var XOR;
+(function (XOR) {
+    class InputSystem {
+        constructor(xor) {
+            this.xor = xor;
+            /** @type {Map<string, number} */
+            this.keys = new Map();
+            /** @type {Map<string, number} */
+            this.codes = new Map();
+            this.modifiers = 0;
+            this.canvas = null;
+            this.mouseXY = Vector2.make(0, 0);
+            this.mouse = new XORMouseEvent();
+            /** @type {Map<number, XORMouseEvent>} */
+            this.mouseButtons = new Map();
+            this.mouseOver = false;
+            /** @type {Map<number, XORGamepadState>} */
+            this.gamepads = new Map();
+            this.gamepadAPI = false;
+        }
+        init() {
+            let self = this;
+            window.onkeydown = (e) => {
+                self.onkeydown(e);
+            };
+            window.onkeyup = (e) => {
+                self.onkeyup(e);
+            };
+            for (let i = 0; i < 5; i++) {
+                this.mouseButtons.set(i, new XORMouseEvent());
+            }
+            for (let i = 0; i < 5; i++) {
+                this.gamepads.set(i, new XOR.XORGamepadState());
+            }
+            window.addEventListener("gamepadconnected", (ev) => {
+                let e = (ev);
+                let gp = new XOR.XORGamepadState();
+                gp.enabled = true;
+                gp.id = e.gamepad.id;
+                gp.numButtons = e.gamepad.buttons.length;
+                gp.numAxes = e.gamepad.buttons.length;
+                gp.copyInfo(e.gamepad);
+                self.gamepads.set(e.gamepad.index, gp);
+                hflog.info("gamepad %d connected", e.gamepad.index);
+            });
+            window.addEventListener("gamepaddisconnected", (ev) => {
+                let e = (ev);
+                let gp = self.gamepads.get(e.gamepad.index);
+                if (gp) {
+                    gp.enabled = false;
+                }
+                hflog.info("gamepad %d disconnected", e.gamepad.index);
+            });
+            this.gamepadAPI = true;
+            hflog.info("capturing gamepads");
+        }
+        poll() {
+            let gamepads = navigator.getGamepads();
+            if (gamepads) {
+                for (let i = 0; i < gamepads.length; i++) {
+                    let gp = this.gamepads.get(i);
+                    let gamepad = gamepads[i];
+                    if (gamepad && gp) {
+                        gp.copyInfo(gamepad);
+                    }
+                }
+            }
+        }
+        captureMouse(e) {
+            this.canvas = e;
+            let self = this;
+            this.canvas.onmousedown = (e) => {
+                self.mouse.copyMouseEvent(e);
+                let button = self.mouseButtons.get(e.button);
+                if (button) {
+                    button.copyMouseEvent(e);
+                }
+            };
+            this.canvas.onmouseup = (e) => {
+                self.mouse.copyMouseEvent(e);
+                let button = self.mouseButtons.get(e.button);
+                if (button) {
+                    button.copyMouseEvent(e);
+                }
+            };
+            this.canvas.onmousemove = (e) => {
+                self.mouse.copyMouseEvent(e);
+            };
+            this.canvas.onmouseenter = (e) => {
+                self.mouseOver = true;
+            };
+            this.canvas.onmouseleave = (e) => {
+                self.mouseOver = false;
+            };
+        }
+        checkKeys(keys) {
+            for (let key of keys) {
+                if (this.codes.has(key)) {
+                    if (this.codes.get(key) != 0.0) {
+                        return 1.0;
+                    }
+                }
+                if (this.keys.has(key)) {
+                    if (this.keys.get(key) != 0.0) {
+                        return 1.0;
+                    }
+                }
+            }
+            return 0.0;
+        }
+        pollGamepads() {
+            for (let i = 0; i < 4; i++) {
+                let gp = this.gamepads.get(i);
+                if (!gp)
+                    continue;
+                Gamepad;
+            }
+        }
+        get mousecurpos() { return this.mouse.position; }
+        get mouseclick() { let b = this.mouseButtons.get(0); if (!b)
+            return Vector2.make(0, 0); return b.position; }
+        get mouseshadertoy() { return Vector4.make(this.mousecurpos.x, this.mousecurpos.y, this.mouseclick.x, this.mouseclick.y); }
+        changeModifier(bit, state) {
+            bit = bit | 0;
+            if (bit > 8)
+                return;
+            if (state) {
+                this.modifiers |= bit;
+            }
+            else {
+                this.modifiers &= ~bit;
+            }
+        }
+        translateKeyToCode(key) {
+            if (key.length == 1) {
+                let s = key.toUpperCase();
+                if (s[0] >= 'A' && s[0] <= 'Z')
+                    return 'Key' + s[0];
+                if (s[0] >= '0' && s[0] <= '9')
+                    return 'Digit' + s[0];
+                if (s[0] == ' ')
+                    return "Space";
+            }
+            if (key == "Left" || key == "ArrowLeft")
+                return "ArrowLeft";
+            if (key == "Right" || key == "ArrowRight")
+                return "ArrowRight";
+            if (key == "Up" || key == "ArrowUp")
+                return "ArrowUp";
+            if (key == "Down" || key == "ArrowDown")
+                return "ArrowDown";
+            if (key == "Esc" || key == "Escape")
+                return "Escape";
+            if (key == "Enter" || key == "Return")
+                return "Enter";
+            return "Unidentified";
+        }
+        onkeydown(e) {
+            if (e.key == "Shift")
+                this.changeModifier(1, true);
+            if (e.key == "Ctrl")
+                this.changeModifier(2, true);
+            if (e.key == "Alt")
+                this.changeModifier(4, true);
+            this.keys.set(e.key, 1);
+            if (e.code != undefined) {
+                this.codes.set(e.code, 1);
+            }
+            else {
+                this.codes.set(this.translateKeyToCode(e.key), 1);
+            }
+            if (e.key == "F12")
+                return;
+            e.preventDefault();
+        }
+        onkeyup(e) {
+            if (e.key == "Shift")
+                this.changeModifier(1, false);
+            if (e.key == "Ctrl")
+                this.changeModifier(2, false);
+            if (e.key == "Alt")
+                this.changeModifier(4, false);
+            this.keys.set(e.key, 0);
+            if (e.code != undefined) {
+                this.codes.set(e.code, 0);
+            }
+            else {
+                this.codes.set(this.translateKeyToCode(e.key), 0);
+            }
+            if (e.key == "F12")
+                return;
+            e.preventDefault();
+        }
+    }
+    XOR.InputSystem = InputSystem;
+})(XOR || (XOR = {}));
+/// <reference path="LibXOR.ts" />
+var XOR;
+(function (XOR) {
+    class PaletteSystem {
+        constructor(xor) {
+            this.xor = xor;
+            this.BLACK = 0;
+            this.GRAY33 = 1;
+            this.GRAY67 = 2;
+            this.WHITE = 3;
+            this.RED = 4;
+            this.ORANGE = 5;
+            this.YELLOW = 6;
+            this.GREEN = 7;
+            this.CYAN = 8;
+            this.AZURE = 9;
+            this.BLUE = 10;
+            this.VIOLET = 11;
+            this.ROSE = 12;
+            this.BROWN = 13;
+            this.GOLD = 14;
+            this.FORESTGREEN = 15;
+        }
+        /**
+         *
+         * @param index (0 = BLACK, 1 = GRAY33, 2 = GRAY67, 3 = WHITE, 4 = RED, 5 = ORANGE, 6 = YELLOW, 7 = GREEN, 8 = CYAN, 9 = AZURE, 10 = BLUE, 11 = VIOLET, 12 = ROSE, 13 = BROWN, 14 = GOLD, 15 = FORESTGREEN)
+         * @returns Vector3 color with RGB values 0 to 1
+         */
+        getColor(index) {
+            if (index == 0)
+                return GTE.vec3(0.000, 0.000, 0.000); //Black
+            if (index == 1)
+                return GTE.vec3(0.333, 0.333, 0.333); //Gray33
+            if (index == 2)
+                return GTE.vec3(0.667, 0.667, 0.667); //Gray67
+            if (index == 3)
+                return GTE.vec3(1.000, 1.000, 1.000); //White
+            if (index == 4)
+                return GTE.vec3(1.000, 0.000, 0.000); //Red
+            if (index == 5)
+                return GTE.vec3(0.894, 0.447, 0.000); //Orange
+            if (index == 6)
+                return GTE.vec3(0.894, 0.894, 0.000); //Yellow
+            if (index == 7)
+                return GTE.vec3(0.000, 1.000, 0.000); //Green
+            if (index == 8)
+                return GTE.vec3(0.000, 0.707, 0.707); //Cyan
+            if (index == 9)
+                return GTE.vec3(0.000, 0.447, 0.894); //Azure
+            if (index == 10)
+                return GTE.vec3(0.000, 0.000, 1.000); //Blue
+            if (index == 11)
+                return GTE.vec3(0.447, 0.000, 0.894); //Violet
+            if (index == 12)
+                return GTE.vec3(0.894, 0.000, 0.447); //Rose
+            if (index == 13)
+                return GTE.vec3(0.500, 0.250, 0.000); //Brown
+            if (index == 14)
+                return GTE.vec3(0.830, 0.670, 0.220); //Gold
+            if (index == 15)
+                return GTE.vec3(0.250, 0.500, 0.250); //ForestGreen
+            return GTE.vec3(0.0, 0.0, 0.0); // Black
+        }
+        /**
+         * calcColor(color1, color2, colormix, color1hue, color2hue, negative)
+         * @param color1 0 to 15
+         * @param color2 0 to 15
+         * @param colormix 0 to 7
+         * @param color1hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
+         * @param color2hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
+         * @param negative 0 = none, 1 = 1 - RGB
+         * @returns Vector3 color with RGB values 0 to 1
+         */
+        calcColor(color1, color2, colormix, color1hue, color2hue, negative) {
+            let c1 = this.getColor(color1);
+            let c2 = this.getColor(color2);
+            let ch1 = this.hueshiftColor(c1, color1hue);
+            let ch2 = this.hueshiftColor(c2, color2hue);
+            let cmix = this.mixColors(ch1, ch2, colormix);
+            let cneg = negative ? this.negativeColor(cmix) : cmix;
+            return cneg;
+        }
+        /**
+         * calcColorBits(bits)
+         * @param bits 16 bit number (0-3: color1, 4-7: color2, 8-10: mix, 9-11: color1 hue shift, 12-14: color2 hue shift, 15: negative)
+         * @returns Vector3 color with RGB values 0 to 1
+         */
+        calcColorBits(bits) {
+            let color1 = (bits | 0) & 0xF;
+            let color2 = (bits >> 4) & 0xF;
+            let colormix = (bits >> 8) & 0x7;
+            let color1hue = (bits >> 11) & 0x3;
+            let color2hue = (bits >> 14) & 0x3;
+            let negative = (bits >> 15) & 0x1;
+            return this.calcColor(color1, color2, colormix, color1hue, color2hue, negative);
+        }
+        /**
+         * calcBits(color1, color2, colormix, color1hue, color2hue, negative)
+         * @param color1 0 to 15
+         * @param color2 0 to 15
+         * @param colormix 0 to 7
+         * @param color1hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
+         * @param color2hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
+         * @param negative 0 = none, 1 = 1 - RGB
+         * @returns number representing 16-bit XOR color model
+         */
+        calcBits(color1, color2, colormix, color1hue, color2hue, negative) {
+            let bits = 0;
+            bits |= (color1 & 0xF);
+            bits |= (color2 & 0xF) << 4;
+            bits |= (colormix & 0x7) << 8;
+            bits |= (color1hue & 0x3) << 11;
+            bits |= (color2hue & 0x3) << 14;
+            bits |= (negative & 0x1) << 15;
+            return bits;
+        }
+        /**
+         * mixColors(color1, color2, mix)
+         * @param color1 RGB color with values 0 to 1
+         * @param color2 RGB color with values 0 to 1
+         * @param mix 0 to 7 representing lerp mix
+         * @returns Vector3 color with RGB values 0 to 1
+         */
+        mixColors(color1, color2, mix) {
+            let t = GTE.clamp(1.0 - mix / 7.0, 0.0, 1.0);
+            return GTE.vec3(GTE.lerp(color1.x, color2.x, t), GTE.lerp(color1.y, color2.y, t), GTE.lerp(color1.z, color2.z, t));
+        }
+        /**
+         * hueshiftcolor(color, shift)
+         * @param color RGB color with values 0 to 1
+         * @param shift 0 = no shift, 1 = 7.5 degrees, 2 = 15 degrees, 3 = 180 degrees
+         * @returns Vector3 color with RGB values 0 to 1
+         */
+        hueshiftColor(color, shift) {
+            let hue = 0;
+            if (shift == 1)
+                hue = 7.5 / 360;
+            if (shift == 2)
+                hue = 15 / 360;
+            if (shift == 3)
+                hue = 0.5;
+            let hsl = XOR.PaletteSystem.rgb2hsl(color);
+            hsl.x += hue;
+            return XOR.PaletteSystem.hsl2rgb(hsl);
+        }
+        /**
+         * negativeColor(color3)
+         * @param color RGB color with values 0 to 1
+         * @returns Vector3 representing 1 - color
+         */
+        negativeColor(color) {
+            return GTE.vec3(1.0 - color.x, 1.0 - color.y, 1.0 - color.z);
+        }
+        /**
+         * getHtmlColor(color: Vector3)
+         * @param color RGB color with values 0 to 1
+         * @returns string valid html color
+         */
+        getHtmlColor(color) {
+            let r = (GTE.clamp(color.x * 255.99, 0, 255) | 0).toString(16);
+            let g = (GTE.clamp(color.y * 255.99, 0, 255) | 0).toString(16);
+            let b = (GTE.clamp(color.z * 255.99, 0, 255) | 0).toString(16);
+            if (r.length % 2)
+                r = '0' + r;
+            if (g.length % 2)
+                g = '0' + g;
+            if (b.length % 2)
+                b = '0' + b;
+            return '#' + r + g + b;
+        }
+        /**
+         * setpalette(paletteIndex, colorIndex, color1, color2, colormix, color1hue, color2hue, negative)
+         * @param paletteIndex 0 to 15
+         * @param colorIndex 0 to 15
+         * @param color1 0 to 15
+         * @param color2 0 to 15
+         * @param colormix 0 to 7
+         * @param color1hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
+         * @param color2hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
+         * @param negative 0 = none, 1 = 1 - RGB
+         * @returns nothing
+         */
+        setpalette(paletteIndex, colorIndex, color1, color2, colormix, color1hue, color2hue, negative) {
+            let bits = this.calcBits(color1, color2, colormix, color1hue, color2hue, negative);
+            this.setpalettebits(paletteIndex, colorIndex, bits);
+        }
+        /**
+         * setpalettebits(paletteIndex, colorIndex, bits)
+         * @param paletteIndex 0 to 15
+         * @param colorIndex 0 to 15
+         * @param bits 16 bit number (0-3: color1, 4-7: color2, 8-10: mix, 9-11: color1 hue shift, 12-14: color2 hue shift, 15: negative)
+         * @returns nothing
+         */
+        setpalettebits(paletteIndex, colorIndex, bits) {
+            if (!isFinite(paletteIndex) || paletteIndex < 0 || paletteIndex > 15)
+                return;
+            if (!isFinite(colorIndex) || colorIndex < 0 || colorIndex > 15)
+                return;
+            this.xor.memory.POKE(this.xor.memory.PALETTESTART + paletteIndex * 16 + colorIndex, bits);
+        }
+        /**
+         * getpalette(paletteIndex, colorIndex)
+         * @param paletteIndex 0 - 15
+         * @param colorIndex 0 - 15
+         * @returns Vector3 color with RGB values 0 to 1
+         */
+        getpalette(paletteIndex, colorIndex) {
+            let bits = this.getpalettebits(paletteIndex, colorIndex);
+            return this.calcColorBits(bits);
+        }
+        /**
+         * getpalettebits(paletteIndex, colorIndex)
+         * @param paletteIndex 0 - 15
+         * @param colorIndex 0 - 15
+         * @returns integer representing 16-bit LibXOR color model
+         */
+        getpalettebits(paletteIndex, colorIndex) {
+            if (!isFinite(paletteIndex) || paletteIndex < 0 || paletteIndex > 15)
+                return 0;
+            if (!isFinite(colorIndex) || colorIndex < 0 || colorIndex > 15)
+                return 0;
+            return this.xor.memory.PEEK(this.xor.memory.PALETTESTART + paletteIndex * 16 + colorIndex);
+        }
+        static hue2rgb(f1, f2, hue) {
+            if (hue < 0.0)
+                hue += 1.0;
+            else if (hue > 1.0)
+                hue -= 1.0;
+            let res = 0.0;
+            if ((6.0 * hue) < 1.0)
+                res = f1 + (f2 - f1) * 6.0 * hue;
+            else if ((2.0 * hue) < 1.0)
+                res = f2;
+            else if ((3.0 * hue) < 2.0)
+                res = f1 + (f2 - f1) * ((2.0 / 3.0) - hue) * 6.0;
+            else
+                res = f1;
+            return res;
+        }
+        static hsl2rgb(hsl) {
+            if (hsl.y == 0.0) {
+                return GTE.vec3(hsl.z, hsl.z, hsl.z); // Luminance
+            }
+            else {
+                let f2;
+                if (hsl.z < 0.5)
+                    f2 = hsl.z * (1.0 + hsl.y);
+                else
+                    f2 = hsl.z + hsl.y - hsl.y * hsl.z;
+                let f1 = 2.0 * hsl.z - f2;
+                return GTE.vec3(XOR.PaletteSystem.hue2rgb(f1, f2, hsl.x + (1.0 / 3.0)), XOR.PaletteSystem.hue2rgb(f1, f2, hsl.x), XOR.PaletteSystem.hue2rgb(f1, f2, hsl.x - (1.0 / 3.0)));
+            }
+        }
+        static rgb2hsl(rgb) {
+            let cmin = Math.min(rgb.x, Math.min(rgb.y, rgb.z));
+            let cmax = Math.max(rgb.x, Math.max(rgb.y, rgb.z));
+            let diff = cmax - cmin;
+            let l = 0.5 * (cmin + cmax);
+            let s = 0.0;
+            let h = 0.0;
+            let r = rgb.x;
+            let g = rgb.y;
+            let b = rgb.z;
+            if (diff < 1.0 / 255.0) {
+                return GTE.vec3(h, s, l);
+            }
+            else {
+                if (l < 0.5) {
+                    s = diff / (cmax + cmin);
+                }
+                else {
+                    s = diff / (2.0 - cmax - cmin);
+                }
+                let r2 = (cmax - r) / diff;
+                let g2 = (cmax - g) / diff;
+                let b2 = (cmax - b) / diff;
+                if (r == cmax) {
+                    h = (g == cmin ? 5.0 + b2 : 1.0 - g2);
+                }
+                else if (g == cmax) {
+                    h = (b == cmin ? 1.0 + r2 : 3.0 - b2);
+                }
+                else {
+                    h = (r == cmin ? 3.0 + g2 : 5.0 - r2);
+                }
+                h /= 6.0;
+                if (h < 0.0)
+                    h += 1.0;
+                else if (h > 1.0)
+                    h -= 1.0;
+            }
+            return GTE.vec3(h, s, l);
+        }
+    }
+    XOR.PaletteSystem = PaletteSystem;
+})(XOR || (XOR = {}));
+/// <reference path="FxFBO.ts" />
+/// <reference path="FxRenderingContext.ts" />
+var Fluxions;
+(function (Fluxions) {
+    class FxFboSystem {
+        constructor(fx) {
+            this.fx = fx;
+            this._fbo = new Map();
+            this.currentFBO = null;
+        }
+        /**
+         * Returns null or the FBO referred to by name
+         * @param name The name of the FBO
+         */
+        get(name) {
+            return this._fbo.get(name) || null;
+        }
+        /**
+         * Creates a new FBO and adds it to the scene graph
+         * @param name The name of the FBO
+         * @param hasDepth Does the FBO have a depth attachment
+         * @param hasColor Does the FBO have a color attachment
+         * @param width The width of the FBO (should be power of two)
+         * @param height The height of the FBO (should be power of two)
+         * @param colorType 0 for gl.UNSIGNED_BYTE or 1 for gl.FLOAT
+         */
+        add(name, hasDepth, hasColor, width, height, colorType) {
+            this._fbo.set(name, new FxFBO(this.fx, hasDepth, hasColor, width, height, colorType));
+            return this.get(name);
+        }
+        /**
+         * autoresize
+         */
+        autoresize() {
+            let fx = this.fx;
+            this._fbo.forEach((fbo) => {
+                if (fbo.width != fx.width || fbo.height != fx.height) {
+                    fbo.autoResize(fx.width, fx.height);
+                }
+            });
+        }
+        restore() {
+            if (this.currentFBO) {
+                this.currentFBO.restore();
+                this.currentFBO = null;
+            }
+            else {
+                for (let fbo of this._fbo) {
+                    if (fbo[1].complete)
+                        fbo[1].unbindTextures();
+                }
+            }
+        }
+        configure(rc, startUnit = 11) {
+            if (rc.writeToFBO != "") {
+                let fbo = this.get(rc.writeToFBO);
+                if (fbo) {
+                    fbo.use(rc.clearWriteToFBO, rc.disableWriteToFBOColorWrites);
+                    this.currentFBO = fbo;
+                }
+            }
+            else {
+                let unit = startUnit;
+                for (let fbo of rc.readFromFBOs) {
+                    this.configureFBO(rc, fbo, unit, unit + 1);
+                    unit += 2;
+                }
+            }
+        }
+        configureFBO(rc, name, colorUnit, depthUnit) {
+            const colorUniform = name + "Color";
+            const depthUniform = name + "Depth";
+            const resolutionUnifom = name + "Resolution";
+            const usingUniform = "Using" + name;
+            let fbo = this._fbo.get(name) || null;
+            if (!fbo)
+                return;
+            rc.uniform2f(resolutionUnifom, fbo.dimensions);
+            rc.uniform1i(usingUniform, rc.writesToFBO ? 1 : 0);
+            if (!rc.writesToFBO && fbo.complete) {
+                fbo.bindTextures(colorUnit, depthUnit);
+                if (fbo.color)
+                    rc.uniform1i(colorUniform, colorUnit);
+                if (fbo.depth)
+                    rc.uniform1i(depthUniform, depthUnit);
+            }
+            else {
+                rc.uniform1i(colorUniform, 0);
+                rc.uniform1i(depthUniform, 0);
+            }
+        }
+    }
+    Fluxions.FxFboSystem = FxFboSystem;
+})(Fluxions || (Fluxions = {}));
+/// <reference path="./FxRenderingContext.ts" />
+/// <reference path="../LibXOR.ts" />
+var Fluxions;
+(function (Fluxions) {
+    class FxTextureSystem {
+        /**
+         *
+         * @param {FxRenderingContext} fx The rendering context
+         */
+        constructor(fx) {
+            this.fx = fx;
+            this._textures = new Map();
+            this.imagefiles = [];
+            let gl = fx.gl;
+            let tex2D = gl.createTexture();
+            let texCube = gl.createTexture();
+            if (!texCube || !tex2D) {
+                throw TypeError("texCube or tex2D is not valid");
+            }
+            let pixels = new ImageData(new Uint8ClampedArray([0, 0, 0, 255, 255, 255, 255, 255, 0, 0, 0, 255, 255, 255, 255, 255]), 2, 2);
+            gl.bindTexture(gl.TEXTURE_2D, tex2D);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, pixels);
+            //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 2, 2, 0, gl.RGB, gl.UNSIGNED_BYTE, pixels);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.generateMipmap(gl.TEXTURE_2D);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            let xppixels = new ImageData(new Uint8ClampedArray([127, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 127, 0, 0, 255]), 2, 2);
+            let xnpixels = new ImageData(new Uint8ClampedArray([0, 127, 127, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 127, 127, 255]), 2, 2);
+            let yppixels = new ImageData(new Uint8ClampedArray([0, 127, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 127, 0, 255]), 2, 2);
+            let ynpixels = new ImageData(new Uint8ClampedArray([127, 0, 127, 255, 255, 0, 255, 255, 255, 0, 255, 255, 127, 0, 127, 255]), 2, 2);
+            let zppixels = new ImageData(new Uint8ClampedArray([0, 0, 127, 255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 127, 255]), 2, 2);
+            let znpixels = new ImageData(new Uint8ClampedArray([127, 127, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 127, 127, 0, 255]), 2, 2);
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, texCube);
+            gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, xnpixels);
+            gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, ynpixels);
+            gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, znpixels);
+            gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, xppixels);
+            gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, yppixels);
+            gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, zppixels);
+            gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+            this._default2D = new Fluxions.FxTexture(this.fx, "__texture2D__", "", WebGLRenderingContext.TEXTURE_2D, tex2D);
+            this._defaultCube = new Fluxions.FxTexture(this.fx, "__textureCube__", "", gl.TEXTURE_CUBE_MAP, texCube);
+            this._textures.set("__texture2D__", this._default2D);
+            this._textures.set("__textureCube__", this._defaultCube);
+        }
+        has(name) {
+            if (this._textures.has(name))
+                return true;
+            return false;
+        }
+        get(name) {
+            let t = this._textures.get(name);
+            if (t)
+                return t;
+            return null;
+        }
+        /**
+         *
+         * @param {string} name name of the texture
+         * @param {FxTexture} value
+         */
+        set(name, value) {
+            this._textures.set(name, value);
+        }
+        get loaded() {
+            for (let i of this.imagefiles) {
+                if (!i.loaded)
+                    return false;
+            }
+            return true;
+        }
+        get failed() {
+            for (let i of this.imagefiles) {
+                if (i.failed)
+                    return true;
+            }
+            return false;
+        }
+        get length() {
+            return this.imagefiles.length;
+        }
+        get percentLoaded() {
+            let a = 0;
+            for (let i of this.imagefiles) {
+                if (i.loaded)
+                    a++;
+            }
+            return 100.0 * a / this.imagefiles.length;
+        }
+        /**
+         * @param {string} name the key to find this texture
+         * @param {string} url  the url to load this texture
+         */
+        load(name, url) {
+            if (this._textures.has(name))
+                return;
+            let self = this;
+            let tname = name;
+            this.imagefiles.push(new XOR.ImageFileLoader(url, (data, name) => {
+                self.processTextureMap(data, tname);
+                hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + tname);
+            }));
+        }
+        wasRequested(name) {
+            for (let img of this.imagefiles) {
+                if (img.name == name)
+                    return true;
+            }
+            return false;
+        }
+        processTextureMap(image, name) {
+            let gl = this.fx.gl;
+            let minFilter = gl.NEAREST;
+            let magFilter = gl.NEAREST;
+            let maxAnisotropy = 1.0;
+            let ext = this.fx.getExtension("EXT_texture_filter_anisotropic");
+            if (ext) {
+                let maxAnisotropy = gl.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+            }
+            else {
+                hflog.debug("cannot use anisotropic filtering");
+            }
+            if (image.width == 6 * image.height) {
+                let images = new Array(6);
+                XOR.SeparateCubeMapImages(image, images);
+                let texture = gl.createTexture();
+                if (texture) {
+                    gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+                    for (let i = 0; i < 6; i++) {
+                        if (!images[i]) {
+                            continue;
+                        }
+                        else {
+                            hflog.debug("image " + i + " w:" + images[i].width + "/h:" + images[i].height);
+                        }
+                        gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[i]);
+                    }
+                    gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+                    let t = new Fluxions.FxTexture(this.fx, name, name, gl.TEXTURE_CUBE_MAP, texture);
+                    this.fx.textures.set(name, t);
+                }
+            }
+            else {
+                let texture = gl.createTexture();
+                if (texture) {
+                    gl.bindTexture(gl.TEXTURE_2D, texture);
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                    gl.generateMipmap(gl.TEXTURE_2D);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
+                    if (ext) {
+                        gl.texParameterf(gl.TEXTURE_2D, ext.TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy);
+                    }
+                    let t = new Fluxions.FxTexture(this.fx, name, name, gl.TEXTURE_2D, texture);
+                    this.fx.textures.set(name, t);
+                }
+            }
+        }
+    }
+    Fluxions.FxTextureSystem = FxTextureSystem;
+})(Fluxions || (Fluxions = {}));
+/// <reference path="FxRenderingContext.ts" />
+var Fluxions;
+(function (Fluxions) {
+    class FxTextureUniform {
+        /**
+         *
+         * @param {string} textureName The name of the textures from the fx.textures[] array
+         * @param {string} uniformName The name of the uniform to apply this texture to
+         * @param {string} samplerName The name of the sampler params to apply (default "")
+         */
+        constructor(textureName, uniformName, samplerName = "") {
+            this.textureName = textureName;
+            this.uniformName = uniformName;
+            this.samplerName = samplerName;
+            this.texture = null;
+            this.sampler = null;
+        }
+        getTexture(fx) {
+            if (this.texture)
+                return this.texture;
+            let t = fx.textures.get(this.textureName);
+            if (t) {
+                this.texture = t.texture;
+            }
+            return this.texture;
+        }
+    }
+    Fluxions.FxTextureUniform = FxTextureUniform;
+})(Fluxions || (Fluxions = {}));
+// LibXOR Library
+// Copyright (c) 2017 - 2018 Jonathan Metzgar
+// All Rights Reserved.
+//
+// MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+/// <reference path="Fluxions.ts"/>
+/// <reference path="FxTextureUniform.ts" />
+var Fluxions;
+(function (Fluxions) {
+    class FxRenderConfig {
+        constructor(fx) {
+            this.fx = fx;
+            this._isCompiled = false;
+            this._isLinked = false;
+            this._vertShader = null;
+            this._fragShader = null;
+            this._program = null;
+            this._vertShaderSource = "";
+            this._fragShaderSource = "";
+            this._vertShaderInfoLog = "";
+            this._fragShaderInfoLog = "";
+            this._vertShaderCompileStatus = false;
+            this._fragShaderCompileStatus = false;
+            this._programInfoLog = "";
+            this._programLinkStatus = false;
+            this.uniforms = new Map();
+            this.uniformInfo = new Map();
+            this.useDepthTest = true;
+            this.depthTest = WebGLRenderingContext.LESS;
+            this.depthMask = true;
+            this.useBlending = false;
+            this.blendSrcFactor = WebGLRenderingContext.ONE;
+            this.blendDstFactor = WebGLRenderingContext.ZERO;
+            this.useStencilTest = false;
+            this.stencilFunc = WebGLRenderingContext.ALWAYS;
+            this.stencilFuncRef = 0.0;
+            this.stencilMask = 1;
+            this.renderShadowMap = false;
+            this.renderGBuffer = false;
+            this.renderImage = false;
+            this.renderEdges = false;
+            this.writesToFBO = false;
+            this.writeToFBO = "";
+            this.clearWriteToFBO = true;
+            this.disableWriteToFBOColorWrites = false;
+            this.readFromFBOs = [];
+            this.textures = [];
+            this._texturesBound = 0;
+        }
+        get usable() { return this.isCompiledAndLinked(); }
+        isCompiledAndLinked() {
+            if (this._isCompiled && this._isLinked)
+                return true;
+            return false;
+        }
+        use() {
+            let fx = this.fx;
+            let gl = this.fx.gl;
+            gl.useProgram(this._program);
+            if (this.useDepthTest) {
+                gl.enable(gl.DEPTH_TEST);
+                gl.depthFunc(this.depthTest);
+            }
+            if (this.useBlending) {
+                gl.enable(gl.BLEND);
+                gl.blendFunc(this.blendSrcFactor, this.blendDstFactor);
+            }
+            if (this.useStencilTest) {
+                gl.enable(gl.STENCIL_TEST);
+                gl.stencilFunc(this.stencilFunc, this.stencilFuncRef, this.stencilMask);
+            }
+            gl.depthMask(this.depthMask);
+            let unit = 0;
+            for (let texture of this.textures) {
+                let u = this.uniforms.get(texture.uniformName);
+                if (!u)
+                    continue;
+                let t = fx.textures.get(texture.textureName);
+                if (!t)
+                    continue;
+                gl.activeTexture(gl.TEXTURE0 + unit);
+                gl.bindTexture(t.target, t.texture);
+                gl.uniform1i(u, unit);
+                unit++;
+            }
+            this._texturesBound = unit;
+            this.fx.fbos.configure(this, unit);
+        }
+        restore() {
+            let gl = this.fx.gl;
+            gl.useProgram(null);
+            if (this.useDepthTest) {
+                gl.disable(gl.DEPTH_TEST);
+                gl.depthFunc(gl.LESS);
+            }
+            if (this.useBlending) {
+                gl.disable(gl.BLEND);
+                gl.blendFunc(gl.ONE, gl.ZERO);
+            }
+            if (this.useStencilTest) {
+                gl.disable(gl.STENCIL_TEST);
+                gl.stencilFunc(gl.ALWAYS, 0, 1);
+            }
+            gl.depthMask(true);
+            for (let i = 0; i < this._texturesBound; i++) {
+                gl.activeTexture(gl.TEXTURE0 + i);
+                gl.bindTexture(gl.TEXTURE_2D, null);
+                gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+            }
+            this.fx.fbos.restore();
+        }
+        uniformMatrix4f(uniformName, m) {
+            let gl = this.fx.gl;
+            if (!this._program)
+                return;
+            let location = gl.getUniformLocation(this._program, uniformName);
+            if (location != null) {
+                gl.uniformMatrix4fv(location, false, m.toColMajorArray());
+            }
+        }
+        uniform1i(uniformName, x) {
+            let gl = this.fx.gl;
+            if (!this._program)
+                return;
+            let location = gl.getUniformLocation(this._program, uniformName);
+            if (location != null) {
+                gl.uniform1i(location, x);
+            }
+        }
+        uniform1f(uniformName, x) {
+            let gl = this.fx.gl;
+            if (!this._program)
+                return;
+            let location = gl.getUniformLocation(this._program, uniformName);
+            if (location != null) {
+                gl.uniform1f(location, x);
+            }
+        }
+        uniform2f(uniformName, v) {
+            let gl = this.fx.gl;
+            if (!this._program)
+                return;
+            let location = gl.getUniformLocation(this._program, uniformName);
+            if (location != null) {
+                gl.uniform2fv(location, v.toFloat32Array());
+            }
+        }
+        uniform3f(uniformName, v) {
+            let gl = this.fx.gl;
+            if (!this._program)
+                return;
+            let location = gl.getUniformLocation(this._program, uniformName);
+            if (location != null) {
+                gl.uniform3fv(location, v.toFloat32Array());
+            }
+        }
+        uniform4f(uniformName, v) {
+            let gl = this.fx.gl;
+            if (!this._program)
+                return;
+            let location = gl.getUniformLocation(this._program, uniformName);
+            if (location) {
+                gl.uniform4fv(location, v.toFloat32Array());
+            }
+        }
+        getAttribLocation(name) {
+            let gl = this.fx.gl;
+            if (!gl)
+                return -1;
+            if (!this._program)
+                return -1;
+            return gl.getAttribLocation(this._program, name);
+        }
+        getUniformLocation(name) {
+            let gl = this.fx.gl;
+            if (!gl)
+                return null;
+            if (!this._program)
+                return null;
+            let uloc = gl.getUniformLocation(this._program, name);
+            if (!uloc)
+                return null;
+            return uloc;
+        }
+        compile(vertShaderSource, fragShaderSource) {
+            let gl = this.fx.gl;
+            let vertShader = gl.createShader(gl.VERTEX_SHADER);
+            if (vertShader) {
+                gl.shaderSource(vertShader, vertShaderSource);
+                gl.compileShader(vertShader);
+                let status = gl.getShaderParameter(vertShader, gl.COMPILE_STATUS);
+                let infoLog = null;
+                if (!status) {
+                    infoLog = gl.getShaderInfoLog(vertShader);
+                    hflog.error("VERTEX SHADER COMPILE ERROR:");
+                    hflog.error(infoLog ? infoLog : "");
+                    hflog.error("--------------------------------------------");
+                    let errorElement = document.getElementById("errors");
+                    if (!errorElement && infoLog) {
+                        let newDiv = document.createElement("div");
+                        newDiv.appendChild(document.createTextNode("Vertex shader info log"));
+                        newDiv.appendChild(document.createElement("br"));
+                        newDiv.appendChild(document.createTextNode(infoLog));
+                        let pre = document.createElement("pre");
+                        pre.textContent = this._vertShaderSource;
+                        pre.style.width = "50%";
+                        newDiv.appendChild(pre);
+                        document.body.appendChild(newDiv);
+                    }
+                }
+                if (status)
+                    this._vertShaderCompileStatus = true;
+                if (infoLog)
+                    this._vertShaderInfoLog = infoLog;
+                this._vertShader = vertShader;
+            }
+            else {
+                return false;
+            }
+            let fragShader = gl.createShader(gl.FRAGMENT_SHADER);
+            if (fragShader) {
+                gl.shaderSource(fragShader, fragShaderSource);
+                gl.compileShader(fragShader);
+                let status = gl.getShaderParameter(fragShader, gl.COMPILE_STATUS);
+                let infoLog = null;
+                if (!status) {
+                    infoLog = gl.getShaderInfoLog(fragShader);
+                    hflog.error("FRAGMENT SHADER COMPILE ERROR:");
+                    hflog.error(infoLog ? infoLog : "");
+                    hflog.error("--------------------------------------------");
+                    let errorElement = document.getElementById("errors");
+                    if (!errorElement && infoLog) {
+                        let newDiv = document.createElement("div");
+                        newDiv.appendChild(document.createTextNode("Fragment shader info log"));
+                        newDiv.appendChild(document.createElement("br"));
+                        newDiv.appendChild(document.createTextNode(infoLog));
+                        let pre = document.createElement("pre");
+                        pre.textContent = this._fragShaderSource;
+                        pre.style.width = "50%";
+                        newDiv.appendChild(pre);
+                        document.body.appendChild(newDiv);
+                    }
+                }
+                if (status)
+                    this._fragShaderCompileStatus = true;
+                if (infoLog)
+                    this._fragShaderInfoLog = infoLog;
+                this._fragShader = fragShader;
+            }
+            else {
+                return false;
+            }
+            if (this._vertShaderCompileStatus && this._fragShaderCompileStatus) {
+                this._isCompiled = true;
+                this._program = gl.createProgram();
+                if (this._program) {
+                    gl.attachShader(this._program, this._vertShader);
+                    gl.attachShader(this._program, this._fragShader);
+                    gl.linkProgram(this._program);
+                    if (gl.getProgramParameter(this._program, gl.LINK_STATUS)) {
+                        this._programLinkStatus = true;
+                        this._isLinked = true;
+                    }
+                    else {
+                        this._programLinkStatus = false;
+                        let infoLog = gl.getProgramInfoLog(this._program);
+                        console.error("PROGRAM LINK ERROR:");
+                        console.error(infoLog);
+                        console.error("--------------------------------------------");
+                        if (infoLog) {
+                            this._programInfoLog = infoLog;
+                            let errorElement = document.getElementById("errors");
+                            if (!errorElement && infoLog) {
+                                let newDiv = document.createElement("div");
+                                newDiv.appendChild(document.createTextNode("PROGRAM INFO LOG"));
+                                newDiv.appendChild(document.createElement("br"));
+                                newDiv.appendChild(document.createTextNode(infoLog));
+                                document.body.appendChild(newDiv);
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                return false;
+            }
+            this.updateActiveUniforms();
+            return true;
+        }
+        updateActiveUniforms() {
+            let gl = this.fx.gl;
+            if (!this._program)
+                return false;
+            let numUniforms = gl.getProgramParameter(this._program, gl.ACTIVE_UNIFORMS);
+            this.uniforms.clear();
+            this.uniformInfo.clear();
+            for (let i = 0; i < numUniforms; i++) {
+                let uniform = gl.getActiveUniform(this._program, i);
+                if (!uniform)
+                    continue;
+                this.uniformInfo.set(uniform.name, uniform);
+                this.uniforms.set(uniform.name, gl.getUniformLocation(this._program, uniform.name));
+            }
+            return true;
+        }
+        addTexture(textureName, uniformName) {
+            this.textures.push(new Fluxions.FxTextureUniform(textureName, uniformName));
+        }
+        clearTextures() {
+            this.textures = [];
+        }
+    }
+    Fluxions.FxRenderConfig = FxRenderConfig;
+})(Fluxions || (Fluxions = {}));
+/// <reference path="FxRenderConfig.ts" />
+var Fluxions;
+(function (Fluxions) {
+    class FxRenderConfigSystem {
+        constructor(fx) {
+            this.fx = fx;
+            this.renderconfigs = new Map();
+        }
+        create(name) {
+            if (!this.fx)
+                throw "Fluxions is not initialized";
+            let rc = new Fluxions.FxRenderConfig(this.fx);
+            this.renderconfigs.set(name, rc);
+            return rc;
+        }
+        load(name, vshaderUrl, fshaderUrl) {
+            let rc = new Fluxions.FxRenderConfig(this.fx);
+            this.renderconfigs.set(name, rc);
+            let sl = new XOR.ShaderLoader(vshaderUrl, fshaderUrl, (vsource, fsource) => {
+                rc.compile(vsource, fsource);
+                hflog.log("Loaded " + vshaderUrl + " and " + fshaderUrl);
+            });
+            return rc;
+        }
+        use(name) {
+            if (!this.fx)
+                throw "Fluxions is not initialized";
+            if (!name) {
+                this.fx.gl.useProgram(null);
+            }
+            else if (this.renderconfigs.has(name)) {
+                let rc = this.renderconfigs.get(name);
+                if (rc) {
+                    rc.use();
+                    return rc;
+                }
+            }
+            return null;
+        }
+    }
+    Fluxions.FxRenderConfigSystem = FxRenderConfigSystem;
+})(Fluxions || (Fluxions = {}));
 /// <reference path="Fluxions.ts" />
+/// <reference path="FxFboSystem.ts" />
+/// <reference path="FxTextureSystem.ts" />
+/// <reference path="FxRenderConfigSystem.ts" />
+var Fluxions;
+(function (Fluxions) {
+    class FxRenderingContext {
+        constructor(xor) {
+            this.xor = xor;
+            this.enabledExtensions = new Map();
+            this._visible = false;
+            this._resized = true;
+            if (!xor.graphics.gl)
+                throw "Unable to start Fluxions without valid gl context";
+            this.gl = xor.graphics.gl;
+            this.textures = new Fluxions.FxTextureSystem(this);
+            this.fbos = new Fluxions.FxFboSystem(this);
+            let debugInfo = this.gl.getExtension('WEBGL_debug_renderer_info');
+            if (debugInfo) {
+                let vendor = this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+                let renderer = this.gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                hflog.log(vendor);
+                hflog.log(renderer);
+            }
+            this.enableExtensions([
+                "EXT_texture_filter_anisotropic",
+                "WEBGL_depth_texture",
+                "WEBGL_debug_renderer_info",
+                "OES_element_index_uint",
+                "OES_standard_derivatives",
+                "OES_texture_float_linear",
+                "OES_texture_float",
+            ]);
+            let standardDerivatives = this.gl.getExtension('OES_standard_derivatives');
+            if (standardDerivatives) {
+                this.gl.hint(standardDerivatives.FRAGMENT_SHADER_DERIVATIVE_HINT_OES, this.gl.NICEST);
+            }
+            this.scenegraph = new Fluxions.FxScenegraph(this);
+            this.renderconfigs = new Fluxions.FxRenderConfigSystem(this);
+        }
+        get width() { return this.xor.graphics.width; }
+        get height() { return this.xor.graphics.height; }
+        get aspectRatio() { return this.width / this.height; }
+        // get visible(): boolean {
+        //     return this._visible;
+        // }
+        // get canvas(): HTMLCanvasElement {
+        //     if (!this.canvasElement_)
+        //         return new HTMLCanvasElement();
+        //     return this.canvasElement_;
+        // }
+        // ...
+        enableExtensions(names) {
+            let supportedExtensions = this.gl.getSupportedExtensions();
+            if (!supportedExtensions)
+                return false;
+            let allFound = true;
+            for (let name of names) {
+                let found = false;
+                for (let ext of supportedExtensions) {
+                    if (name == ext) {
+                        this.enabledExtensions.set(name, this.gl.getExtension(name));
+                        hflog.log("Extension " + name + " enabled");
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    hflog.log("Extension " + name + " not enabled");
+                    allFound = false;
+                    break;
+                }
+            }
+            return allFound;
+        }
+        getExtension(name) {
+            if (this.enabledExtensions.has(name)) {
+                return this.enabledExtensions.get(name);
+            }
+            return null;
+        }
+        update() {
+            return;
+            // if (this._resized) {
+            //     this._resized = false;
+            //     let w = (window.innerWidth) | 0;
+            //     let h = (w / this.aspectRatio) | 0;
+            //     this.canvas.width = w;
+            //     this.canvas.height = h;
+            //     this.width = w;
+            //     this.height = h;
+            // }
+        }
+    }
+    Fluxions.FxRenderingContext = FxRenderingContext;
+})(Fluxions || (Fluxions = {}));
+/// <reference path="../GTE/GTE.ts" />
+/// <reference path="FxRenderingContext.ts" />
 class FxFBO {
     constructor(_renderingContext, depth, color, width = 512, height = 512, colorType = 0, colorUnit = 11, depthUnit = 12, shouldAutoResize = false) {
         this._renderingContext = _renderingContext;
@@ -1945,217 +4019,235 @@ class FxFBO {
         return "Unknown error: " + status;
     }
 }
-class FxCamera {
-    constructor() {
-        this._transform = Matrix4.makeIdentity();
-        this._center = new Vector3();
-        this._eye = new Vector3(0.0, 0.0, 10.0);
-        this._angleOfView = 45.0;
-        this._aspectRatio = 1.0;
-        this._znear = 1.0;
-        this._zfar = 100.0;
-        this.projection = Matrix4.makePerspectiveY(this._angleOfView, this._aspectRatio, this._znear, this._zfar);
-        this.pretransform = Matrix4.makeIdentity();
-        this.posttransform = Matrix4.makeIdentity();
-    }
-    get transform() { return Matrix4.multiply3(this.pretransform, this._transform, this.posttransform); }
-    get rotatetransform() {
-        let M = this.transform;
-        M.m14 = 0.0;
-        M.m24 = 0.0;
-        M.m34 = 0.0;
-        return M;
-    }
-    set aspectRatio(ar) {
-        this._aspectRatio = Math.max(0.001, ar);
-        this.projection = Matrix4.makePerspectiveY(this._angleOfView, this._aspectRatio, this._znear, this._zfar);
-    }
-    set angleOfView(angleInDegrees) {
-        this._angleOfView = Math.max(1.0, angleInDegrees);
-        this.projection = Matrix4.makePerspectiveY(this._angleOfView, this._aspectRatio, this._znear, this._zfar);
-    }
-    set zfar(z) {
-        this._zfar = Math.max(z, 0.001);
-        let znear = Math.min(this._znear, this._zfar);
-        let zfar = Math.max(this._znear, this._zfar);
-        this._znear = znear;
-        this._zfar = zfar;
-        this.projection = Matrix4.makePerspectiveY(this._angleOfView, this._aspectRatio, this._znear, this._zfar);
-    }
-    set znear(z) {
-        this._znear = Math.max(z, 0.001);
-        let znear = Math.min(this._znear, this._zfar);
-        let zfar = Math.max(this._znear, this._zfar);
-        this._znear = znear;
-        this._zfar = zfar;
-        this.projection = Matrix4.makePerspectiveY(this._angleOfView, this._aspectRatio, this._znear, this._zfar);
-    }
-    get position() {
-        return this._transform.col3(3);
-    }
-    get right() {
-        return this._transform.col3(0);
-    }
-    get left() {
-        return this._transform.col3(0).negate();
-    }
-    get up() {
-        return this._transform.col3(1);
-    }
-    get down() {
-        return this._transform.col3(1).negate();
-    }
-    get forward() {
-        return this._transform.col3(2);
-    }
-    get backward() {
-        return this._transform.col3(2).negate();
-    }
-    get eye() {
-        return this._transform.asInverse().row3(3);
-    }
-    set eye(p) {
-        this._eye = p.clone();
-        this._transform = Matrix4.makeLookAt(this._eye, this._center, this.up);
-        this._eye = this._transform.col3(3);
-    }
-    set center(p) {
-        this._center = p;
-        this._transform.lookAt(this._eye, this._center, this.up);
-    }
-    moveTo(position) {
-        this._transform.m14 = position.x;
-        this._transform.m24 = position.y;
-        this._transform.m34 = position.z;
-    }
-    move(delta) {
-        let tx = this.right.mul(delta.x);
-        let ty = this.up.mul(delta.y);
-        let tz = this.forward.mul(delta.z);
-        this._transform.translate(tx.x, tx.y, tx.z);
-        this._transform.translate(ty.x, ty.y, ty.z);
-        this._transform.translate(tz.x, tz.y, tz.z);
-        return this.position;
-    }
-    turn(delta) {
-        let m = Matrix4.makeIdentity();
-        m.rotate(delta.x, 1, 0, 0);
-        m.rotate(delta.y, 0, 1, 0);
-        m.rotate(delta.z, 0, 0, 1);
-        this._transform.multMatrix(m);
-    }
-    setOrbit(azimuthInDegrees, pitchInDegrees, distance) {
-        this._transform.loadIdentity();
-        this._transform.rotate(azimuthInDegrees, 0.0, 1.0, 0.0);
-        this._transform.rotate(pitchInDegrees, 1.0, 0.0, 0.0);
-        this._transform.translate(0.0, 0.0, -distance);
-        return this._transform.clone();
-    }
-}
-/// <reference path="Fluxions.ts" />
-class FxTexture {
-    constructor(fx, name, url, target, texture) {
-        this.fx = fx;
-        this.name = name;
-        this.url = url;
-        this.target = target;
-        this.texture = texture;
-        this.id = "";
-    }
-}
-/// <reference path="Fluxions.ts" />
-class FxMaterial {
-    constructor(name) {
-        this.name = name;
-        this.Kd = Vector3.make(0.8, 0.8, 0.8);
-        this.Ka = Vector3.make(0.2, 0.2, 0.2);
-        this.Ks = Vector3.make(1.0, 1.0, 1.0);
-        this.map_Kd_mix = 0.0;
-        this.map_Kd = "";
-        this.map_Ks_mix = 0.0;
-        this.map_Ks = "";
-        this.map_normal_mix = 0.0;
-        this.map_normal = "";
-        this.PBKsm = 0;
-        this.PBKdm = 0;
-        this.PBn2 = 1.333;
-        this.PBk2 = 0;
-        this.minFilter = 0;
-        this.magFilter = 0;
-    }
-}
-class FxDirectionalLight {
-    constructor() {
-        this._direction = new Vector3(0.34816, 0.87039, 0.34816);
-        this._center = new Vector3();
-        this._eye = new Vector3();
-        this._distance = 5.0;
-        this._zfar = 100.0;
-        this._znear = 1.0;
-        this._E0 = new Vector3(100000, 100000, 100000);
-        this._transform = Matrix4.makeIdentity();
-        this._isOrbit = false;
-        this._zoom = 1.0;
-        this._offset = new Vector2(0.0, 0.0);
-    }
-    set distance(d) {
-        this._distance = d;
-        this._znear = -d + 1.0;
-        this._zfar = d + 1.0;
-    }
-    set direction(v) {
-        this._direction = v.norm();
-        this._eye = this._center.add(this._direction.mul(this._distance));
-        this._isOrbit = false;
-    }
-    get direction() {
-        if (this._isOrbit) {
-            let v1 = new Vector4(0.0, 0.0, 0.0, 1.0);
-            let v1p = this._transform.transform(v1).toVector3();
-            return this._transform.asInverse().row3(3);
-            let v2 = new Vector4(1.0, 0.0, 0.0, 1.0);
-            let v2p = this._transform.transform(v2).toVector3();
-            return v2p.sub(v1p);
+/// <reference path="../GTE/GTE.ts" />
+var Fluxions;
+(function (Fluxions) {
+    class FxCamera {
+        constructor() {
+            this._transform = Matrix4.makeIdentity();
+            this._center = new Vector3();
+            this._eye = new Vector3(0.0, 0.0, 10.0);
+            this._angleOfView = 45.0;
+            this._aspectRatio = 1.0;
+            this._znear = 1.0;
+            this._zfar = 100.0;
+            this.projection = Matrix4.makePerspectiveY(this._angleOfView, this._aspectRatio, this._znear, this._zfar);
+            this.pretransform = Matrix4.makeIdentity();
+            this.posttransform = Matrix4.makeIdentity();
         }
-        return this._direction.clone();
-    }
-    set center(location) {
-        this._center = location.clone();
-        this._eye = this._center.add(this._direction.mul(this._distance));
-    }
-    set E0(color) {
-        this._E0.copy(color);
-    }
-    get E0() {
-        return this._E0.clone();
-    }
-    setOrbit(azimuthInDegrees, pitchInDegrees, distance) {
-        this._transform.loadIdentity();
-        this._transform.rotate(azimuthInDegrees, 0.0, 1.0, 0.0);
-        this._transform.rotate(pitchInDegrees, 1.0, 0.0, 0.0);
-        this._transform.translate(0.0, 0.0, -distance);
-        this._isOrbit = true;
-        return this._transform.clone();
-    }
-    get lightMatrix() {
-        if (this._isOrbit == true)
+        get transform() { return Matrix4.multiply3(this.pretransform, this._transform, this.posttransform); }
+        get rotatetransform() {
+            let M = this.transform;
+            M.m14 = 0.0;
+            M.m24 = 0.0;
+            M.m34 = 0.0;
+            return M;
+        }
+        set aspectRatio(ar) {
+            this._aspectRatio = Math.max(0.001, ar);
+            this.projection = Matrix4.makePerspectiveY(this._angleOfView, this._aspectRatio, this._znear, this._zfar);
+        }
+        set angleOfView(angleInDegrees) {
+            this._angleOfView = Math.max(1.0, angleInDegrees);
+            this.projection = Matrix4.makePerspectiveY(this._angleOfView, this._aspectRatio, this._znear, this._zfar);
+        }
+        set zfar(z) {
+            this._zfar = Math.max(z, 0.001);
+            let znear = Math.min(this._znear, this._zfar);
+            let zfar = Math.max(this._znear, this._zfar);
+            this._znear = znear;
+            this._zfar = zfar;
+            this.projection = Matrix4.makePerspectiveY(this._angleOfView, this._aspectRatio, this._znear, this._zfar);
+        }
+        set znear(z) {
+            this._znear = Math.max(z, 0.001);
+            let znear = Math.min(this._znear, this._zfar);
+            let zfar = Math.max(this._znear, this._zfar);
+            this._znear = znear;
+            this._zfar = zfar;
+            this.projection = Matrix4.makePerspectiveY(this._angleOfView, this._aspectRatio, this._znear, this._zfar);
+        }
+        get position() {
+            return this._transform.col3(3);
+        }
+        get right() {
+            return this._transform.col3(0);
+        }
+        get left() {
+            return this._transform.col3(0).negate();
+        }
+        get up() {
+            return this._transform.col3(1);
+        }
+        get down() {
+            return this._transform.col3(1).negate();
+        }
+        get forward() {
+            return this._transform.col3(2);
+        }
+        get backward() {
+            return this._transform.col3(2).negate();
+        }
+        get eye() {
+            return this._transform.asInverse().row3(3);
+        }
+        set eye(p) {
+            this._eye = p.clone();
+            this._transform = Matrix4.makeLookAt(this._eye, this._center, this.up);
+            this._eye = this._transform.col3(3);
+        }
+        set center(p) {
+            this._center = p;
+            this._transform.lookAt(this._eye, this._center, this.up);
+        }
+        moveTo(position) {
+            this._transform.m14 = position.x;
+            this._transform.m24 = position.y;
+            this._transform.m34 = position.z;
+        }
+        move(delta) {
+            let tx = this.right.mul(delta.x);
+            let ty = this.up.mul(delta.y);
+            let tz = this.forward.mul(delta.z);
+            this._transform.translate(tx.x, tx.y, tx.z);
+            this._transform.translate(ty.x, ty.y, ty.z);
+            this._transform.translate(tz.x, tz.y, tz.z);
+            return this.position;
+        }
+        turn(delta) {
+            let m = Matrix4.makeIdentity();
+            m.rotate(delta.x, 1, 0, 0);
+            m.rotate(delta.y, 0, 1, 0);
+            m.rotate(delta.z, 0, 0, 1);
+            this._transform.multMatrix(m);
+        }
+        setOrbit(azimuthInDegrees, pitchInDegrees, distance) {
+            this._transform.loadIdentity();
+            this._transform.rotate(azimuthInDegrees, 0.0, 1.0, 0.0);
+            this._transform.rotate(pitchInDegrees, 1.0, 0.0, 0.0);
+            this._transform.translate(0.0, 0.0, -distance);
             return this._transform.clone();
-        return Matrix4.makeLookAt2(this._direction.mul(this._distance), new Vector3(0.0), new Vector3(0.0, 1.0, 0.0));
-        this._eye = this._center.add(this._direction.mul(this._distance));
-        return Matrix4.makeLookAt(this._eye, this._center, new Vector3(0.0, 1.0, 0.0));
+        }
     }
-    get projectionMatrix() {
-        let size = this._distance;
-        // this._znear = -50.0;
-        // this._zfar = 50.0;
-        //return Matrix4.makePerspectiveX(90.0, 1.0, 0.1, 100.0);
-        return Matrix4.makeOrtho(-size, size, -size, size, -size * 2, size * 2);
-        // return Matrix4.makeOrtho(
-        //     this._zoom * (-size + this._offset.x), this._zoom * (size + this._offset.x),
-        //     this._zoom * (-size + this._offset.y), this._zoom * (size + this._offset.y),
-        //     this._znear, this._zfar);
+    Fluxions.FxCamera = FxCamera;
+})(Fluxions || (Fluxions = {}));
+/// <reference path="Fluxions.ts" />
+var Fluxions;
+(function (Fluxions) {
+    class FxTexture {
+        constructor(fx, name, url, target, texture) {
+            this.fx = fx;
+            this.name = name;
+            this.url = url;
+            this.target = target;
+            this.texture = texture;
+            this.id = "";
+        }
     }
-}
+    Fluxions.FxTexture = FxTexture;
+})(Fluxions || (Fluxions = {}));
+/// <reference path="Fluxions.ts" />
+var Fluxions;
+(function (Fluxions) {
+    class FxMaterial {
+        constructor(name) {
+            this.name = name;
+            this.Kd = Vector3.make(0.8, 0.8, 0.8);
+            this.Ka = Vector3.make(0.2, 0.2, 0.2);
+            this.Ks = Vector3.make(1.0, 1.0, 1.0);
+            this.map_Kd_mix = 0.0;
+            this.map_Kd = "";
+            this.map_Ks_mix = 0.0;
+            this.map_Ks = "";
+            this.map_normal_mix = 0.0;
+            this.map_normal = "";
+            this.PBKsm = 0;
+            this.PBKdm = 0;
+            this.PBn2 = 1.333;
+            this.PBk2 = 0;
+            this.minFilter = 0;
+            this.magFilter = 0;
+        }
+    }
+    Fluxions.FxMaterial = FxMaterial;
+})(Fluxions || (Fluxions = {}));
+/// <reference path="../GTE/GTE.ts" />
+var Fluxions;
+(function (Fluxions) {
+    class DirectionalLight {
+        constructor() {
+            this._direction = new Vector3(0.34816, 0.87039, 0.34816);
+            this._center = new Vector3();
+            this._eye = new Vector3();
+            this._distance = 5.0;
+            this._zfar = 100.0;
+            this._znear = 1.0;
+            this._E0 = new Vector3(100000, 100000, 100000);
+            this._transform = Matrix4.makeIdentity();
+            this._isOrbit = false;
+            this._zoom = 1.0;
+            this._offset = new Vector2(0.0, 0.0);
+        }
+        set distance(d) {
+            this._distance = d;
+            this._znear = -d + 1.0;
+            this._zfar = d + 1.0;
+        }
+        set direction(v) {
+            this._direction = v.norm();
+            this._eye = this._center.add(this._direction.mul(this._distance));
+            this._isOrbit = false;
+        }
+        get direction() {
+            if (this._isOrbit) {
+                let v1 = new Vector4(0.0, 0.0, 0.0, 1.0);
+                let v1p = this._transform.transform(v1).toVector3();
+                return this._transform.asInverse().row3(3);
+                let v2 = new Vector4(1.0, 0.0, 0.0, 1.0);
+                let v2p = this._transform.transform(v2).toVector3();
+                return v2p.sub(v1p);
+            }
+            return this._direction.clone();
+        }
+        set center(location) {
+            this._center = location.clone();
+            this._eye = this._center.add(this._direction.mul(this._distance));
+        }
+        set E0(color) {
+            this._E0.copy(color);
+        }
+        get E0() {
+            return this._E0.clone();
+        }
+        setOrbit(azimuthInDegrees, pitchInDegrees, distance) {
+            this._transform.loadIdentity();
+            this._transform.rotate(azimuthInDegrees, 0.0, 1.0, 0.0);
+            this._transform.rotate(pitchInDegrees, 1.0, 0.0, 0.0);
+            this._transform.translate(0.0, 0.0, -distance);
+            this._isOrbit = true;
+            return this._transform.clone();
+        }
+        get lightMatrix() {
+            if (this._isOrbit == true)
+                return this._transform.clone();
+            return Matrix4.makeLookAt2(this._direction.mul(this._distance), new Vector3(0.0), new Vector3(0.0, 1.0, 0.0));
+            this._eye = this._center.add(this._direction.mul(this._distance));
+            return Matrix4.makeLookAt(this._eye, this._center, new Vector3(0.0, 1.0, 0.0));
+        }
+        get projectionMatrix() {
+            let size = this._distance;
+            // this._znear = -50.0;
+            // this._zfar = 50.0;
+            //return Matrix4.makePerspectiveX(90.0, 1.0, 0.1, 100.0);
+            return Matrix4.makeOrtho(-size, size, -size, size, -size * 2, size * 2);
+            // return Matrix4.makeOrtho(
+            //     this._zoom * (-size + this._offset.x), this._zoom * (size + this._offset.x),
+            //     this._zoom * (-size + this._offset.y), this._zoom * (size + this._offset.y),
+            //     this._znear, this._zfar);
+        }
+    }
+    Fluxions.DirectionalLight = DirectionalLight;
+})(Fluxions || (Fluxions = {}));
 class FxTextParser {
     constructor(data) {
         this.lines = [];
@@ -2241,6 +4333,809 @@ class FxTextParser {
         return [...v1, ...v2, ...v3];
     }
 }
+/// <reference path="../XOR/XorUtils.ts" />
+/// <reference path="Fluxions.ts" />
+/// <reference path="FxFBO.ts" />
+/// <reference path="FxCamera.ts" />
+/// <reference path="FxTexture.ts" />
+/// <reference path="FxMaterial.ts" />
+/// <reference path="FxDirectionalLight.ts" />
+/// <reference path="FxTextParser.ts" />
+/// <reference path="FxIndexedGeometryMesh.ts" />
+var Fluxions;
+(function (Fluxions) {
+    let FxSGAssetType;
+    (function (FxSGAssetType) {
+        FxSGAssetType[FxSGAssetType["Scene"] = 0] = "Scene";
+        FxSGAssetType[FxSGAssetType["GeometryGroup"] = 1] = "GeometryGroup";
+        FxSGAssetType[FxSGAssetType["MaterialLibrary"] = 2] = "MaterialLibrary";
+        FxSGAssetType[FxSGAssetType["ShaderProgram"] = 3] = "ShaderProgram";
+        FxSGAssetType[FxSGAssetType["Image"] = 4] = "Image";
+        FxSGAssetType[FxSGAssetType["Text"] = 5] = "Text";
+    })(FxSGAssetType = Fluxions.FxSGAssetType || (Fluxions.FxSGAssetType = {}));
+    ;
+    class FxScenegraphNode {
+        constructor(name = "unknown", sceneName = "default", parent = "") {
+            this.name = name;
+            this.sceneName = sceneName;
+            this.parent = parent;
+            this.geometryGroup = "";
+            this.transform_ = Matrix4.makeIdentity();
+            this.pretransform_ = Matrix4.makeIdentity();
+            this.posttransform_ = Matrix4.makeIdentity();
+        }
+        set worldMatrix(m) {
+            this.pretransform_.loadIdentity();
+            this.transform_.copy(m);
+            this.posttransform_.loadIdentity();
+        }
+        get worldMatrix() { return Matrix4.multiply3(this.pretransform_, this.transform_, this.posttransform_); }
+        get pretransform() { return this.pretransform_; }
+        get posttransform() { return this.posttransform_; }
+        get transform() { return this.transform_; }
+    }
+    Fluxions.FxScenegraphNode = FxScenegraphNode;
+    class FxScenegraph {
+        constructor(fx) {
+            this.fx = fx;
+            this.shaderSrcFiles = [];
+            // private _defaultFBO: FBO | null;
+            this._scenegraphs = new Map();
+            // private _renderConfigs: Map<string, FxRenderConfig> = new Map<string, FxRenderConfig>();
+            this._materials = new Map();
+            this._sceneResources = new Map();
+            this._nodes = [];
+            this._meshes = new Map();
+            this._tempNode = new FxScenegraphNode("", "");
+            this.textFiles = new Map();
+            this.camera = new Fluxions.FxCamera();
+            this.sunlight = new Fluxions.DirectionalLight();
+            this.currentrc = null;
+            this.currentmtllib = "";
+            this.currentmtl = "";
+            this.currentobj = "";
+            this.currentscn = "";
+            this._defaultRenderConfig = new Fluxions.FxRenderConfig(this.fx);
+            this._defaultRenderConfig.compile(`attribute vec4 aPosition;
+             void main() {
+                 gl_Position = aPosition;
+            }`, `void main() {
+                gl_FragColor = vec4(0.4, 0.3, 0.2, 1.0);
+            }`);
+            const width = this.fx.width;
+            const height = this.fx.height;
+            // this._defaultFBO = new FBO(this.fx, true, true, 1024, 1024, 0, true);
+            // this._fbo.set("sunshadow", new FBO(this.fx, true, true, 512, 512, 0));
+            // this._fbo.set("gbuffer", new FBO(this.fx, true, true, width, height, 1, true));
+            // this._fbo.set("image", new FBO(this.fx, true, true, width, height, 1, true));
+            let gl = this.fx.gl;
+            this._deferredMesh = new Fluxions.FxIndexedGeometryMesh(this.fx);
+            this._deferredMesh.texcoord3(Vector3.make(0.0, 0.0, 0.0));
+            this._deferredMesh.vertex3(Vector3.make(-1.0, -1.0, 0.0));
+            this._deferredMesh.texcoord3(Vector3.make(1.0, 0.0, 0.0));
+            this._deferredMesh.vertex3(Vector3.make(1.0, -1.0, 0.0));
+            this._deferredMesh.texcoord3(Vector3.make(1.0, 1.0, 0.0));
+            this._deferredMesh.vertex3(Vector3.make(1.0, 1.0, 0.0));
+            this._deferredMesh.texcoord3(Vector3.make(0.0, 1.0, 0.0));
+            this._deferredMesh.vertex3(Vector3.make(-1.0, 1.0, 0.0));
+            this._deferredMesh.mtllib("Floor10x10_mtl");
+            this._deferredMesh.usemtl("ConcreteFloor");
+            this._deferredMesh.begin(gl.TRIANGLES);
+            this._deferredMesh.addIndex(0);
+            this._deferredMesh.addIndex(1);
+            this._deferredMesh.addIndex(2);
+            this._deferredMesh.addIndex(0);
+            this._deferredMesh.addIndex(2);
+            this._deferredMesh.addIndex(3);
+        }
+        // get shadowFBO(): FBO { return this.getFBO("sunshadow"); }
+        // get gbufferFBO(): FBO { return this.getFBO("gbuffer") }
+        // get imageFBO(): FBO { return this.getFBO("image"); }
+        get width() { return this.fx.width; }
+        get height() { return this.fx.height; }
+        get aspectRatio() { return this.width / this.height; }
+        get loaded() {
+            if (!this.fx.xor.textfiles.loaded) {
+                return false;
+            }
+            if (!this.fx.textures.loaded)
+                return false;
+            for (let s of this.shaderSrcFiles) {
+                if (!s.loaded)
+                    return false;
+            }
+            return true;
+        }
+        get failed() {
+            if (this.fx.xor.textfiles.failed) {
+                return true;
+            }
+            if (this.fx.textures.failed) {
+                return true;
+            }
+            for (let s of this.shaderSrcFiles) {
+                if (s.failed)
+                    return true;
+            }
+            return false;
+        }
+        get percentLoaded() {
+            let a = 0;
+            for (let s of this.shaderSrcFiles) {
+                if (s.loaded)
+                    a++;
+            }
+            return 100.0 * a / (this.shaderSrcFiles.length) + this.fx.textures.percentLoaded / 3.0 + this.fx.xor.textfiles.percentLoaded / 3.0;
+        }
+        load(url) {
+            let fx = this.fx;
+            let name = XOR.GetURLResource(url);
+            let self = this;
+            let assetType;
+            let ext = XOR.GetExtension(name);
+            let path = XOR.GetURLPath(url);
+            if (ext == "scn")
+                assetType = FxSGAssetType.Scene;
+            else if (ext == "obj")
+                assetType = FxSGAssetType.GeometryGroup;
+            else if (ext == "mtl")
+                assetType = FxSGAssetType.MaterialLibrary;
+            else if (ext == "png")
+                assetType = FxSGAssetType.Image;
+            else if (ext == "jpg")
+                assetType = FxSGAssetType.Image;
+            else if (ext == "txt")
+                assetType = FxSGAssetType.Text;
+            else
+                return;
+            if (this.wasRequested(name))
+                return;
+            if (assetType == FxSGAssetType.Image) {
+                fx.textures.load(name, url);
+            }
+            else {
+                if (assetType == FxSGAssetType.Scene) {
+                    this._scenegraphs.set(name, false);
+                }
+                fx.xor.textfiles.load(name, url, (data, name, assetType) => {
+                    self.processTextFile(data, name, path, assetType);
+                    hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + name);
+                }, assetType);
+                // this.textFiles.push(new XOR.TextFileLoader(url, (data, name, assetType) => {
+                //     self.processTextFile(data, name, path, assetType);
+                //     hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + name);
+                // }, assetType));
+            }
+            hflog.debug("MyScenegraph::Load() => Requesting " + url);
+        }
+        isSceneGraph(name) {
+            let status = this._scenegraphs.get(name);
+            if (status)
+                return true;
+            return false;
+        }
+        wasRequested(name) {
+            if (this.fx.xor.textfiles.wasRequested(name)) {
+                return true;
+            }
+            if (this.fx.textures.wasRequested(name)) {
+                return true;
+            }
+            return false;
+        }
+        areMeshes(names) {
+            for (let name of names) {
+                if (!this._meshes.has(name))
+                    return false;
+            }
+            return true;
+        }
+        // addRenderConfig(name: string, vertshaderUrl: string, fragshaderUrl: string) {
+        //     let rc = new FxRenderConfig(this.fx);
+        //     this._renderConfigs.set(name, rc);
+        //     let self = this;
+        //     this.shaderSrcFiles.push(new XOR.ShaderLoader(vertshaderUrl, fragshaderUrl, (vertShaderSource: string, fragShaderSource: string) => {
+        //         rc.compile(vertShaderSource, fragShaderSource);
+        //         hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + vertshaderUrl + " and " + fragshaderUrl);
+        //     }));
+        // }
+        // getRenderConfig(name: string): FxRenderConfig | null {
+        //     let rc = this._renderConfigs.get(name) || null;
+        //     return rc;
+        // }
+        // userc(name: string): FxRenderConfig | null {
+        //     let rc = this.getRenderConfig(name);
+        //     if (this.currentrc && rc !== this.currentrc) {
+        //         this.currentrc.restore();
+        //     }
+        //     this.currentrc = rc;
+        //     if (this.currentrc) { this.currentrc.use(); }
+        //     return this.currentrc;
+        // }
+        // AddRenderConfig(name: string, vertshaderUrl: string, fragshaderUrl: string) {
+        //     let self = this;
+        //     this.shaderSrcFiles.push(new Utils.ShaderLoader(vertshaderUrl, fragshaderUrl, (vertShaderSource: string, fragShaderSource: string) => {
+        //         let rc = new FxRenderConfig(this.fx);
+        //         rc.compile(vertShaderSource, fragShaderSource);
+        //         self._renderConfigs.set(name, rc);
+        //         hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + vertshaderUrl + " and " + fragshaderUrl);
+        //     }));
+        // }
+        // GetRenderConfig(name: string): FxRenderConfig | null {
+        //     let rc = this._renderConfigs.get(name);
+        //     if (rc) {
+        //         return rc;
+        //     }
+        //     return null;
+        // }
+        // UseRenderConfig(name: string): FxRenderConfig | null {
+        //     let rc = this._renderConfigs.get(name);
+        //     if (rc) {
+        //         rc.use();
+        //         return rc;
+        //     }
+        //     return null;
+        // }
+        getMaterial(mtllib, mtl) {
+            let material = this._materials.get(mtllib + mtl) || null;
+            return material;
+            // for (let ml of this._materials) {
+            //     if (ml["0"] == mtllib + mtl) {
+            //         return ml["1"];
+            //     }
+            // }
+            // return null;
+        }
+        usemtl(mtllib, mtl) {
+            let gl = this.fx.gl;
+            if (!this.currentrc)
+                return;
+            let rc = this.currentrc;
+            let m = this.getMaterial(mtllib, mtl);
+            if (m) {
+                let tnames = ["map_Kd", "map_Ks", "map_normal"];
+                let textures = [m.map_Kd, m.map_Ks, m.map_normal];
+                for (let i = 0; i < textures.length; i++) {
+                    if (textures[i].length == 0)
+                        continue;
+                    let loc = rc.getUniformLocation(tnames[i]);
+                    if (loc) {
+                        this.useTexture(textures[i], i);
+                        rc.uniform1i(tnames[i], i);
+                    }
+                }
+                let v1fnames = ["map_Kd_mix", "map_Ks_mix", "map_normal_mix", "PBKdm", "PBKsm", "PBn2", "PBk2"];
+                let v1fvalues = [m.map_Kd_mix, m.map_Ks_mix, m.map_normal_mix, m.PBKdm, m.PBKsm, m.PBn2, m.PBk2];
+                for (let i = 0; i < v1fnames.length; i++) {
+                    let uloc = rc.getUniformLocation(v1fnames[i]);
+                    if (uloc) {
+                        rc.uniform1f(v1fnames[i], v1fvalues[i]);
+                    }
+                }
+                let v3fnames = ["Kd", "Ks", "Ka"];
+                let v3fvalues = [m.Kd, m.Ks, m.Ka];
+                for (let i = 0; i < v3fnames.length; i++) {
+                    let uloc = rc.getUniformLocation(v3fnames[i]);
+                    if (uloc) {
+                        rc.uniform3f(v3fnames[i], v3fvalues[i]);
+                    }
+                }
+            }
+            // for (let ml of this._materials) {
+            //     if (ml["0"] == mtllib + mtl) {// && ml["1"].name == mtl) {
+            //         let m = ml["1"];
+            //         let tnames = ["map_Kd", "map_Ks", "map_normal"];
+            //         let textures = [m.map_Kd, m.map_Ks, m.map_normal];
+            //         for (let i = 0; i < textures.length; i++) {
+            //             if (textures[i].length == 0)
+            //                 continue;
+            //             let loc = rc.getUniformLocation(tnames[i]);
+            //             if (loc) {
+            //                 this.useTexture(textures[i], i);
+            //                 rc.uniform1i(tnames[i], i);
+            //             }
+            //         }
+            //         let v1fnames = ["map_Kd_mix", "map_Ks_mix", "map_normal_mix", "PBKdm", "PBKsm", "PBn2", "PBk2"];
+            //         let v1fvalues = [m.map_Kd_mix, m.map_Ks_mix, m.map_normal_mix, m.PBKdm, m.PBKsm, m.PBn2, m.PBk2];
+            //         for (let i = 0; i < v1fnames.length; i++) {
+            //             let uloc = rc.getUniformLocation(v1fnames[i]);
+            //             if (uloc) {
+            //                 rc.uniform1f(v1fnames[i], v1fvalues[i]);
+            //             }
+            //         }
+            //         let v3fnames = ["Kd", "Ks", "Ka"];
+            //         let v3fvalues = [m.Kd, m.Ks, m.Ka];
+            //         for (let i = 0; i < v3fnames.length; i++) {
+            //             let uloc = rc.getUniformLocation(v3fnames[i]);
+            //             if (uloc) {
+            //                 rc.uniform3f(v3fnames[i], v3fvalues[i]);
+            //             }
+            //         }
+            //     }
+            // }
+        }
+        RenderMesh(name, rc) {
+            if (name.length == 0) {
+                for (let mesh of this._meshes) {
+                    mesh["1"].render(rc, this);
+                }
+                return;
+            }
+            let mesh = this._meshes.get(name);
+            if (mesh) {
+                mesh.render(rc, this);
+            }
+        }
+        useTexture(textureName, unit, enable = true) {
+            let texunit = unit | 0;
+            let gl = this.fx.gl;
+            let result = false;
+            let minFilter = gl.LINEAR_MIPMAP_LINEAR;
+            let magFilter = gl.LINEAR;
+            if (unit <= 31) {
+                unit += gl.TEXTURE0;
+            }
+            gl.activeTexture(unit);
+            let t = this.fx.textures.get(textureName);
+            if (!t) {
+                let alias = this._sceneResources.get(textureName);
+                if (alias) {
+                    t = this.fx.textures.get(alias);
+                }
+            }
+            if (t) {
+                if (unit <= 31) {
+                    unit += gl.TEXTURE0;
+                }
+                gl.activeTexture(unit);
+                if (enable) {
+                    gl.bindTexture(t.target, t.texture);
+                    gl.texParameteri(t.target, gl.TEXTURE_MIN_FILTER, minFilter);
+                    gl.texParameteri(t.target, gl.TEXTURE_MAG_FILTER, magFilter);
+                    result = true;
+                }
+                else {
+                    gl.bindTexture(t.target, null);
+                }
+            }
+            if (!t) {
+                gl.bindTexture(gl.TEXTURE_2D, null);
+                gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+            }
+            gl.activeTexture(gl.TEXTURE0);
+            return result;
+        }
+        GetNode(sceneName, objectName) {
+            for (let node of this._nodes) {
+                if (sceneName.length > 0 && node.sceneName != sceneName) {
+                    continue;
+                }
+                if (node.name.length > 0 && node.name == objectName) {
+                    return node;
+                }
+            }
+            return null;
+        }
+        GetChildren(parentName) {
+            let children = [];
+            for (let node of this._nodes) {
+                if (node.parent == parentName)
+                    children.push(node);
+            }
+            return children;
+        }
+        UpdateChildTransforms(parentName = "") {
+            let nodeWorldMatrix;
+            let children = [];
+            if (parentName.length == 0) {
+                nodeWorldMatrix = Matrix4.makeIdentity();
+                children = this._nodes;
+            }
+            else {
+                let node = this.GetNode("", parentName);
+                if (!node)
+                    return;
+                nodeWorldMatrix = node.worldMatrix;
+                children = this.GetChildren(parentName);
+            }
+            for (let child of children) {
+                child.pretransform.copy(nodeWorldMatrix);
+                this.UpdateChildTransforms(child.name);
+            }
+        }
+        AddNode(sceneName, objectName, parentNode = "") {
+            let sn = this.GetNode(sceneName, objectName);
+            if (!sn) {
+                sn = new FxScenegraphNode(objectName, sceneName);
+                this._nodes.push(sn);
+            }
+            return sn;
+        }
+        RemoveNode(sceneName, objectName) {
+            let i = 0;
+            for (let node of this._nodes) {
+                if (sceneName.length > 0 && node.sceneName != sceneName) {
+                    continue;
+                }
+                if (node.name.length > 0 && node.name == objectName) {
+                    this._nodes.splice(i, 1);
+                    return true;
+                }
+                i++;
+            }
+            return false;
+        }
+        GetMesh(meshName) {
+            let mesh = this._meshes.get(meshName);
+            if (!mesh) {
+                mesh = new Fluxions.FxIndexedGeometryMesh(this.fx);
+                this._meshes.set(meshName, mesh);
+            }
+            return mesh;
+        }
+        SetGlobalParameters(rc) {
+            if (rc) {
+                rc.use();
+                rc.uniform1f("uWindowWidth", this.width);
+                rc.uniform1f("uWindowHeight", this.height);
+                rc.uniform1f("uWindowCenterX", this.width * 0.5);
+                rc.uniform1f("uWindowCenterY", this.height * 0.5);
+                rc.uniform3f("SunDirTo", this.sunlight.direction);
+                rc.uniform3f("SunE0", this.sunlight.E0);
+                this.camera.aspectRatio = this.aspectRatio;
+                rc.uniformMatrix4f("ProjectionMatrix", this.camera.projection);
+                rc.uniformMatrix4f("CameraMatrix", this.camera.transform);
+                rc.uniform3f("CameraPosition", this.camera.eye);
+                this.useTexture("enviroCube", 10);
+                rc.uniform1i("EnviroCube", 10);
+                // TODO: Make This Part of a Light Data Structure
+                if (!rc.writesToFBO) {
+                    rc.uniformMatrix4f("SunShadowBiasMatrix", Matrix4.makeShadowBias());
+                    rc.uniformMatrix4f("SunShadowProjectionMatrix", this.sunlight.projectionMatrix);
+                    rc.uniformMatrix4f("SunShadowViewMatrix", this.sunlight.lightMatrix);
+                }
+                // let unit = 11;
+                // for (let fbo of rc.readFromFBOs) {
+                //     this.configureFBO(rc, fbo, unit, unit + 1);
+                //     unit += 2;
+                // }
+                this.fx.fbos.configure(rc);
+            }
+            let gl = this.fx.gl;
+            gl.viewport(0, 0, this.width, this.height);
+        }
+        // configureFBO(rc: FxRenderConfig, name: string, colorUnit: number, depthUnit: number) {
+        //     const colorUniform = name + "Color";
+        //     const depthUniform = name + "Depth";
+        //     const resolutionUnifom = name + "Resolution";
+        //     const usingUniform = "Using" + name;
+        //     let fbo = this._fbo.get(name) || null;
+        //     if (!fbo) return;
+        //     rc.uniform2f(resolutionUnifom, fbo.dimensions);
+        //     rc.uniform1i(usingUniform, rc.writesToFBO ? 1 : 0);
+        //     if (rc.writesToFBO && fbo.complete) {
+        //         fbo.bindTextures(colorUnit, depthUnit);
+        //         if (fbo.color) rc.uniform1i(colorUniform, colorUnit);
+        //         if (fbo.depth) rc.uniform1i(depthUniform, depthUnit);
+        //     } else {
+        //         rc.uniform1i(colorUniform, 0);
+        //         rc.uniform1i(depthUniform, 0);
+        //     }
+        // }
+        Restore() {
+            let gl = this.fx.gl;
+            for (let i = 0; i < 10; i++) {
+                gl.activeTexture(i + gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, null);
+            }
+            this.useTexture("enviroCube", 10, false);
+            // for (let fbo of this._fbo) {
+            //     if (fbo[1].complete) fbo[1].unbindTextures()
+            // }
+            this.fx.fbos.restore();
+        }
+        Update() {
+            // check FBOs
+            // this._fbo.forEach((fbo) => {
+            //     if (fbo.width != this.width || fbo.height != this.height) {
+            //         fbo.autoResize(this.width, this.height);
+            //     }
+            // });
+            this.fx.fbos.autoresize();
+        }
+        RenderScene(renderConfigName, sceneName = "") {
+            let rc = this.fx.renderconfigs.use(renderConfigName);
+            if (!rc || !rc.usable) {
+                //hflog.error("MyScenegraph::RenderScene(): \"" + shaderName + "\" is not a render config");
+                return;
+            }
+            for (let node of this._nodes) {
+                if (sceneName.length > 0 && node.sceneName != sceneName) {
+                    continue;
+                }
+                rc.uniformMatrix4f("WorldMatrix", node.worldMatrix);
+                let mesh = this._meshes.get(node.geometryGroup);
+                if (mesh) {
+                    if (rc.renderEdges) {
+                        mesh.renderEdges(rc);
+                    }
+                    else {
+                        mesh.render(rc, this);
+                    }
+                }
+            }
+            rc.restore();
+        }
+        RenderDeferred(renderConfigName) {
+            let rc = this.fx.renderconfigs.use(renderConfigName);
+            if (!rc || !rc.usable) {
+                //hflog.error("MyScenegraph::RenderDeferred(): \"" + shaderName + "\" is not a render config");
+                return;
+            }
+            let gl = this.fx.gl;
+            gl.disable(gl.DEPTH_TEST);
+            rc.uniformMatrix4f("ProjectionMatrix", Matrix4.makeOrtho2D(-1.0, 1.0, -1.0, 1.0));
+            rc.uniformMatrix4f("CameraMatrix", Matrix4.makeLookAt(Vector3.make(0.0, 0.0, 1.0), Vector3.make(0.0, 0.0, 0.0), Vector3.make(0.0, 1.0, 0.0)));
+            rc.uniformMatrix4f("WorldMatrix", Matrix4.makeTranslation(0.0, 0.0, 0.0));
+            this._deferredMesh.render(rc, this);
+            rc.restore();
+        }
+        processTextFile(data, name, path, assetType) {
+            let textParser = new FxTextParser(data);
+            switch (assetType) {
+                // ".SCN"
+                case FxSGAssetType.Scene:
+                    this.loadScene(textParser.lines, name, path);
+                    break;
+                // ".OBJ"
+                case FxSGAssetType.GeometryGroup:
+                    this.loadOBJ(textParser.lines, name, path);
+                    break;
+                // ".MTL"
+                case FxSGAssetType.MaterialLibrary:
+                    this.loadMTL(textParser.lines, name, path);
+                    break;
+                case FxSGAssetType.Text:
+                    this.textFiles.set(name, textParser.lines);
+                    break;
+            }
+        }
+        loadScene(lines, name, path) {
+            // sundir <direction: Vector3>
+            // camera <eye: Vector3> <center: Vector3> <up: Vector3>
+            // transform <worldMatrix: Matrix4>
+            // geometryGroup <objUrl: string>
+            for (let tokens of lines) {
+                if (tokens[0] == "enviroCube") {
+                    this._sceneResources.set("enviroCube", XOR.GetURLResource(tokens[1]));
+                    this.load(path + tokens[1]);
+                }
+                else if (tokens[0] == "transform") {
+                    this._tempNode.transform.loadMatrix(FxTextParser.ParseMatrix(tokens));
+                }
+                else if (tokens[0] == "loadIdentity") {
+                    this._tempNode.transform.loadIdentity();
+                }
+                else if (tokens[0] == "translate") {
+                    let t = FxTextParser.ParseVector(tokens);
+                    this._tempNode.transform.translate(t.x, t.y, t.z);
+                }
+                else if (tokens[0] == "rotate") {
+                    let values = FxTextParser.ParseVector4(tokens);
+                    this._tempNode.transform.rotate(values.x, values.y, values.z, values.w);
+                }
+                else if (tokens[0] == "scale") {
+                    let values = FxTextParser.ParseVector4(tokens);
+                    this._tempNode.transform.scale(values.x, values.y, values.z);
+                }
+                else if (tokens[0] == "geometryGroup") {
+                    // geometryGroup filename
+                    // geometryGroup name filename
+                    // geometryGroup name parentNode filename
+                    let parentName = "";
+                    let filename = (tokens.length >= 2) ? tokens[tokens.length - 1] : "nothing.obj";
+                    let nodeName = (tokens.length >= 3) ? tokens[1] : filename;
+                    if (tokens.length >= 4) {
+                        parentName = tokens[2];
+                    }
+                    this._tempNode.sceneName = name;
+                    this._tempNode.parent = parentName;
+                    this._tempNode.name = nodeName;
+                    this._tempNode.geometryGroup = filename;
+                    if (!this.wasRequested(filename)) {
+                        hflog.log("loading geometry group [parent = " + parentName + "]" + path + filename);
+                        this.load(path + filename);
+                    }
+                    this._nodes.push(this._tempNode);
+                    this._tempNode = new FxScenegraphNode();
+                }
+                else if (tokens[0] == "node") {
+                    // node name
+                    // node name parentNode
+                    let nodeName = (tokens.length >= 2) ? tokens[1] : "";
+                    let parentName = (tokens.length >= 3) ? tokens[2] : "";
+                    this._tempNode.name = nodeName;
+                    this._tempNode.parent = parentName;
+                    this._tempNode.sceneName = name;
+                    this._tempNode.geometryGroup = "";
+                    this._nodes.push(this._tempNode);
+                    this._tempNode = new FxScenegraphNode();
+                }
+                else if (tokens[0] == "renderconfig") {
+                    let name = tokens[1];
+                    let vertShaderUrl = tokens[2];
+                    let fragShaderUrl = tokens[3];
+                    this.fx.renderconfigs.load(name, vertShaderUrl, fragShaderUrl);
+                }
+            }
+            this._scenegraphs.set(name, true);
+        }
+        loadOBJ(lines, name, path) {
+            // mtllib <mtlUrl: string>
+            // usemtl <name: string>
+            // v <position: Vector3>
+            // vn <normal: Vector3>
+            // vt <texcoord: Vector2|Vector3>
+            // vc <color: Vector4>
+            // f <v1: number> <v2: number> <v3: number>
+            // f <v1: number>/<vt1:number> <v2: number>/<vt2:number> <v2: number>/<vt2:number>
+            // f <v1: number>//<vt1:number> <v2: number>//<vt2:number> <v2: number>//<vt2:number>
+            // f <v1: number>/<vn1:number>/<vt1:number> <v2: number>/<vn2:number>/<vt2:number> <v2: number>/<vn3:number>/<vt2:number>
+            // o <objectName: string>
+            // g <newSmoothingGroup: string>
+            // s <newSmoothingGroup: string>
+            let mesh = new Fluxions.FxIndexedGeometryMesh(this.fx);
+            // let gl = this.fx.gl;
+            // let positions: Vector3[] = [];
+            // let normals: Vector3[] = [];
+            // let colors: Vector3[] = [];
+            // let texcoords: Vector3[] = [];
+            // // in case there are no mtllib's, usemtl's, o's, g's, or s's
+            // mesh.begin(gl.TRIANGLES);
+            // for (let tokens of lines) {
+            //     if (tokens.length >= 3) {
+            //         if (tokens[0] == "v") {
+            //             let position = TextParser.ParseVector(tokens);
+            //             positions.push(position);
+            //             mesh.edgeMesh.addVertex(position);
+            //         } else if (tokens[0] == "vn") {
+            //             normals.push(TextParser.ParseVector(tokens));
+            //         } else if (tokens[0] == "vt") {
+            //             texcoords.push(TextParser.ParseVector(tokens));
+            //         } else if (tokens[0] == "vc") {
+            //             let color = TextParser.ParseVector(tokens);
+            //             colors.push(color);
+            //             mesh.color(color.x, color.y, color.z);
+            //         } else if (tokens[0] == "f") {
+            //             let indices = TextParser.ParseFace(tokens);
+            //             let edgeIndices: number[] = [];
+            //             for (let i = 0; i < 3; i++) {
+            //                 try {
+            //                     if (indices[i * 3 + 2] >= 0)
+            //                         mesh.normal3(normals[indices[i * 3 + 2]]);
+            //                     if (indices[i * 3 + 1] >= 0)
+            //                         mesh.texcoord3(texcoords[indices[i * 3 + 1]]);
+            //                     mesh.vertex3(positions[indices[i * 3 + 0]]);
+            //                     mesh.addIndex(-1);
+            //                     edgeIndices.push(indices[i * 3]);
+            //                 }
+            //                 catch (s) {
+            //                     hflog.debug(s);
+            //                 }
+            //                 mesh.edgeMesh.addFace(edgeIndices);
+            //             }
+            //         }
+            //     }
+            //     else if (tokens.length >= 2) {
+            //         if (tokens[0] == "mtllib") {
+            //             this.load(path + tokens[1]);
+            //             mesh.mtllib(TextParser.ParseIdentifier(tokens));
+            //             mesh.begin(gl.TRIANGLES);
+            //         } else if (tokens[0] == "usemtl") {
+            //             mesh.usemtl(TextParser.ParseIdentifier(tokens));
+            //             mesh.begin(gl.TRIANGLES);
+            //         } else if (tokens[0] == "o") {
+            //             mesh.begin(gl.TRIANGLES);
+            //         } else if (tokens[0] == "g") {
+            //             mesh.begin(gl.TRIANGLES);
+            //         } else if (tokens[0] == "s") {
+            //             mesh.begin(gl.TRIANGLES);
+            //         }
+            //     }
+            // }
+            mesh.loadOBJ(lines, this, path);
+            mesh.build();
+            this._meshes.set(name, mesh);
+        }
+        loadMTL(lines, name, path) {
+            // newmtl <name: string>
+            // Kd <color: Vector3>
+            // Ks <color: Vector3>
+            // map_Kd <url: string>
+            // map_Ks <url: string>
+            // map_normal <url: string>
+            let mtl = "";
+            let mtllib = FxTextParser.MakeIdentifier(name);
+            let curmtl;
+            for (let tokens of lines) {
+                if (tokens.length >= 2) {
+                    if (tokens[0] == "newmtl") {
+                        mtl = FxTextParser.MakeIdentifier(tokens[1]);
+                        curmtl = new Fluxions.FxMaterial(mtl);
+                        this._materials.set(mtllib + mtl, curmtl);
+                    }
+                    else if (tokens[0] == "map_Kd") {
+                        if (curmtl) {
+                            curmtl.map_Kd = XOR.GetURLResource(tokens[1]);
+                            curmtl.map_Kd_mix = 1.0;
+                        }
+                        this.load(path + tokens[1]);
+                    }
+                    else if (tokens[0] == "map_Ks") {
+                        if (curmtl) {
+                            curmtl.map_Ks = XOR.GetURLResource(tokens[1]);
+                            curmtl.map_Ks_mix = 1.0;
+                        }
+                        this.load(path + tokens[1]);
+                    }
+                    else if (tokens[0] == "map_normal") {
+                        if (curmtl) {
+                            curmtl.map_normal = XOR.GetURLResource(tokens[1]);
+                            curmtl.map_normal_mix = 1.0;
+                        }
+                        this.load(path + tokens[1]);
+                    }
+                    else if (tokens[0] == "Kd") {
+                        if (curmtl) {
+                            curmtl.Kd = FxTextParser.ParseVector(tokens);
+                        }
+                    }
+                    else if (tokens[0] == "Ks") {
+                        if (curmtl) {
+                            curmtl.Ks = FxTextParser.ParseVector(tokens);
+                        }
+                    }
+                    else if (tokens[0] == "Ka") {
+                        if (curmtl) {
+                            curmtl.Ka = FxTextParser.ParseVector(tokens);
+                        }
+                    }
+                    else if (tokens[0] == "PBn2") {
+                        if (curmtl) {
+                            curmtl.PBn2 = parseFloat(tokens[1]);
+                        }
+                    }
+                    else if (tokens[0] == "PBk2") {
+                        if (curmtl) {
+                            curmtl.PBk2 = parseFloat(tokens[1]);
+                        }
+                    }
+                    else if (tokens[0] == "map_Kd_mix") {
+                        if (curmtl) {
+                            curmtl.map_Kd_mix = parseFloat(tokens[1]);
+                        }
+                    }
+                    else if (tokens[0] == "map_Ks_mix") {
+                        if (curmtl) {
+                            curmtl.map_Ks_mix = parseFloat(tokens[1]);
+                        }
+                    }
+                    else if (tokens[0] == "map_normal_mix") {
+                        if (curmtl) {
+                            curmtl.map_normal_mix = parseFloat(tokens[1]);
+                        }
+                    }
+                }
+            }
+        }
+    } // class Scenegraph
+    Fluxions.FxScenegraph = FxScenegraph;
+})(Fluxions || (Fluxions = {})); // namespace Fluxions
+/// <reference path="../XOR/LibXOR.ts" />
+/// <reference path="FxScenegraph.ts" />
+/// <reference path="FxRenderingContext.ts" />
+/// <reference path="FxRenderConfig.ts" />
+/// <reference path="FxIndexedGeometryMesh.ts" />
 class FxVertex {
     constructor(position = new Vector3(0, 0, 0), normal = new Vector3(0, 0, 1), color = new Vector3(1, 1, 1), texcoord = new Vector3(0, 0, 0)) {
         this.position = position;
@@ -2278,712 +5173,10 @@ class FxSurface {
         this.count++;
     }
 }
-/// <reference path="FxFBO.ts" />
-/// <reference path="FxRenderingContext.ts" />
-class FxFboSystem {
-    constructor(fx) {
-        this.fx = fx;
-        this._fbo = new Map();
-        this.currentFBO = null;
-    }
-    /**
-     * Returns null or the FBO referred to by name
-     * @param name The name of the FBO
-     */
-    get(name) {
-        return this._fbo.get(name) || null;
-    }
-    /**
-     * Creates a new FBO and adds it to the scene graph
-     * @param name The name of the FBO
-     * @param hasDepth Does the FBO have a depth attachment
-     * @param hasColor Does the FBO have a color attachment
-     * @param width The width of the FBO (should be power of two)
-     * @param height The height of the FBO (should be power of two)
-     * @param colorType 0 for gl.UNSIGNED_BYTE or 1 for gl.FLOAT
-     */
-    add(name, hasDepth, hasColor, width, height, colorType) {
-        this._fbo.set(name, new FxFBO(this.fx, hasDepth, hasColor, width, height, colorType));
-        return this.get(name);
-    }
-    /**
-     * autoresize
-     */
-    autoresize() {
-        let fx = this.fx;
-        this._fbo.forEach((fbo) => {
-            if (fbo.width != fx.width || fbo.height != fx.height) {
-                fbo.autoResize(fx.width, fx.height);
-            }
-        });
-    }
-    restore() {
-        if (this.currentFBO) {
-            this.currentFBO.restore();
-            this.currentFBO = null;
-        }
-        else {
-            for (let fbo of this._fbo) {
-                if (fbo[1].complete)
-                    fbo[1].unbindTextures();
-            }
-        }
-    }
-    configure(rc, startUnit = 11) {
-        if (rc.writeToFBO != "") {
-            let fbo = this.get(rc.writeToFBO);
-            if (fbo) {
-                fbo.use(rc.clearWriteToFBO, rc.disableWriteToFBOColorWrites);
-                this.currentFBO = fbo;
-            }
-        }
-        else {
-            let unit = startUnit;
-            for (let fbo of rc.readFromFBOs) {
-                this.configureFBO(rc, fbo, unit, unit + 1);
-                unit += 2;
-            }
-        }
-    }
-    configureFBO(rc, name, colorUnit, depthUnit) {
-        const colorUniform = name + "Color";
-        const depthUniform = name + "Depth";
-        const resolutionUnifom = name + "Resolution";
-        const usingUniform = "Using" + name;
-        let fbo = this._fbo.get(name) || null;
-        if (!fbo)
-            return;
-        rc.uniform2f(resolutionUnifom, fbo.dimensions);
-        rc.uniform1i(usingUniform, rc.writesToFBO ? 1 : 0);
-        if (!rc.writesToFBO && fbo.complete) {
-            fbo.bindTextures(colorUnit, depthUnit);
-            if (fbo.color)
-                rc.uniform1i(colorUniform, colorUnit);
-            if (fbo.depth)
-                rc.uniform1i(depthUniform, depthUnit);
-        }
-        else {
-            rc.uniform1i(colorUniform, 0);
-            rc.uniform1i(depthUniform, 0);
-        }
-    }
-}
-/// <reference path="./FxRenderingContext.ts" />
-/// <reference path="../XORUtils.ts" />
-class FxTextureSystem {
-    /**
-     *
-     * @param {FxRenderingContext} fx The rendering context
-     */
-    constructor(fx) {
-        this.fx = fx;
-        this._textures = new Map();
-        this.imagefiles = [];
-        let gl = fx.gl;
-        let tex2D = gl.createTexture();
-        let texCube = gl.createTexture();
-        if (!texCube || !tex2D) {
-            throw TypeError("texCube or tex2D is not valid");
-        }
-        let pixels = new ImageData(new Uint8ClampedArray([0, 0, 0, 255, 255, 255, 255, 255, 0, 0, 0, 255, 255, 255, 255, 255]), 2, 2);
-        gl.bindTexture(gl.TEXTURE_2D, tex2D);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, pixels);
-        //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 2, 2, 0, gl.RGB, gl.UNSIGNED_BYTE, pixels);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.generateMipmap(gl.TEXTURE_2D);
-        gl.bindTexture(gl.TEXTURE_2D, null);
-        let xppixels = new ImageData(new Uint8ClampedArray([127, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 127, 0, 0, 255]), 2, 2);
-        let xnpixels = new ImageData(new Uint8ClampedArray([0, 127, 127, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 127, 127, 255]), 2, 2);
-        let yppixels = new ImageData(new Uint8ClampedArray([0, 127, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 127, 0, 255]), 2, 2);
-        let ynpixels = new ImageData(new Uint8ClampedArray([127, 0, 127, 255, 255, 0, 255, 255, 255, 0, 255, 255, 127, 0, 127, 255]), 2, 2);
-        let zppixels = new ImageData(new Uint8ClampedArray([0, 0, 127, 255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 127, 255]), 2, 2);
-        let znpixels = new ImageData(new Uint8ClampedArray([127, 127, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 127, 127, 0, 255]), 2, 2);
-        gl.bindTexture(gl.TEXTURE_CUBE_MAP, texCube);
-        gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, xnpixels);
-        gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, ynpixels);
-        gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, znpixels);
-        gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, xppixels);
-        gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, yppixels);
-        gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, zppixels);
-        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-        gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
-        this._default2D = new FxTexture(this.fx, "__texture2D__", "", WebGLRenderingContext.TEXTURE_2D, tex2D);
-        this._defaultCube = new FxTexture(this.fx, "__textureCube__", "", gl.TEXTURE_CUBE_MAP, texCube);
-        this._textures.set("__texture2D__", this._default2D);
-        this._textures.set("__textureCube__", this._defaultCube);
-    }
-    has(name) {
-        if (this._textures.has(name))
-            return true;
-        return false;
-    }
-    get(name) {
-        let t = this._textures.get(name);
-        if (t)
-            return t;
-        return null;
-    }
-    /**
-     *
-     * @param {string} name name of the texture
-     * @param {FxTexture} value
-     */
-    set(name, value) {
-        this._textures.set(name, value);
-    }
-    get loaded() {
-        for (let i of this.imagefiles) {
-            if (!i.loaded)
-                return false;
-        }
-        return true;
-    }
-    get failed() {
-        for (let i of this.imagefiles) {
-            if (i.failed)
-                return true;
-        }
-        return false;
-    }
-    get length() {
-        return this.imagefiles.length;
-    }
-    get percentLoaded() {
-        let a = 0;
-        for (let i of this.imagefiles) {
-            if (i.loaded)
-                a++;
-        }
-        return 100.0 * a / this.imagefiles.length;
-    }
-    /**
-     * @param {string} name the key to find this texture
-     * @param {string} url  the url to load this texture
-     */
-    load(name, url) {
-        if (this._textures.has(name))
-            return;
-        let self = this;
-        let tname = name;
-        this.imagefiles.push(new XORUtils.ImageFileLoader(url, (data, name) => {
-            self.processTextureMap(data, tname);
-            hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + tname);
-        }));
-    }
-    wasRequested(name) {
-        for (let img of this.imagefiles) {
-            if (img.name == name)
-                return true;
-        }
-        return false;
-    }
-    processTextureMap(image, name) {
-        let gl = this.fx.gl;
-        let minFilter = gl.NEAREST;
-        let magFilter = gl.NEAREST;
-        let maxAnisotropy = 1.0;
-        let ext = this.fx.getExtension("EXT_texture_filter_anisotropic");
-        if (ext) {
-            let maxAnisotropy = gl.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
-        }
-        else {
-            hflog.debug("cannot use anisotropic filtering");
-        }
-        if (image.width == 6 * image.height) {
-            let images = new Array(6);
-            XORUtils.SeparateCubeMapImages(image, images);
-            let texture = gl.createTexture();
-            if (texture) {
-                gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
-                for (let i = 0; i < 6; i++) {
-                    if (!images[i]) {
-                        continue;
-                    }
-                    else {
-                        hflog.debug("image " + i + " w:" + images[i].width + "/h:" + images[i].height);
-                    }
-                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[i]);
-                }
-                gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-                let t = new FxTexture(this.fx, name, name, gl.TEXTURE_CUBE_MAP, texture);
-                this.fx.textures.set(name, t);
-            }
-        }
-        else {
-            let texture = gl.createTexture();
-            if (texture) {
-                gl.bindTexture(gl.TEXTURE_2D, texture);
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-                gl.generateMipmap(gl.TEXTURE_2D);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
-                if (ext) {
-                    gl.texParameterf(gl.TEXTURE_2D, ext.TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy);
-                }
-                let t = new FxTexture(this.fx, name, name, gl.TEXTURE_2D, texture);
-                this.fx.textures.set(name, t);
-            }
-        }
-    }
-}
-/// <reference path="Fluxions.ts" />
-/// <reference path="FxFboSystem.ts" />
-/// <reference path="FxTextureSystem.ts" />
-class FxRenderingContext {
-    constructor(xor) {
-        this.xor = xor;
-        this.enabledExtensions = new Map();
-        this._visible = false;
-        this._resized = true;
-        if (!xor.graphics.gl)
-            throw "Unable to start Fluxions without valid gl context";
-        this.gl = xor.graphics.gl;
-        this.textures = new FxTextureSystem(this);
-        this.fbos = new FxFboSystem(this);
-        let debugInfo = this.gl.getExtension('WEBGL_debug_renderer_info');
-        if (debugInfo) {
-            let vendor = this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
-            let renderer = this.gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-            hflog.log(vendor);
-            hflog.log(renderer);
-        }
-        this.enableExtensions([
-            "EXT_texture_filter_anisotropic",
-            "WEBGL_depth_texture",
-            "WEBGL_debug_renderer_info",
-            "OES_element_index_uint",
-            "OES_standard_derivatives",
-            "OES_texture_float_linear",
-            "OES_texture_float",
-        ]);
-        let standardDerivatives = this.gl.getExtension('OES_standard_derivatives');
-        if (standardDerivatives) {
-            this.gl.hint(standardDerivatives.FRAGMENT_SHADER_DERIVATIVE_HINT_OES, this.gl.NICEST);
-        }
-        this.scenegraph = new FxScenegraph(this);
-    }
-    get width() { return this.xor.graphics.width; }
-    get height() { return this.xor.graphics.height; }
-    get aspectRatio() { return this.width / this.height; }
-    // get visible(): boolean {
-    //     return this._visible;
-    // }
-    // get canvas(): HTMLCanvasElement {
-    //     if (!this.canvasElement_)
-    //         return new HTMLCanvasElement();
-    //     return this.canvasElement_;
-    // }
-    // ...
-    enableExtensions(names) {
-        let supportedExtensions = this.gl.getSupportedExtensions();
-        if (!supportedExtensions)
-            return false;
-        let allFound = true;
-        for (let name of names) {
-            let found = false;
-            for (let ext of supportedExtensions) {
-                if (name == ext) {
-                    this.enabledExtensions.set(name, this.gl.getExtension(name));
-                    hflog.log("Extension " + name + " enabled");
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                hflog.log("Extension " + name + " not enabled");
-                allFound = false;
-                break;
-            }
-        }
-        return allFound;
-    }
-    getExtension(name) {
-        if (this.enabledExtensions.has(name)) {
-            return this.enabledExtensions.get(name);
-        }
-        return null;
-    }
-    update() {
-        return;
-        // if (this._resized) {
-        //     this._resized = false;
-        //     let w = (window.innerWidth) | 0;
-        //     let h = (w / this.aspectRatio) | 0;
-        //     this.canvas.width = w;
-        //     this.canvas.height = h;
-        //     this.width = w;
-        //     this.height = h;
-        // }
-    }
-}
-/// <reference path="FxRenderingContext.ts" />
-class FxTextureUniform {
-    /**
-     *
-     * @param {string} textureName The name of the textures from the fx.textures[] array
-     * @param {string} uniformName The name of the uniform to apply this texture to
-     * @param {string} samplerName The name of the sampler params to apply (default "")
-     */
-    constructor(textureName, uniformName, samplerName = "") {
-        this.textureName = textureName;
-        this.uniformName = uniformName;
-        this.samplerName = samplerName;
-        this.texture = null;
-        this.sampler = null;
-    }
-    getTexture(fx) {
-        if (this.texture)
-            return this.texture;
-        let t = fx.textures.get(this.textureName);
-        if (t) {
-            this.texture = t.texture;
-        }
-        return this.texture;
-    }
-}
-// LibXOR Library
-// Copyright (c) 2017 - 2018 Jonathan Metzgar
-// All Rights Reserved.
-//
-// MIT License
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-//
-/// <reference path="Fluxions.ts"/>
-/// <reference path="FxTextureUniform.ts" />
-class FxRenderConfig {
-    constructor(fx) {
-        this.fx = fx;
-        this._isCompiled = false;
-        this._isLinked = false;
-        this._vertShader = null;
-        this._fragShader = null;
-        this._program = null;
-        this._vertShaderSource = "";
-        this._fragShaderSource = "";
-        this._vertShaderInfoLog = "";
-        this._fragShaderInfoLog = "";
-        this._vertShaderCompileStatus = false;
-        this._fragShaderCompileStatus = false;
-        this._programInfoLog = "";
-        this._programLinkStatus = false;
-        this.uniforms = new Map();
-        this.uniformInfo = new Map();
-        this.useDepthTest = true;
-        this.depthTest = WebGLRenderingContext.LESS;
-        this.depthMask = true;
-        this.useBlending = false;
-        this.blendSrcFactor = WebGLRenderingContext.ONE;
-        this.blendDstFactor = WebGLRenderingContext.ZERO;
-        this.useStencilTest = false;
-        this.stencilFunc = WebGLRenderingContext.ALWAYS;
-        this.stencilFuncRef = 0.0;
-        this.stencilMask = 1;
-        this.renderShadowMap = false;
-        this.renderGBuffer = false;
-        this.renderImage = false;
-        this.renderEdges = false;
-        this.writesToFBO = false;
-        this.writeToFBO = "";
-        this.clearWriteToFBO = true;
-        this.disableWriteToFBOColorWrites = false;
-        this.readFromFBOs = [];
-        this.textures = [];
-        this._texturesBound = 0;
-    }
-    get usable() { return this.isCompiledAndLinked(); }
-    isCompiledAndLinked() {
-        if (this._isCompiled && this._isLinked)
-            return true;
-        return false;
-    }
-    use() {
-        let fx = this.fx;
-        let gl = this.fx.gl;
-        gl.useProgram(this._program);
-        if (this.useDepthTest) {
-            gl.enable(gl.DEPTH_TEST);
-            gl.depthFunc(this.depthTest);
-        }
-        if (this.useBlending) {
-            gl.enable(gl.BLEND);
-            gl.blendFunc(this.blendSrcFactor, this.blendDstFactor);
-        }
-        if (this.useStencilTest) {
-            gl.enable(gl.STENCIL_TEST);
-            gl.stencilFunc(this.stencilFunc, this.stencilFuncRef, this.stencilMask);
-        }
-        gl.depthMask(this.depthMask);
-        let unit = 0;
-        for (let texture of this.textures) {
-            let u = this.uniforms.get(texture.uniformName);
-            if (!u)
-                continue;
-            let t = fx.textures.get(texture.textureName);
-            if (!t)
-                continue;
-            gl.activeTexture(gl.TEXTURE0 + unit);
-            gl.bindTexture(t.target, t.texture);
-            gl.uniform1i(u, unit);
-            unit++;
-        }
-        this._texturesBound = unit;
-        this.fx.fbos.configure(this, unit);
-    }
-    restore() {
-        let gl = this.fx.gl;
-        gl.useProgram(null);
-        if (this.useDepthTest) {
-            gl.disable(gl.DEPTH_TEST);
-            gl.depthFunc(gl.LESS);
-        }
-        if (this.useBlending) {
-            gl.disable(gl.BLEND);
-            gl.blendFunc(gl.ONE, gl.ZERO);
-        }
-        if (this.useStencilTest) {
-            gl.disable(gl.STENCIL_TEST);
-            gl.stencilFunc(gl.ALWAYS, 0, 1);
-        }
-        gl.depthMask(true);
-        for (let i = 0; i < this._texturesBound; i++) {
-            gl.activeTexture(gl.TEXTURE0 + i);
-            gl.bindTexture(gl.TEXTURE_2D, null);
-            gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
-        }
-        this.fx.fbos.restore();
-    }
-    uniformMatrix4f(uniformName, m) {
-        let gl = this.fx.gl;
-        if (!this._program)
-            return;
-        let location = gl.getUniformLocation(this._program, uniformName);
-        if (location != null) {
-            gl.uniformMatrix4fv(location, false, m.toColMajorArray());
-        }
-    }
-    uniform1i(uniformName, x) {
-        let gl = this.fx.gl;
-        if (!this._program)
-            return;
-        let location = gl.getUniformLocation(this._program, uniformName);
-        if (location != null) {
-            gl.uniform1i(location, x);
-        }
-    }
-    uniform1f(uniformName, x) {
-        let gl = this.fx.gl;
-        if (!this._program)
-            return;
-        let location = gl.getUniformLocation(this._program, uniformName);
-        if (location != null) {
-            gl.uniform1f(location, x);
-        }
-    }
-    uniform2f(uniformName, v) {
-        let gl = this.fx.gl;
-        if (!this._program)
-            return;
-        let location = gl.getUniformLocation(this._program, uniformName);
-        if (location != null) {
-            gl.uniform2fv(location, v.toFloat32Array());
-        }
-    }
-    uniform3f(uniformName, v) {
-        let gl = this.fx.gl;
-        if (!this._program)
-            return;
-        let location = gl.getUniformLocation(this._program, uniformName);
-        if (location != null) {
-            gl.uniform3fv(location, v.toFloat32Array());
-        }
-    }
-    uniform4f(uniformName, v) {
-        let gl = this.fx.gl;
-        if (!this._program)
-            return;
-        let location = gl.getUniformLocation(this._program, uniformName);
-        if (location) {
-            gl.uniform4fv(location, v.toFloat32Array());
-        }
-    }
-    getAttribLocation(name) {
-        let gl = this.fx.gl;
-        if (!gl)
-            return -1;
-        if (!this._program)
-            return -1;
-        return gl.getAttribLocation(this._program, name);
-    }
-    getUniformLocation(name) {
-        let gl = this.fx.gl;
-        if (!gl)
-            return null;
-        if (!this._program)
-            return null;
-        let uloc = gl.getUniformLocation(this._program, name);
-        if (!uloc)
-            return null;
-        return uloc;
-    }
-    compile(vertShaderSource, fragShaderSource) {
-        let gl = this.fx.gl;
-        let vertShader = gl.createShader(gl.VERTEX_SHADER);
-        if (vertShader) {
-            gl.shaderSource(vertShader, vertShaderSource);
-            gl.compileShader(vertShader);
-            let status = gl.getShaderParameter(vertShader, gl.COMPILE_STATUS);
-            let infoLog = null;
-            if (!status) {
-                infoLog = gl.getShaderInfoLog(vertShader);
-                hflog.error("VERTEX SHADER COMPILE ERROR:");
-                hflog.error(infoLog ? infoLog : "");
-                hflog.error("--------------------------------------------");
-                let errorElement = document.getElementById("errors");
-                if (!errorElement && infoLog) {
-                    let newDiv = document.createElement("div");
-                    newDiv.appendChild(document.createTextNode("Vertex shader info log"));
-                    newDiv.appendChild(document.createElement("br"));
-                    newDiv.appendChild(document.createTextNode(infoLog));
-                    let pre = document.createElement("pre");
-                    pre.textContent = this._vertShaderSource;
-                    pre.style.width = "50%";
-                    newDiv.appendChild(pre);
-                    document.body.appendChild(newDiv);
-                }
-            }
-            if (status)
-                this._vertShaderCompileStatus = true;
-            if (infoLog)
-                this._vertShaderInfoLog = infoLog;
-            this._vertShader = vertShader;
-        }
-        else {
-            return false;
-        }
-        let fragShader = gl.createShader(gl.FRAGMENT_SHADER);
-        if (fragShader) {
-            gl.shaderSource(fragShader, fragShaderSource);
-            gl.compileShader(fragShader);
-            let status = gl.getShaderParameter(fragShader, gl.COMPILE_STATUS);
-            let infoLog = null;
-            if (!status) {
-                infoLog = gl.getShaderInfoLog(fragShader);
-                hflog.error("FRAGMENT SHADER COMPILE ERROR:");
-                hflog.error(infoLog ? infoLog : "");
-                hflog.error("--------------------------------------------");
-                let errorElement = document.getElementById("errors");
-                if (!errorElement && infoLog) {
-                    let newDiv = document.createElement("div");
-                    newDiv.appendChild(document.createTextNode("Fragment shader info log"));
-                    newDiv.appendChild(document.createElement("br"));
-                    newDiv.appendChild(document.createTextNode(infoLog));
-                    let pre = document.createElement("pre");
-                    pre.textContent = this._fragShaderSource;
-                    pre.style.width = "50%";
-                    newDiv.appendChild(pre);
-                    document.body.appendChild(newDiv);
-                }
-            }
-            if (status)
-                this._fragShaderCompileStatus = true;
-            if (infoLog)
-                this._fragShaderInfoLog = infoLog;
-            this._fragShader = fragShader;
-        }
-        else {
-            return false;
-        }
-        if (this._vertShaderCompileStatus && this._fragShaderCompileStatus) {
-            this._isCompiled = true;
-            this._program = gl.createProgram();
-            if (this._program) {
-                gl.attachShader(this._program, this._vertShader);
-                gl.attachShader(this._program, this._fragShader);
-                gl.linkProgram(this._program);
-                if (gl.getProgramParameter(this._program, gl.LINK_STATUS)) {
-                    this._programLinkStatus = true;
-                    this._isLinked = true;
-                }
-                else {
-                    this._programLinkStatus = false;
-                    let infoLog = gl.getProgramInfoLog(this._program);
-                    console.error("PROGRAM LINK ERROR:");
-                    console.error(infoLog);
-                    console.error("--------------------------------------------");
-                    if (infoLog) {
-                        this._programInfoLog = infoLog;
-                        let errorElement = document.getElementById("errors");
-                        if (!errorElement && infoLog) {
-                            let newDiv = document.createElement("div");
-                            newDiv.appendChild(document.createTextNode("PROGRAM INFO LOG"));
-                            newDiv.appendChild(document.createElement("br"));
-                            newDiv.appendChild(document.createTextNode(infoLog));
-                            document.body.appendChild(newDiv);
-                        }
-                    }
-                }
-            }
-        }
-        else {
-            return false;
-        }
-        this.updateActiveUniforms();
-        return true;
-    }
-    updateActiveUniforms() {
-        let gl = this.fx.gl;
-        if (!this._program)
-            return false;
-        let numUniforms = gl.getProgramParameter(this._program, gl.ACTIVE_UNIFORMS);
-        this.uniforms.clear();
-        this.uniformInfo.clear();
-        for (let i = 0; i < numUniforms; i++) {
-            let uniform = gl.getActiveUniform(this._program, i);
-            if (!uniform)
-                continue;
-            this.uniformInfo.set(uniform.name, uniform);
-            this.uniforms.set(uniform.name, gl.getUniformLocation(this._program, uniform.name));
-        }
-        return true;
-    }
-    addTexture(textureName, uniformName) {
-        this.textures.push(new FxTextureUniform(textureName, uniformName));
-    }
-    clearTextures() {
-        this.textures = [];
-    }
-}
-/// <reference path="Fluxions.ts" />
-/// <reference path="FxVertex.ts" />
-/// <reference path="FxSurface.ts" />
-/// <reference path="FxRenderConfig.ts" />
-var FluxionsImpl;
-(function (FluxionsImpl) {
-    class Edge {
+/// <reference path="../GTE/GTE.ts" />
+var Fluxions;
+(function (Fluxions) {
+    class FxEdge {
         constructor() {
             this.v1 = -1;
             this.v2 = -1;
@@ -3001,7 +5194,7 @@ var FluxionsImpl;
                 return (v2 + 1) * SEPARATION + (v1 + 1);
         }
     }
-    class EdgeMeshFace {
+    class FxEdgeMeshFace {
         constructor() {
             this.vertices = [];
             this.centerPoint = Vector3.makeZero();
@@ -3009,7 +5202,7 @@ var FluxionsImpl;
             this.N = Vector3.makeZero();
         }
     }
-    class EdgeMesh {
+    class FxEdgeMesh {
         constructor() {
             this.vertices = [];
             this.edges = new Map();
@@ -3033,7 +5226,7 @@ var FluxionsImpl;
             this._dirty = true;
             if (v.length < 3)
                 return;
-            let f = new EdgeMeshFace();
+            let f = new FxEdgeMeshFace();
             for (let i = 0; i < v.length; i++) {
                 if (v[i] < 0)
                     v[i] = this.vertices.length + v[i];
@@ -3063,10 +5256,10 @@ var FluxionsImpl;
                 isLeft = false;
             }
             let face = this.faces[faceIndex];
-            let edgeIndex = Edge.makeIndex(v1, v2);
+            let edgeIndex = FxEdge.makeIndex(v1, v2);
             let edge = this.edges.get(edgeIndex);
             if (!edge) {
-                edge = new Edge();
+                edge = new FxEdge();
                 edge.v1 = v1;
                 edge.v2 = v2;
                 this.edges.set(edgeIndex, edge);
@@ -3148,2565 +5341,471 @@ var FluxionsImpl;
             this._dirty = false;
             return this._ebo;
         }
-    }
-    FluxionsImpl.EdgeMesh = EdgeMesh;
-})(FluxionsImpl || (FluxionsImpl = {}));
-class FxIndexedGeometryMesh {
-    constructor(fx) {
-        this.fx = fx;
-        this.vertices = [];
-        this.indices = [];
-        this.surfaces = [];
-        this.edgeMesh = new FluxionsImpl.EdgeMesh();
-        this._mtllib = "";
-        this._mtl = "";
-        this._vertex = new FxVertex();
-        this._dirty = true;
-        this._vboData = new Float32Array(0);
-        this._iboData = new Uint32Array(0);
-        this.aabb = new GTE.BoundingBox();
-        let gl = this.fx.gl;
-        let vbo = gl.createBuffer();
-        let ibo = gl.createBuffer();
-        let ebo = gl.createBuffer();
-        if (!vbo || !ibo || !ebo)
-            throw "IndexedGeometryMesh::constructor() Unable to create buffer";
-        this._vbo = vbo;
-        this._ibo = ibo;
-        this._ebo = ebo;
-    }
-    reset() {
-        this.vertices = [];
-        this.indices = [];
-        this.surfaces = [];
-        this._dirty = true;
-        this._vertex = new FxVertex();
-        this._mtllib = "";
-        this._mtl = "";
-        this.aabb.reset();
-    }
-    mtllib(mtllib) {
-        this._mtllib = mtllib;
-    }
-    usemtl(mtl) {
-        this._mtl = mtl;
-    }
-    rect(x1, y1, x2, y2) {
-        this.begin(WebGLRenderingContext.TRIANGLE_FAN);
-        this.normal(0, 0, 1);
-        this.texcoord(0, 0, 0);
-        this.position(x1, y1, 0);
-        this.addIndex(-1);
-        this.texcoord(0, 1, 0);
-        this.position(x1, y2, 0);
-        this.addIndex(-1);
-        this.texcoord(1, 1, 0);
-        this.position(x2, y2, 0);
-        this.addIndex(-1);
-        this.texcoord(1, 0, 0);
-        this.position(x2, y1, 0);
-        this.addIndex(-1);
-    }
-    circle(ox, oy, radius = 0.5, segments = 32) {
-        this.begin(WebGLRenderingContext.TRIANGLE_FAN);
-        this.normal(0, 0, 1);
-        let theta = 0;
-        let dtheta = GTE.radians(360.0 / segments);
-        // this.texcoord(0, 0, 0);
-        // this.position(ox, oy, 0);
-        // this.addIndex(-1);
-        for (let i = 0; i < segments; i++) {
-            let x = Math.cos(theta);
-            let y = Math.sin(theta);
-            let u = x * 0.5 + 0.5;
-            let v = y * 0.5 + 0.5;
-            this.texcoord(u, v, 0);
-            this.position(radius * x + ox, radius * y + oy, 0);
-            this.addIndex(-1);
-            theta += dtheta;
-        }
-    }
-    spiral(radius, spirality = 4.0, segments = 32) {
-        this.begin(WebGLRenderingContext.LINE_STRIP);
-        this.normal(0, 0, 1);
-        let theta = 0;
-        let dtheta = GTE.radians(spirality * 360.0 / segments);
-        for (let i = 0; i < segments; i++) {
-            let x = Math.cos(theta);
-            let y = Math.sin(theta);
-            let u = x * 0.5 + 0.5;
-            let v = y * 0.5 + 0.5;
-            this.texcoord(u, v, 0);
-            let r = (i / segments) * radius;
-            this.position(r * x, r * y, 0);
-            this.addIndex(-1);
-            theta += dtheta;
-        }
-    }
-    begin(mode) {
-        if (this.surfaces.length == 0) {
-            // if no surfaces exist, add one
-            this.surfaces.push(new FxSurface(mode, this.indices.length, this._mtllib, this._mtl));
-        }
-        else if (this.currentIndexCount != 0) {
-            // do not add a surface if the most recent one is empty
-            this.surfaces.push(new FxSurface(mode, this.indices.length, this._mtllib, this._mtl));
-        }
-        if (this.surfaces.length > 0) {
-            // simply update the important details
-            let s = this.surfaces[this.surfaces.length - 1];
-            s.mtl = this._mtl;
-            s.mtllib = this._mtllib;
-        }
-    }
-    addIndex(i) {
-        if (this.surfaces.length == 0)
-            return;
-        if (i < 0) {
-            this.indices.push((this.vertices.length / 12) + i);
-        }
-        else {
-            this.indices.push(i);
-        }
-        this.surfaces[this.surfaces.length - 1].Add();
-        this._dirty = true;
-    }
-    get currentIndexCount() {
-        if (this.surfaces.length == 0)
-            return 0;
-        return this.surfaces[this.surfaces.length - 1].count;
-    }
-    normal3(n) {
-        this._vertex.normal.copy(n);
-    }
-    normal(x, y, z) {
-        this._vertex.normal.reset(x, y, z);
-    }
-    color3(c) {
-        this._vertex.color.copy(c);
-    }
-    color(r, g, b) {
-        this._vertex.color.reset(r, g, b);
-    }
-    texcoord3(t) {
-        this._vertex.texcoord.copy(t);
-    }
-    texcoord(x, y, z) {
-        this._vertex.texcoord.reset(x, y, z);
-    }
-    vertex3(v) {
-        this.aabb.add(v);
-        this._vertex.position.copy(v);
-        this.vertices.push(...this._vertex.asArray());
-        // this._vertex = new Vertex();
-    }
-    vertex(x, y, z) {
-        let v = new Vector3(x, y, z);
-        this.vertex3(v);
-    }
-    position(x, y, z) {
-        let v = new Vector3(x, y, z);
-        this.vertex3(v);
-    }
-    // DrawTexturedRect(bottomLeft: Vector3, upperRight: Vector3,
-    //     minTexCoord: Vector3, maxTexCoord: Vector3): void {
-    // }
-    build() {
-        // Building the VBO goes here
-        if (!this._dirty)
-            return;
-        this._vboData = new Float32Array(this.vertices);
-        this._iboData = new Uint32Array(this.indices);
-        let gl = this.fx.gl;
-        if (!gl)
-            return;
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._vbo);
-        gl.bufferData(gl.ARRAY_BUFFER, this._vboData, gl.STATIC_DRAW);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._ibo);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this._iboData, gl.STATIC_DRAW);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-        this._dirty = false;
-    }
-    render(rc, sg) {
-        if (!rc.usable) {
-            //hflog.warn("IndexedGeometryMesh Called, but render config is unusable.");
-            return;
-        }
-        // Rendering code goes here
-        this.build();
-        let gl = this.fx.gl;
-        if (!gl)
-            return;
-        let offsets = [0, 12, 24, 36];
-        let locs = [
-            rc.getAttribLocation("aPosition"),
-            rc.getAttribLocation("aNormal"),
-            rc.getAttribLocation("aColor"),
-            rc.getAttribLocation("aTexcoord")
-        ];
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._vbo);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._ibo);
-        for (let i = 0; i < 4; i++) {
-            if (locs[i] >= 0) {
-                gl.enableVertexAttribArray(locs[i]);
-                gl.vertexAttribPointer(locs[i], 3, gl.FLOAT, false, 48, offsets[i]);
-            }
-        }
-        for (let s of this.surfaces) {
-            sg.usemtl(s.mtllib, s.mtl);
-            gl.drawElements(s.mode, s.count, gl.UNSIGNED_INT, s.offset * 4);
-        }
-        for (let i = 0; i < 4; i++) {
-            if (locs[i] >= 0) {
-                gl.disableVertexAttribArray(locs[i]);
-            }
-        }
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-    }
-    renderplain(rc) {
-        if (!rc.usable) {
-            //hflog.warn("IndexedGeometryMesh Called, but render config is unusable.");
-            return;
-        }
-        // Rendering code goes here
-        this.build();
-        let gl = this.fx.gl;
-        if (!gl)
-            return;
-        let offsets = [0, 12, 24, 36];
-        let locs = [
-            rc.getAttribLocation("aPosition"),
-            rc.getAttribLocation("aNormal"),
-            rc.getAttribLocation("aColor"),
-            rc.getAttribLocation("aTexcoord")
-        ];
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._vbo);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._ibo);
-        for (let i = 0; i < 4; i++) {
-            if (locs[i] >= 0) {
-                gl.enableVertexAttribArray(locs[i]);
-                gl.vertexAttribPointer(locs[i], 3, gl.FLOAT, false, 48, offsets[i]);
-            }
-        }
-        for (let s of this.surfaces) {
-            gl.drawElements(s.mode, s.count, gl.UNSIGNED_INT, s.offset * 4);
-        }
-        for (let i = 0; i < 4; i++) {
-            if (locs[i] >= 0) {
-                gl.disableVertexAttribArray(locs[i]);
-            }
-        }
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-    }
-    renderEdges(rc) {
-        let gl = this.fx.gl;
-        if (!gl)
-            return;
-        let ebo = this.edgeMesh.buildBuffers(gl);
-        let offsets = [0, 12, 24, 36];
-        let stride = 48;
-        let locs = [
-            rc.getAttribLocation("aPosition"),
-            rc.getAttribLocation("aNormal"),
-            rc.getAttribLocation("aFace1Normal"),
-            rc.getAttribLocation("aFace2Normal")
-        ];
-        gl.bindBuffer(gl.ARRAY_BUFFER, ebo);
-        for (let i = 0; i < locs.length; i++) {
-            if (locs[i] >= 0) {
-                gl.enableVertexAttribArray(locs[i]);
-                gl.vertexAttribPointer(locs[i], 3, gl.FLOAT, false, 48, offsets[i]);
-            }
-        }
-        gl.drawArrays(gl.LINES, 0, this.edgeMesh.eboCount);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
-        for (let i = 0; i < locs.length; i++) {
-            if (locs[i] >= 0) {
-                gl.disableVertexAttribArray(locs[i]);
-            }
-        }
-    }
-    loadOBJ(lines, scenegraph = null, path = null) {
-        let positions = [];
-        let normals = [];
-        let colors = [];
-        let texcoords = [];
-        // in case there are no mtllib's, usemtl's, o's, g's, or s's
-        this.begin(WebGLRenderingContext.TRIANGLES);
-        for (let tokens of lines) {
-            if (tokens.length >= 3) {
-                if (tokens[0] == "v") {
-                    let position = FxTextParser.ParseVector(tokens);
-                    positions.push(position);
-                    this.edgeMesh.addVertex(position);
-                }
-                else if (tokens[0] == "vn") {
-                    normals.push(FxTextParser.ParseVector(tokens));
-                }
-                else if (tokens[0] == "vt") {
-                    texcoords.push(FxTextParser.ParseVector(tokens));
-                }
-                else if (tokens[0] == "vc") {
-                    let color = FxTextParser.ParseVector(tokens);
-                    colors.push(color);
-                    this.color(color.x, color.y, color.z);
-                }
-                else if (tokens[0] == "f") {
-                    let indices = FxTextParser.ParseFace(tokens);
-                    let edgeIndices = [];
-                    let ncount = normals.length;
-                    let tcount = texcoords.length;
-                    let pcount = positions.length;
-                    let vcount = indices.length / 3;
-                    for (let j = 1; j < vcount - 1; j++) {
-                        for (let k = 0; k < 3; k++) {
-                            let i = (k == 0) ? 0 : j + k - 1;
-                            let n = indices[i * 3 + 2];
-                            if (n >= 0 && n < ncount)
-                                this.normal3(normals[n]);
-                            let t = indices[i * 3 + 1];
-                            if (t >= 0 && t < tcount)
-                                this.texcoord3(texcoords[t]);
-                            let p = indices[i * 3 + 0];
-                            if (p >= 0 && p < pcount)
-                                this.vertex3(positions[p]);
-                            this.addIndex(-1);
-                            edgeIndices.push(indices[i * 3]);
-                        }
-                    }
-                    this.edgeMesh.addFace(edgeIndices);
-                }
-            }
-            else if (tokens.length >= 2) {
-                if (tokens[0] == "mtllib") {
-                    if (scenegraph && path)
-                        scenegraph.load(path + tokens[1]);
-                    this.mtllib(FxTextParser.ParseIdentifier(tokens));
-                    this.begin(WebGLRenderingContext.TRIANGLES);
-                }
-                else if (tokens[0] == "usemtl") {
-                    this.usemtl(FxTextParser.ParseIdentifier(tokens));
-                    this.begin(WebGLRenderingContext.TRIANGLES);
-                }
-                else if (tokens[0] == "o") {
-                    this.begin(WebGLRenderingContext.TRIANGLES);
-                }
-                else if (tokens[0] == "g") {
-                    this.begin(WebGLRenderingContext.TRIANGLES);
-                }
-                else if (tokens[0] == "s") {
-                    this.begin(WebGLRenderingContext.TRIANGLES);
-                }
-            }
-        }
-        this.build();
-    }
-}
+    } // FxEdgeMesh
+    Fluxions.FxEdgeMesh = FxEdgeMesh;
+})(Fluxions || (Fluxions = {}));
 /// <reference path="Fluxions.ts" />
-/// <reference path="FxFBO.ts" />
-/// <reference path="FxCamera.ts" />
-/// <reference path="FxTexture.ts" />
-/// <reference path="FxMaterial.ts" />
-/// <reference path="FxDirectionalLight.ts" />
-/// <reference path="FxTextParser.ts" />
-/// <reference path="../XORUtils.ts" />
-/// <reference path="FxIndexedGeometryMesh.ts" />
-var FxSGAssetType;
-(function (FxSGAssetType) {
-    FxSGAssetType[FxSGAssetType["Scene"] = 0] = "Scene";
-    FxSGAssetType[FxSGAssetType["GeometryGroup"] = 1] = "GeometryGroup";
-    FxSGAssetType[FxSGAssetType["MaterialLibrary"] = 2] = "MaterialLibrary";
-    FxSGAssetType[FxSGAssetType["ShaderProgram"] = 3] = "ShaderProgram";
-    FxSGAssetType[FxSGAssetType["Image"] = 4] = "Image";
-    FxSGAssetType[FxSGAssetType["Text"] = 5] = "Text";
-})(FxSGAssetType || (FxSGAssetType = {}));
-;
-class FxScenegraphNode {
-    constructor(name = "unknown", sceneName = "default", parent = "") {
-        this.name = name;
-        this.sceneName = sceneName;
-        this.parent = parent;
-        this.geometryGroup = "";
-        this.transform_ = Matrix4.makeIdentity();
-        this.pretransform_ = Matrix4.makeIdentity();
-        this.posttransform_ = Matrix4.makeIdentity();
-    }
-    set worldMatrix(m) {
-        this.pretransform_.loadIdentity();
-        this.transform_.copy(m);
-        this.posttransform_.loadIdentity();
-    }
-    get worldMatrix() { return Matrix4.multiply3(this.pretransform_, this.transform_, this.posttransform_); }
-    get pretransform() { return this.pretransform_; }
-    get posttransform() { return this.posttransform_; }
-    get transform() { return this.transform_; }
-}
-class FxScenegraph {
-    constructor(fx) {
-        this.fx = fx;
-        this.shaderSrcFiles = [];
-        // private _defaultFBO: FBO | null;
-        this._scenegraphs = new Map();
-        this._renderConfigs = new Map();
-        this._materials = new Map();
-        this._sceneResources = new Map();
-        this._nodes = [];
-        this._meshes = new Map();
-        this._tempNode = new FxScenegraphNode("", "");
-        this.textFiles = new Map();
-        this.camera = new FxCamera();
-        this.sunlight = new FxDirectionalLight();
-        this.currentrc = null;
-        this.currentmtllib = "";
-        this.currentmtl = "";
-        this.currentobj = "";
-        this.currentscn = "";
-        this._defaultRenderConfig = new FxRenderConfig(this.fx);
-        this._defaultRenderConfig.compile(`attribute vec4 aPosition;
-             void main() {
-                 gl_Position = aPosition;
-            }`, `void main() {
-                gl_FragColor = vec4(0.4, 0.3, 0.2, 1.0);
-            }`);
-        const width = this.fx.width;
-        const height = this.fx.height;
-        // this._defaultFBO = new FBO(this.fx, true, true, 1024, 1024, 0, true);
-        // this._fbo.set("sunshadow", new FBO(this.fx, true, true, 512, 512, 0));
-        // this._fbo.set("gbuffer", new FBO(this.fx, true, true, width, height, 1, true));
-        // this._fbo.set("image", new FBO(this.fx, true, true, width, height, 1, true));
-        let gl = this.fx.gl;
-        this._deferredMesh = new FxIndexedGeometryMesh(this.fx);
-        this._deferredMesh.texcoord3(Vector3.make(0.0, 0.0, 0.0));
-        this._deferredMesh.vertex3(Vector3.make(-1.0, -1.0, 0.0));
-        this._deferredMesh.texcoord3(Vector3.make(1.0, 0.0, 0.0));
-        this._deferredMesh.vertex3(Vector3.make(1.0, -1.0, 0.0));
-        this._deferredMesh.texcoord3(Vector3.make(1.0, 1.0, 0.0));
-        this._deferredMesh.vertex3(Vector3.make(1.0, 1.0, 0.0));
-        this._deferredMesh.texcoord3(Vector3.make(0.0, 1.0, 0.0));
-        this._deferredMesh.vertex3(Vector3.make(-1.0, 1.0, 0.0));
-        this._deferredMesh.mtllib("Floor10x10_mtl");
-        this._deferredMesh.usemtl("ConcreteFloor");
-        this._deferredMesh.begin(gl.TRIANGLES);
-        this._deferredMesh.addIndex(0);
-        this._deferredMesh.addIndex(1);
-        this._deferredMesh.addIndex(2);
-        this._deferredMesh.addIndex(0);
-        this._deferredMesh.addIndex(2);
-        this._deferredMesh.addIndex(3);
-    }
-    // get shadowFBO(): FBO { return this.getFBO("sunshadow"); }
-    // get gbufferFBO(): FBO { return this.getFBO("gbuffer") }
-    // get imageFBO(): FBO { return this.getFBO("image"); }
-    get width() { return this.fx.width; }
-    get height() { return this.fx.height; }
-    get aspectRatio() { return this.width / this.height; }
-    get loaded() {
-        if (!this.fx.xor.textfiles.loaded) {
-            return false;
+/// <reference path="FxVertex.ts" />
+/// <reference path="FxSurface.ts" />
+/// <reference path="FxRenderConfig.ts" />
+/// <reference path="FxScenegraph.ts" />
+/// <reference path="FxEdgeMesh.ts" />
+var Fluxions;
+(function (Fluxions) {
+    class FxIndexedGeometryMesh {
+        constructor(fx) {
+            this.fx = fx;
+            this.vertices = [];
+            this.indices = [];
+            this.surfaces = [];
+            this.edgeMesh = new Fluxions.FxEdgeMesh();
+            this._mtllib = "";
+            this._mtl = "";
+            this._vertex = new FxVertex();
+            this._dirty = true;
+            this._vboData = new Float32Array(0);
+            this._iboData = new Uint32Array(0);
+            this.aabb = new GTE.BoundingBox();
+            let gl = this.fx.gl;
+            let vbo = gl.createBuffer();
+            let ibo = gl.createBuffer();
+            let ebo = gl.createBuffer();
+            if (!vbo || !ibo || !ebo)
+                throw "IndexedGeometryMesh::constructor() Unable to create buffer";
+            this._vbo = vbo;
+            this._ibo = ibo;
+            this._ebo = ebo;
         }
-        if (!this.fx.textures.loaded)
-            return false;
-        for (let s of this.shaderSrcFiles) {
-            if (!s.loaded)
-                return false;
+        reset() {
+            this.vertices = [];
+            this.indices = [];
+            this.surfaces = [];
+            this._dirty = true;
+            this._vertex = new FxVertex();
+            this._mtllib = "";
+            this._mtl = "";
+            this.aabb.reset();
         }
-        return true;
-    }
-    get failed() {
-        if (this.fx.xor.textfiles.failed) {
-            return true;
+        mtllib(mtllib) {
+            this._mtllib = mtllib;
         }
-        if (this.fx.textures.failed) {
-            return true;
+        usemtl(mtl) {
+            this._mtl = mtl;
         }
-        for (let s of this.shaderSrcFiles) {
-            if (s.failed)
-                return true;
+        rect(x1, y1, x2, y2) {
+            this.begin(WebGLRenderingContext.TRIANGLE_FAN);
+            this.normal(0, 0, 1);
+            this.texcoord(0, 0, 0);
+            this.position(x1, y1, 0);
+            this.addIndex(-1);
+            this.texcoord(0, 1, 0);
+            this.position(x1, y2, 0);
+            this.addIndex(-1);
+            this.texcoord(1, 1, 0);
+            this.position(x2, y2, 0);
+            this.addIndex(-1);
+            this.texcoord(1, 0, 0);
+            this.position(x2, y1, 0);
+            this.addIndex(-1);
         }
-        return false;
-    }
-    get percentLoaded() {
-        let a = 0;
-        for (let s of this.shaderSrcFiles) {
-            if (s.loaded)
-                a++;
-        }
-        return 100.0 * a / (this.shaderSrcFiles.length) + this.fx.textures.percentLoaded / 3.0 + this.fx.xor.textfiles.percentLoaded / 3.0;
-    }
-    load(url) {
-        let fx = this.fx;
-        let name = XORUtils.GetURLResource(url);
-        let self = this;
-        let assetType;
-        let ext = XORUtils.GetExtension(name);
-        let path = XORUtils.GetURLPath(url);
-        if (ext == "scn")
-            assetType = FxSGAssetType.Scene;
-        else if (ext == "obj")
-            assetType = FxSGAssetType.GeometryGroup;
-        else if (ext == "mtl")
-            assetType = FxSGAssetType.MaterialLibrary;
-        else if (ext == "png")
-            assetType = FxSGAssetType.Image;
-        else if (ext == "jpg")
-            assetType = FxSGAssetType.Image;
-        else if (ext == "txt")
-            assetType = FxSGAssetType.Text;
-        else
-            return;
-        if (this.wasRequested(name))
-            return;
-        if (assetType == FxSGAssetType.Image) {
-            fx.textures.load(name, url);
-        }
-        else {
-            if (assetType == FxSGAssetType.Scene) {
-                this._scenegraphs.set(name, false);
-            }
-            fx.xor.textfiles.load(name, url, (data, name, assetType) => {
-                self.processTextFile(data, name, path, assetType);
-                hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + name);
-            }, assetType);
-            // this.textFiles.push(new XORUtils.TextFileLoader(url, (data, name, assetType) => {
-            //     self.processTextFile(data, name, path, assetType);
-            //     hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + name);
-            // }, assetType));
-        }
-        hflog.debug("MyScenegraph::Load() => Requesting " + url);
-    }
-    isSceneGraph(name) {
-        let status = this._scenegraphs.get(name);
-        if (status)
-            return true;
-        return false;
-    }
-    wasRequested(name) {
-        if (this.fx.xor.textfiles.wasRequested(name)) {
-            return true;
-        }
-        if (this.fx.textures.wasRequested(name)) {
-            return true;
-        }
-        return false;
-    }
-    areMeshes(names) {
-        for (let name of names) {
-            if (!this._meshes.has(name))
-                return false;
-        }
-        return true;
-    }
-    addRenderConfig(name, vertshaderUrl, fragshaderUrl) {
-        let rc = new FxRenderConfig(this.fx);
-        this._renderConfigs.set(name, rc);
-        let self = this;
-        this.shaderSrcFiles.push(new XORUtils.ShaderLoader(vertshaderUrl, fragshaderUrl, (vertShaderSource, fragShaderSource) => {
-            rc.compile(vertShaderSource, fragShaderSource);
-            hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + vertshaderUrl + " and " + fragshaderUrl);
-        }));
-    }
-    getRenderConfig(name) {
-        let rc = this._renderConfigs.get(name) || null;
-        return rc;
-    }
-    userc(name) {
-        let rc = this.getRenderConfig(name);
-        if (this.currentrc && rc !== this.currentrc) {
-            this.currentrc.restore();
-        }
-        this.currentrc = rc;
-        if (this.currentrc) {
-            this.currentrc.use();
-        }
-        return this.currentrc;
-    }
-    // AddRenderConfig(name: string, vertshaderUrl: string, fragshaderUrl: string) {
-    //     let self = this;
-    //     this.shaderSrcFiles.push(new Utils.ShaderLoader(vertshaderUrl, fragshaderUrl, (vertShaderSource: string, fragShaderSource: string) => {
-    //         let rc = new FxRenderConfig(this.fx);
-    //         rc.compile(vertShaderSource, fragShaderSource);
-    //         self._renderConfigs.set(name, rc);
-    //         hflog.log("Loaded " + Math.round(self.percentLoaded) + "% " + vertshaderUrl + " and " + fragshaderUrl);
-    //     }));
-    // }
-    // GetRenderConfig(name: string): FxRenderConfig | null {
-    //     let rc = this._renderConfigs.get(name);
-    //     if (rc) {
-    //         return rc;
-    //     }
-    //     return null;
-    // }
-    // UseRenderConfig(name: string): FxRenderConfig | null {
-    //     let rc = this._renderConfigs.get(name);
-    //     if (rc) {
-    //         rc.use();
-    //         return rc;
-    //     }
-    //     return null;
-    // }
-    getMaterial(mtllib, mtl) {
-        let material = this._materials.get(mtllib + mtl) || null;
-        return material;
-        // for (let ml of this._materials) {
-        //     if (ml["0"] == mtllib + mtl) {
-        //         return ml["1"];
-        //     }
-        // }
-        // return null;
-    }
-    usemtl(mtllib, mtl) {
-        let gl = this.fx.gl;
-        if (!this.currentrc)
-            return;
-        let rc = this.currentrc;
-        let m = this.getMaterial(mtllib, mtl);
-        if (m) {
-            let tnames = ["map_Kd", "map_Ks", "map_normal"];
-            let textures = [m.map_Kd, m.map_Ks, m.map_normal];
-            for (let i = 0; i < textures.length; i++) {
-                if (textures[i].length == 0)
-                    continue;
-                let loc = rc.getUniformLocation(tnames[i]);
-                if (loc) {
-                    this.useTexture(textures[i], i);
-                    rc.uniform1i(tnames[i], i);
-                }
-            }
-            let v1fnames = ["map_Kd_mix", "map_Ks_mix", "map_normal_mix", "PBKdm", "PBKsm", "PBn2", "PBk2"];
-            let v1fvalues = [m.map_Kd_mix, m.map_Ks_mix, m.map_normal_mix, m.PBKdm, m.PBKsm, m.PBn2, m.PBk2];
-            for (let i = 0; i < v1fnames.length; i++) {
-                let uloc = rc.getUniformLocation(v1fnames[i]);
-                if (uloc) {
-                    rc.uniform1f(v1fnames[i], v1fvalues[i]);
-                }
-            }
-            let v3fnames = ["Kd", "Ks", "Ka"];
-            let v3fvalues = [m.Kd, m.Ks, m.Ka];
-            for (let i = 0; i < v3fnames.length; i++) {
-                let uloc = rc.getUniformLocation(v3fnames[i]);
-                if (uloc) {
-                    rc.uniform3f(v3fnames[i], v3fvalues[i]);
-                }
+        circle(ox, oy, radius = 0.5, segments = 32) {
+            this.begin(WebGLRenderingContext.TRIANGLE_FAN);
+            this.normal(0, 0, 1);
+            let theta = 0;
+            let dtheta = GTE.radians(360.0 / segments);
+            // this.texcoord(0, 0, 0);
+            // this.position(ox, oy, 0);
+            // this.addIndex(-1);
+            for (let i = 0; i < segments; i++) {
+                let x = Math.cos(theta);
+                let y = Math.sin(theta);
+                let u = x * 0.5 + 0.5;
+                let v = y * 0.5 + 0.5;
+                this.texcoord(u, v, 0);
+                this.position(radius * x + ox, radius * y + oy, 0);
+                this.addIndex(-1);
+                theta += dtheta;
             }
         }
-        // for (let ml of this._materials) {
-        //     if (ml["0"] == mtllib + mtl) {// && ml["1"].name == mtl) {
-        //         let m = ml["1"];
-        //         let tnames = ["map_Kd", "map_Ks", "map_normal"];
-        //         let textures = [m.map_Kd, m.map_Ks, m.map_normal];
-        //         for (let i = 0; i < textures.length; i++) {
-        //             if (textures[i].length == 0)
-        //                 continue;
-        //             let loc = rc.getUniformLocation(tnames[i]);
-        //             if (loc) {
-        //                 this.useTexture(textures[i], i);
-        //                 rc.uniform1i(tnames[i], i);
-        //             }
-        //         }
-        //         let v1fnames = ["map_Kd_mix", "map_Ks_mix", "map_normal_mix", "PBKdm", "PBKsm", "PBn2", "PBk2"];
-        //         let v1fvalues = [m.map_Kd_mix, m.map_Ks_mix, m.map_normal_mix, m.PBKdm, m.PBKsm, m.PBn2, m.PBk2];
-        //         for (let i = 0; i < v1fnames.length; i++) {
-        //             let uloc = rc.getUniformLocation(v1fnames[i]);
-        //             if (uloc) {
-        //                 rc.uniform1f(v1fnames[i], v1fvalues[i]);
-        //             }
-        //         }
-        //         let v3fnames = ["Kd", "Ks", "Ka"];
-        //         let v3fvalues = [m.Kd, m.Ks, m.Ka];
-        //         for (let i = 0; i < v3fnames.length; i++) {
-        //             let uloc = rc.getUniformLocation(v3fnames[i]);
-        //             if (uloc) {
-        //                 rc.uniform3f(v3fnames[i], v3fvalues[i]);
-        //             }
-        //         }
-        //     }
-        // }
-    }
-    RenderMesh(name, rc) {
-        if (name.length == 0) {
-            for (let mesh of this._meshes) {
-                mesh["1"].render(rc, this);
-            }
-            return;
-        }
-        let mesh = this._meshes.get(name);
-        if (mesh) {
-            mesh.render(rc, this);
-        }
-    }
-    useTexture(textureName, unit, enable = true) {
-        let texunit = unit | 0;
-        let gl = this.fx.gl;
-        let result = false;
-        let minFilter = gl.LINEAR_MIPMAP_LINEAR;
-        let magFilter = gl.LINEAR;
-        if (unit <= 31) {
-            unit += gl.TEXTURE0;
-        }
-        gl.activeTexture(unit);
-        let t = this.fx.textures.get(textureName);
-        if (!t) {
-            let alias = this._sceneResources.get(textureName);
-            if (alias) {
-                t = this.fx.textures.get(alias);
+        spiral(radius, spirality = 4.0, segments = 32) {
+            this.begin(WebGLRenderingContext.LINE_STRIP);
+            this.normal(0, 0, 1);
+            let theta = 0;
+            let dtheta = GTE.radians(spirality * 360.0 / segments);
+            for (let i = 0; i < segments; i++) {
+                let x = Math.cos(theta);
+                let y = Math.sin(theta);
+                let u = x * 0.5 + 0.5;
+                let v = y * 0.5 + 0.5;
+                this.texcoord(u, v, 0);
+                let r = (i / segments) * radius;
+                this.position(r * x, r * y, 0);
+                this.addIndex(-1);
+                theta += dtheta;
             }
         }
-        if (t) {
-            if (unit <= 31) {
-                unit += gl.TEXTURE0;
+        begin(mode) {
+            if (this.surfaces.length == 0) {
+                // if no surfaces exist, add one
+                this.surfaces.push(new FxSurface(mode, this.indices.length, this._mtllib, this._mtl));
             }
-            gl.activeTexture(unit);
-            if (enable) {
-                gl.bindTexture(t.target, t.texture);
-                gl.texParameteri(t.target, gl.TEXTURE_MIN_FILTER, minFilter);
-                gl.texParameteri(t.target, gl.TEXTURE_MAG_FILTER, magFilter);
-                result = true;
+            else if (this.currentIndexCount != 0) {
+                // do not add a surface if the most recent one is empty
+                this.surfaces.push(new FxSurface(mode, this.indices.length, this._mtllib, this._mtl));
+            }
+            if (this.surfaces.length > 0) {
+                // simply update the important details
+                let s = this.surfaces[this.surfaces.length - 1];
+                s.mtl = this._mtl;
+                s.mtllib = this._mtllib;
+            }
+        }
+        addIndex(i) {
+            if (this.surfaces.length == 0)
+                return;
+            if (i < 0) {
+                this.indices.push((this.vertices.length / 12) + i);
             }
             else {
-                gl.bindTexture(t.target, null);
+                this.indices.push(i);
             }
+            this.surfaces[this.surfaces.length - 1].Add();
+            this._dirty = true;
         }
-        if (!t) {
-            gl.bindTexture(gl.TEXTURE_2D, null);
-            gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+        get currentIndexCount() {
+            if (this.surfaces.length == 0)
+                return 0;
+            return this.surfaces[this.surfaces.length - 1].count;
         }
-        gl.activeTexture(gl.TEXTURE0);
-        return result;
-    }
-    GetNode(sceneName, objectName) {
-        for (let node of this._nodes) {
-            if (sceneName.length > 0 && node.sceneName != sceneName) {
-                continue;
-            }
-            if (node.name.length > 0 && node.name == objectName) {
-                return node;
-            }
+        normal3(n) {
+            this._vertex.normal.copy(n);
         }
-        return null;
-    }
-    GetChildren(parentName) {
-        let children = [];
-        for (let node of this._nodes) {
-            if (node.parent == parentName)
-                children.push(node);
+        normal(x, y, z) {
+            this._vertex.normal.reset(x, y, z);
         }
-        return children;
-    }
-    UpdateChildTransforms(parentName = "") {
-        let nodeWorldMatrix;
-        let children = [];
-        if (parentName.length == 0) {
-            nodeWorldMatrix = Matrix4.makeIdentity();
-            children = this._nodes;
+        color3(c) {
+            this._vertex.color.copy(c);
         }
-        else {
-            let node = this.GetNode("", parentName);
-            if (!node)
+        color(r, g, b) {
+            this._vertex.color.reset(r, g, b);
+        }
+        texcoord3(t) {
+            this._vertex.texcoord.copy(t);
+        }
+        texcoord(x, y, z) {
+            this._vertex.texcoord.reset(x, y, z);
+        }
+        vertex3(v) {
+            this.aabb.add(v);
+            this._vertex.position.copy(v);
+            this.vertices.push(...this._vertex.asArray());
+            // this._vertex = new Vertex();
+        }
+        vertex(x, y, z) {
+            let v = new Vector3(x, y, z);
+            this.vertex3(v);
+        }
+        position(x, y, z) {
+            let v = new Vector3(x, y, z);
+            this.vertex3(v);
+        }
+        // DrawTexturedRect(bottomLeft: Vector3, upperRight: Vector3,
+        //     minTexCoord: Vector3, maxTexCoord: Vector3): void {
+        // }
+        build() {
+            // Building the VBO goes here
+            if (!this._dirty)
                 return;
-            nodeWorldMatrix = node.worldMatrix;
-            children = this.GetChildren(parentName);
-        }
-        for (let child of children) {
-            child.pretransform.copy(nodeWorldMatrix);
-            this.UpdateChildTransforms(child.name);
-        }
-    }
-    AddNode(sceneName, objectName, parentNode = "") {
-        let sn = this.GetNode(sceneName, objectName);
-        if (!sn) {
-            sn = new FxScenegraphNode(objectName, sceneName);
-            this._nodes.push(sn);
-        }
-        return sn;
-    }
-    RemoveNode(sceneName, objectName) {
-        let i = 0;
-        for (let node of this._nodes) {
-            if (sceneName.length > 0 && node.sceneName != sceneName) {
-                continue;
-            }
-            if (node.name.length > 0 && node.name == objectName) {
-                this._nodes.splice(i, 1);
-                return true;
-            }
-            i++;
-        }
-        return false;
-    }
-    GetMesh(meshName) {
-        let mesh = this._meshes.get(meshName);
-        if (!mesh) {
-            mesh = new FxIndexedGeometryMesh(this.fx);
-            this._meshes.set(meshName, mesh);
-        }
-        return mesh;
-    }
-    SetGlobalParameters(rc) {
-        if (rc) {
-            rc.use();
-            rc.uniform1f("uWindowWidth", this.width);
-            rc.uniform1f("uWindowHeight", this.height);
-            rc.uniform1f("uWindowCenterX", this.width * 0.5);
-            rc.uniform1f("uWindowCenterY", this.height * 0.5);
-            rc.uniform3f("SunDirTo", this.sunlight.direction);
-            rc.uniform3f("SunE0", this.sunlight.E0);
-            this.camera.aspectRatio = this.aspectRatio;
-            rc.uniformMatrix4f("ProjectionMatrix", this.camera.projection);
-            rc.uniformMatrix4f("CameraMatrix", this.camera.transform);
-            rc.uniform3f("CameraPosition", this.camera.eye);
-            this.useTexture("enviroCube", 10);
-            rc.uniform1i("EnviroCube", 10);
-            // TODO: Make This Part of a Light Data Structure
-            if (!rc.writesToFBO) {
-                rc.uniformMatrix4f("SunShadowBiasMatrix", Matrix4.makeShadowBias());
-                rc.uniformMatrix4f("SunShadowProjectionMatrix", this.sunlight.projectionMatrix);
-                rc.uniformMatrix4f("SunShadowViewMatrix", this.sunlight.lightMatrix);
-            }
-            // let unit = 11;
-            // for (let fbo of rc.readFromFBOs) {
-            //     this.configureFBO(rc, fbo, unit, unit + 1);
-            //     unit += 2;
-            // }
-            this.fx.fbos.configure(rc);
-        }
-        let gl = this.fx.gl;
-        gl.viewport(0, 0, this.width, this.height);
-    }
-    // configureFBO(rc: FxRenderConfig, name: string, colorUnit: number, depthUnit: number) {
-    //     const colorUniform = name + "Color";
-    //     const depthUniform = name + "Depth";
-    //     const resolutionUnifom = name + "Resolution";
-    //     const usingUniform = "Using" + name;
-    //     let fbo = this._fbo.get(name) || null;
-    //     if (!fbo) return;
-    //     rc.uniform2f(resolutionUnifom, fbo.dimensions);
-    //     rc.uniform1i(usingUniform, rc.writesToFBO ? 1 : 0);
-    //     if (rc.writesToFBO && fbo.complete) {
-    //         fbo.bindTextures(colorUnit, depthUnit);
-    //         if (fbo.color) rc.uniform1i(colorUniform, colorUnit);
-    //         if (fbo.depth) rc.uniform1i(depthUniform, depthUnit);
-    //     } else {
-    //         rc.uniform1i(colorUniform, 0);
-    //         rc.uniform1i(depthUniform, 0);
-    //     }
-    // }
-    Restore() {
-        let gl = this.fx.gl;
-        for (let i = 0; i < 10; i++) {
-            gl.activeTexture(i + gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, null);
-        }
-        this.useTexture("enviroCube", 10, false);
-        // for (let fbo of this._fbo) {
-        //     if (fbo[1].complete) fbo[1].unbindTextures()
-        // }
-        this.fx.fbos.restore();
-    }
-    Update() {
-        // check FBOs
-        // this._fbo.forEach((fbo) => {
-        //     if (fbo.width != this.width || fbo.height != this.height) {
-        //         fbo.autoResize(this.width, this.height);
-        //     }
-        // });
-        this.fx.fbos.autoresize();
-    }
-    RenderScene(shaderName, sceneName = "") {
-        let rc = this.userc(shaderName);
-        if (!rc || !rc.usable) {
-            //hflog.error("MyScenegraph::RenderScene(): \"" + shaderName + "\" is not a render config");
-            return;
-        }
-        for (let node of this._nodes) {
-            if (sceneName.length > 0 && node.sceneName != sceneName) {
-                continue;
-            }
-            rc.uniformMatrix4f("WorldMatrix", node.worldMatrix);
-            let mesh = this._meshes.get(node.geometryGroup);
-            if (mesh) {
-                if (rc.renderEdges) {
-                    mesh.renderEdges(rc);
-                }
-                else {
-                    mesh.render(rc, this);
-                }
-            }
-        }
-        rc.restore();
-    }
-    RenderDeferred(shaderName) {
-        let rc = this.userc(shaderName);
-        if (!rc || !rc.usable) {
-            //hflog.error("MyScenegraph::RenderDeferred(): \"" + shaderName + "\" is not a render config");
-            return;
-        }
-        let gl = this.fx.gl;
-        gl.disable(gl.DEPTH_TEST);
-        rc.uniformMatrix4f("ProjectionMatrix", Matrix4.makeOrtho2D(-1.0, 1.0, -1.0, 1.0));
-        rc.uniformMatrix4f("CameraMatrix", Matrix4.makeLookAt(Vector3.make(0.0, 0.0, 1.0), Vector3.make(0.0, 0.0, 0.0), Vector3.make(0.0, 1.0, 0.0)));
-        rc.uniformMatrix4f("WorldMatrix", Matrix4.makeTranslation(0.0, 0.0, 0.0));
-        this._deferredMesh.render(rc, this);
-        rc.restore();
-    }
-    processTextFile(data, name, path, assetType) {
-        let textParser = new FxTextParser(data);
-        switch (assetType) {
-            // ".SCN"
-            case FxSGAssetType.Scene:
-                this.loadScene(textParser.lines, name, path);
-                break;
-            // ".OBJ"
-            case FxSGAssetType.GeometryGroup:
-                this.loadOBJ(textParser.lines, name, path);
-                break;
-            // ".MTL"
-            case FxSGAssetType.MaterialLibrary:
-                this.loadMTL(textParser.lines, name, path);
-                break;
-            case FxSGAssetType.Text:
-                this.textFiles.set(name, textParser.lines);
-                break;
-        }
-    }
-    loadScene(lines, name, path) {
-        // sundir <direction: Vector3>
-        // camera <eye: Vector3> <center: Vector3> <up: Vector3>
-        // transform <worldMatrix: Matrix4>
-        // geometryGroup <objUrl: string>
-        for (let tokens of lines) {
-            if (tokens[0] == "enviroCube") {
-                this._sceneResources.set("enviroCube", XORUtils.GetURLResource(tokens[1]));
-                this.load(path + tokens[1]);
-            }
-            else if (tokens[0] == "transform") {
-                this._tempNode.transform.loadMatrix(FxTextParser.ParseMatrix(tokens));
-            }
-            else if (tokens[0] == "loadIdentity") {
-                this._tempNode.transform.loadIdentity();
-            }
-            else if (tokens[0] == "translate") {
-                let t = FxTextParser.ParseVector(tokens);
-                this._tempNode.transform.translate(t.x, t.y, t.z);
-            }
-            else if (tokens[0] == "rotate") {
-                let values = FxTextParser.ParseVector4(tokens);
-                this._tempNode.transform.rotate(values.x, values.y, values.z, values.w);
-            }
-            else if (tokens[0] == "scale") {
-                let values = FxTextParser.ParseVector4(tokens);
-                this._tempNode.transform.scale(values.x, values.y, values.z);
-            }
-            else if (tokens[0] == "geometryGroup") {
-                // geometryGroup filename
-                // geometryGroup name filename
-                // geometryGroup name parentNode filename
-                let parentName = "";
-                let filename = (tokens.length >= 2) ? tokens[tokens.length - 1] : "nothing.obj";
-                let nodeName = (tokens.length >= 3) ? tokens[1] : filename;
-                if (tokens.length >= 4) {
-                    parentName = tokens[2];
-                }
-                this._tempNode.sceneName = name;
-                this._tempNode.parent = parentName;
-                this._tempNode.name = nodeName;
-                this._tempNode.geometryGroup = filename;
-                if (!this.wasRequested(filename)) {
-                    hflog.log("loading geometry group [parent = " + parentName + "]" + path + filename);
-                    this.load(path + filename);
-                }
-                this._nodes.push(this._tempNode);
-                this._tempNode = new FxScenegraphNode();
-            }
-            else if (tokens[0] == "node") {
-                // node name
-                // node name parentNode
-                let nodeName = (tokens.length >= 2) ? tokens[1] : "";
-                let parentName = (tokens.length >= 3) ? tokens[2] : "";
-                this._tempNode.name = nodeName;
-                this._tempNode.parent = parentName;
-                this._tempNode.sceneName = name;
-                this._tempNode.geometryGroup = "";
-                this._nodes.push(this._tempNode);
-                this._tempNode = new FxScenegraphNode();
-            }
-            else if (tokens[0] == "renderconfig") {
-                let name = tokens[1];
-                let vertShaderUrl = tokens[2];
-                let fragShaderUrl = tokens[3];
-                this.addRenderConfig(name, vertShaderUrl, fragShaderUrl);
-            }
-        }
-        this._scenegraphs.set(name, true);
-    }
-    loadOBJ(lines, name, path) {
-        // mtllib <mtlUrl: string>
-        // usemtl <name: string>
-        // v <position: Vector3>
-        // vn <normal: Vector3>
-        // vt <texcoord: Vector2|Vector3>
-        // vc <color: Vector4>
-        // f <v1: number> <v2: number> <v3: number>
-        // f <v1: number>/<vt1:number> <v2: number>/<vt2:number> <v2: number>/<vt2:number>
-        // f <v1: number>//<vt1:number> <v2: number>//<vt2:number> <v2: number>//<vt2:number>
-        // f <v1: number>/<vn1:number>/<vt1:number> <v2: number>/<vn2:number>/<vt2:number> <v2: number>/<vn3:number>/<vt2:number>
-        // o <objectName: string>
-        // g <newSmoothingGroup: string>
-        // s <newSmoothingGroup: string>
-        let mesh = new FxIndexedGeometryMesh(this.fx);
-        // let gl = this.fx.gl;
-        // let positions: Vector3[] = [];
-        // let normals: Vector3[] = [];
-        // let colors: Vector3[] = [];
-        // let texcoords: Vector3[] = [];
-        // // in case there are no mtllib's, usemtl's, o's, g's, or s's
-        // mesh.begin(gl.TRIANGLES);
-        // for (let tokens of lines) {
-        //     if (tokens.length >= 3) {
-        //         if (tokens[0] == "v") {
-        //             let position = TextParser.ParseVector(tokens);
-        //             positions.push(position);
-        //             mesh.edgeMesh.addVertex(position);
-        //         } else if (tokens[0] == "vn") {
-        //             normals.push(TextParser.ParseVector(tokens));
-        //         } else if (tokens[0] == "vt") {
-        //             texcoords.push(TextParser.ParseVector(tokens));
-        //         } else if (tokens[0] == "vc") {
-        //             let color = TextParser.ParseVector(tokens);
-        //             colors.push(color);
-        //             mesh.color(color.x, color.y, color.z);
-        //         } else if (tokens[0] == "f") {
-        //             let indices = TextParser.ParseFace(tokens);
-        //             let edgeIndices: number[] = [];
-        //             for (let i = 0; i < 3; i++) {
-        //                 try {
-        //                     if (indices[i * 3 + 2] >= 0)
-        //                         mesh.normal3(normals[indices[i * 3 + 2]]);
-        //                     if (indices[i * 3 + 1] >= 0)
-        //                         mesh.texcoord3(texcoords[indices[i * 3 + 1]]);
-        //                     mesh.vertex3(positions[indices[i * 3 + 0]]);
-        //                     mesh.addIndex(-1);
-        //                     edgeIndices.push(indices[i * 3]);
-        //                 }
-        //                 catch (s) {
-        //                     hflog.debug(s);
-        //                 }
-        //                 mesh.edgeMesh.addFace(edgeIndices);
-        //             }
-        //         }
-        //     }
-        //     else if (tokens.length >= 2) {
-        //         if (tokens[0] == "mtllib") {
-        //             this.load(path + tokens[1]);
-        //             mesh.mtllib(TextParser.ParseIdentifier(tokens));
-        //             mesh.begin(gl.TRIANGLES);
-        //         } else if (tokens[0] == "usemtl") {
-        //             mesh.usemtl(TextParser.ParseIdentifier(tokens));
-        //             mesh.begin(gl.TRIANGLES);
-        //         } else if (tokens[0] == "o") {
-        //             mesh.begin(gl.TRIANGLES);
-        //         } else if (tokens[0] == "g") {
-        //             mesh.begin(gl.TRIANGLES);
-        //         } else if (tokens[0] == "s") {
-        //             mesh.begin(gl.TRIANGLES);
-        //         }
-        //     }
-        // }
-        mesh.loadOBJ(lines, this, path);
-        mesh.build();
-        this._meshes.set(name, mesh);
-    }
-    loadMTL(lines, name, path) {
-        // newmtl <name: string>
-        // Kd <color: Vector3>
-        // Ks <color: Vector3>
-        // map_Kd <url: string>
-        // map_Ks <url: string>
-        // map_normal <url: string>
-        let mtl = "";
-        let mtllib = FxTextParser.MakeIdentifier(name);
-        let curmtl;
-        for (let tokens of lines) {
-            if (tokens.length >= 2) {
-                if (tokens[0] == "newmtl") {
-                    mtl = FxTextParser.MakeIdentifier(tokens[1]);
-                    curmtl = new FxMaterial(mtl);
-                    this._materials.set(mtllib + mtl, curmtl);
-                }
-                else if (tokens[0] == "map_Kd") {
-                    if (curmtl) {
-                        curmtl.map_Kd = XORUtils.GetURLResource(tokens[1]);
-                        curmtl.map_Kd_mix = 1.0;
-                    }
-                    this.load(path + tokens[1]);
-                }
-                else if (tokens[0] == "map_Ks") {
-                    if (curmtl) {
-                        curmtl.map_Ks = XORUtils.GetURLResource(tokens[1]);
-                        curmtl.map_Ks_mix = 1.0;
-                    }
-                    this.load(path + tokens[1]);
-                }
-                else if (tokens[0] == "map_normal") {
-                    if (curmtl) {
-                        curmtl.map_normal = XORUtils.GetURLResource(tokens[1]);
-                        curmtl.map_normal_mix = 1.0;
-                    }
-                    this.load(path + tokens[1]);
-                }
-                else if (tokens[0] == "Kd") {
-                    if (curmtl) {
-                        curmtl.Kd = FxTextParser.ParseVector(tokens);
-                    }
-                }
-                else if (tokens[0] == "Ks") {
-                    if (curmtl) {
-                        curmtl.Ks = FxTextParser.ParseVector(tokens);
-                    }
-                }
-                else if (tokens[0] == "Ka") {
-                    if (curmtl) {
-                        curmtl.Ka = FxTextParser.ParseVector(tokens);
-                    }
-                }
-                else if (tokens[0] == "PBn2") {
-                    if (curmtl) {
-                        curmtl.PBn2 = parseFloat(tokens[1]);
-                    }
-                }
-                else if (tokens[0] == "PBk2") {
-                    if (curmtl) {
-                        curmtl.PBk2 = parseFloat(tokens[1]);
-                    }
-                }
-                else if (tokens[0] == "map_Kd_mix") {
-                    if (curmtl) {
-                        curmtl.map_Kd_mix = parseFloat(tokens[1]);
-                    }
-                }
-                else if (tokens[0] == "map_Ks_mix") {
-                    if (curmtl) {
-                        curmtl.map_Ks_mix = parseFloat(tokens[1]);
-                    }
-                }
-                else if (tokens[0] == "map_normal_mix") {
-                    if (curmtl) {
-                        curmtl.map_normal_mix = parseFloat(tokens[1]);
-                    }
-                }
-            }
-        }
-    }
-}
-/// <reference path="../LibXOR.ts" />
-/// <reference path="FxScenegraph.ts" />
-/// <reference path="FxRenderingContext.ts" />
-/// <reference path="FxTextureUniform.ts" />
-/// <reference path="LibXOR.ts" />
-class MemorySystem {
-    constructor(xor) {
-        this.xor = xor;
-        this.mem = new Int32Array(65536);
-        // handy reminders
-        // 0x1000 = 4096
-        // 0x100 = 256
-        // 0x10 = 16
-        // Start of VIC memory
-        this.VICSTART = 0x1000;
-        this.VICCOUNT = 256;
-        this.PALETTESTART = 0x1100;
-        this.PALETTECOUNT = 16 * 16;
-        this.SPRITESHEETSTART = 0x2000;
-        this.SPRITESHEETCOUNT = 0x1000;
-    }
-    init() {
-        for (let i = 0; i < 65536; i++) {
-            this.mem[i] = 0;
-        }
-    }
-    PEEK(location) {
-        if (location < 0 || location > 65536) {
-            return 0;
-        }
-        return this.mem[location];
-    }
-    POKE(location, value) {
-        if (location < 0 || location > 65535) {
-            return;
-        }
-        this.mem[location] = value | 0;
-    }
-}
-/// <reference path="MemorySystem.ts" />
-/// <reference path="../Fluxions/GTE.ts" />
-class GraphicsSprite {
-    constructor() {
-        this.position = GTE.vec3(0, 0, 0);
-        this.pivot = GTE.vec3(0, 0, 0);
-        this.palette = 0;
-        this.index = 0;
-        this.plane = 0;
-        this.enabled = true;
-        this.alpha = 1.0;
-        this.fliph = false;
-        this.flipv = false;
-        this.rotate90 = 0;
-        this.matrix = Matrix4.makeIdentity();
-    }
-    readFromMemory(mem, offset) {
-        this.position.x = mem.PEEK(offset + 0);
-        this.position.y = mem.PEEK(offset + 1);
-        this.pivot.x = mem.PEEK(offset + 2);
-        this.pivot.y = mem.PEEK(offset + 3);
-        this.palette = mem.PEEK(offset + 4);
-        this.index = mem.PEEK(offset + 5);
-        this.plane = mem.PEEK(offset + 6);
-        this.enabled = mem.PEEK(offset + 7) > 0.0 ? true : false;
-        this.alpha = mem.PEEK(offset + 8);
-        let rvh = mem.PEEK(offset + 9);
-        this.fliph = (rvh & 1) ? true : false;
-        this.flipv = (rvh & 2) ? true : false;
-        this.rotate90 = (rvh >> 2) & 3;
-        let M11 = mem.PEEK(offset + 10);
-        let M12 = mem.PEEK(offset + 11);
-        let M13 = mem.PEEK(offset + 12);
-        let M21 = mem.PEEK(offset + 13);
-        let M22 = mem.PEEK(offset + 14);
-        let M23 = mem.PEEK(offset + 15);
-        this.matrix.loadRowMajor(M11, M12, 0, M13, M21, M22, 0, M23, 0, 0, 1, 0, 0, 0, 0, 1);
-    }
-}
-/// <reference path="MemorySystem.ts" />
-class GraphicsTileLayer {
-    constructor() {
-        this.tiles = [];
-        this.layer = 0;
-    }
-    readFromMemory(mem, offset) {
-    }
-}
-/// <reference path="LibXOR.ts" />
-/// <reference path="GraphicsSprite.ts" />
-/// <reference path="GraphicsTileLayer.ts" />
-function randomUint8() {
-    return (Math.random() * 255.99) | 0;
-}
-function randomUint16() {
-    return (Math.random() * 65535.99) | 0;
-}
-class GraphicsSystem {
-    constructor(xor) {
-        this.xor = xor;
-        this.gl = null;
-        this.canvas = null;
-        this.glcontextid = "GraphicsSystem" + randomUint8().toString();
-        this.sprites = [];
-        this.tileLayers = [];
-        this.spriteImage = new Uint8Array(128 * 128 * 4);
-        // VIC memory
-        this.layer1width = 0;
-        this.layer1height = 0;
-        this.layer2width = 0;
-        this.layer2height = 0;
-        this.layer3width = 0;
-        this.layer3height = 0;
-        this.layer4width = 0;
-        this.layer4height = 0;
-        this.worldMatrix = Matrix4.makeIdentity();
-        this.cameraMatrix = Matrix4.makeIdentity(); //Matrix4.makeTranslation(0, 0, Math.sin(this.xor.t1) - 10);
-        this.projectionMatrix = Matrix4.makeOrtho(0, 256, 0, 256, -100.0, 100.0);
-        //perspectiveMatrix = Matrix4.makePerspectiveX(45.0, 1.0, 0.01, 100.0);
-        this.MaxSprites = 128;
-        this.MaxTileLayers = 4;
-        this.SpriteSize = 16;
-        this.VICMemoryStart = 0x6000;
-        this.CharMatrixMemoryStart = 0x7000;
-        this.CharColorsMemoryStart = 0x8000;
-        this.CharBitmapMemoryStart = 0x9000;
-        this.SpriteInfoMemoryStart = 0xA000;
-        this.SpriteBitmapMemoryStart = 0xB000;
-        this.TileBitmapMemoryStart = 0xD000;
-        this.TileMatrixMemoryStart = 0xF000;
-        this.drawABO = null;
-        this.shaderProgram = null;
-        this.vertShader = null;
-        this.fragShader = null;
-        this.spriteTexture = null;
-        this.charTexture = null;
-        this.tileTexture = null;
-        this.drawList = [];
-        this.aPosition = -1;
-        this.aNormal = -1;
-        this.aTexcoord = -1;
-        this.aColor = -1;
-        this.aGeneric = -1;
-        this.uTexture0 = null;
-        this.uProjectionMatrix = null;
-        this.uCameraMatrix = null;
-        this.uWorldMatrix = null;
-        this.setVideoMode(320, 200);
-    }
-    get width() { return this.canvas ? this.canvas.width : 0; }
-    get height() { return this.canvas ? this.canvas.height : 0; }
-    init() {
-        this.sprites = [];
-        for (let i = 0; i < this.MaxSprites; i++) {
-            this.sprites.push(new GraphicsSprite());
-        }
-        this.tileLayers = [];
-        for (let i = 0; i < this.MaxTileLayers; i++) {
-            this.tileLayers.push(new GraphicsTileLayer());
-        }
-    }
-    setVideoMode(width, height) {
-        let p = this.xor.parentElement;
-        while (p.firstChild) {
-            p.removeChild(p.firstChild);
-        }
-        let canvas = document.createElement("canvas");
-        canvas.id = this.glcontextid;
-        canvas.width = width;
-        canvas.height = height;
-        canvas.style.borderRadius = "4px";
-        this.gl = canvas.getContext("webgl");
-        this.canvas = canvas;
-        p.appendChild(canvas);
-        // If this.xor.graphics is null, then LibXOR is in the constructor
-        if (this.xor.graphics && this.gl) {
-            this.xor.fluxions = new FxRenderingContext(this.xor);
-            this.xor.input.captureMouse(canvas);
-            hflog.info("Capturing mouse");
-        }
-    }
-    clear(index) {
-        let c = this.xor.palette.getColor(index);
-        this.clearrgba(c.r, c.g, c.b, 1.0);
-    }
-    clear3(color) {
-        this.clearrgba(color.x, color.y, color.z, 1.0);
-    }
-    clearrgba(r, g, b, a) {
-        if (!this.gl)
-            return;
-        let gl = this.gl;
-        gl.clearColor(r, g, b, a);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    }
-    readFromMemory() {
-        // Read VIC information
-        let mem = this.xor.memory;
-        let pos = this.VICMemoryStart;
-        this.layer1width = mem.PEEK(pos++);
-        this.layer1height = mem.PEEK(pos++);
-        this.layer2width = mem.PEEK(pos++);
-        this.layer2height = mem.PEEK(pos++);
-        this.layer3width = mem.PEEK(pos++);
-        this.layer3height = mem.PEEK(pos++);
-        this.layer4width = mem.PEEK(pos++);
-        this.layer4height = mem.PEEK(pos++);
-        // Read Sprite Info
-        for (let i = 0; i < this.MaxSprites; i++) {
-            this.sprites[i].readFromMemory(this.xor.memory, this.SpriteInfoMemoryStart + i * this.SpriteSize);
-        }
-        // Read Sprite Imagery        
-        let pixels = this.spriteImage;
-        let offset = this.SpriteBitmapMemoryStart;
-        let p = 0;
-        for (let spr = 0; spr < 256; spr++) {
-            for (let j = 0; j < 8; j++) {
-                let pixel1 = mem.PEEK(offset++);
-                let pixel2 = mem.PEEK(offset++);
-                let pixel = (pixel1 & 0xFF) << 8 + (pixel2 & 0xFF);
-                for (let i = 0; i < 8; i++) {
-                    let r = (pixel & 3) * 85;
-                    pixels[p++] = r;
-                    pixels[p++] = r;
-                    pixels[p++] = r;
-                    pixels[p++] = 255;
-                    pixel >>= 2;
-                }
-            }
-        }
-        // for (let i = 0; i < this.MaxTileLayers; i++) {
-        //     this.tileLayers[i].readFromMemory(this.xor.memory, this.TileMatrixMemoryStart + i * this.TileLayerMemorySize)
-        // }
-    }
-    createBuffers() {
-        if (!this.gl)
-            return;
-        let gl = this.gl;
-        let vertices = [];
-        this.drawList = [];
-        this.drawList.push(gl.TRIANGLES);
-        this.drawList.push(vertices.length / 16);
-        // sprites ...
-        for (let i = 0; i < this.MaxSprites; i++) {
-            let spr = this.sprites[i];
-            let r = 1;
-            let g = 1;
-            let b = 1;
-            let a = spr.alpha;
-            let u1 = spr.fliph ? 1.0 : 0.0;
-            let u2 = spr.fliph ? 0.0 : 1.0;
-            let v1 = spr.flipv ? 1.0 : 0.0;
-            let v2 = spr.flipv ? 0.0 : 1.0;
-            let w = 0.0;
-            let scale = 1.0; // / this.canvas.width;
-            let x1 = spr.position.x; // - spr.pivot.x;
-            let y1 = spr.position.y; // - spr.pivot.y;
-            let x2 = spr.position.x + 8; // - spr.pivot.x;
-            let y2 = spr.position.y + 8; // - spr.pivot.y;
-            let z = 0.0; //spr.plane + 4;
-            let nx = 0.0;
-            let ny = 0.0;
-            let nz = 1.0;
-            let p1 = 0;
-            let p2 = 0;
-            let p3 = 0;
-            let ll = [scale * x1, scale * y1, z, nx, ny, nz, u1, v1, w, r, g, b, a, p1, p2, p3];
-            let lr = [scale * x2, scale * y1, z, nx, ny, nz, u2, v1, w, r, g, b, a, p1, p2, p3];
-            let ul = [scale * x1, scale * y2, z, nx, ny, nz, u1, v2, w, r, g, b, a, p1, p2, p3];
-            let ur = [scale * x2, scale * y2, z, nx, ny, nz, u2, v2, w, r, g, b, a, p1, p2, p3];
-            vertices.push(...ll);
-            vertices.push(...lr);
-            vertices.push(...ur);
-            vertices.push(...ur);
-            vertices.push(...ul);
-            vertices.push(...ll);
-            // vertices.push(...ll);
-            // vertices.push(...ul);
-            // vertices.push(...ur);
-        }
-        this.drawList.push(this.MaxSprites * 6);
-        // tiles ...
-        // characters ...
-        if (!this.drawABO) {
-            this.drawABO = gl.createBuffer();
-        }
-        if (this.drawABO) {
-            let data = new Float32Array(vertices);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.drawABO);
-            gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+            this._vboData = new Float32Array(this.vertices);
+            this._iboData = new Uint32Array(this.indices);
+            let gl = this.fx.gl;
+            if (!gl)
+                return;
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._vbo);
+            gl.bufferData(gl.ARRAY_BUFFER, this._vboData, gl.STATIC_DRAW);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._ibo);
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this._iboData, gl.STATIC_DRAW);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+            this._dirty = false;
         }
-        if (!this.shaderProgram) {
-            let vshader = `#version 100
-            uniform mat4 WorldMatrix;
-            uniform mat4 ProjectionMatrix;
-            uniform mat4 CameraMatrix;
-
-            attribute vec3 aPosition;
-            attribute vec3 aNormal;
-            attribute vec3 aTexcoord;
-            attribute vec4 aColor;
-            attribute vec3 aGeneric;
-
-            varying vec3 vPosition;
-            varying vec3 vNormal;
-            varying vec3 vTexcoord;
-            varying vec4 vColor;
-            varying vec3 vGeneric;
-
-            mat3 getNormalMatrix(mat4 m) {
-                return mat3(
-                    m[0][0], m[0][1], m[0][2],
-                    m[1][0], m[1][1], m[1][2],
-                    m[2][0], m[2][1], m[2][2]);
-            }
-
-            void main() {
-                vPosition = (WorldMatrix * vec4(aPosition, 1.0)).xyz;
-                vNormal = getNormalMatrix(WorldMatrix) * aNormal;
-                vTexcoord = aTexcoord;
-                vColor = aColor;
-                gl_Position = ProjectionMatrix * CameraMatrix * WorldMatrix * vec4(aPosition, 1.0);
-            }
-            `;
-            let fshader = `#version 100
-            
-            precision highp float;
-
-            uniform sampler2D Texture0;
-            uniform sampler2D Palette;
-
-            varying vec3 vPosition;
-            varying vec3 vNormal;
-            varying vec3 vTexcoord;
-            varying vec4 vColor;
-            varying vec3 vGeneric;
-
-            vec3 getColor(int index) {
-                if (index == 0) return vec3(0.000, 0.000, 0.000); //Black
-                if (index == 1) return vec3(0.333, 0.333, 0.333); //Gray33
-                if (index == 2) return vec3(0.667, 0.667, 0.667); //Gray67
-                if (index == 3) return vec3(1.000, 1.000, 1.000); //White
-                if (index == 4) return vec3(1.000, 0.000, 0.000); //Red
-                if (index == 5) return vec3(0.894, 0.447, 0.000); //Orange
-                if (index == 6) return vec3(0.894, 0.894, 0.000); //Yellow
-                if (index == 7) return vec3(0.000, 1.000, 0.000); //Green
-                if (index == 8) return vec3(0.000, 0.707, 0.707); //Cyan
-                if (index == 9) return vec3(0.000, 0.447, 0.894); //Azure
-                if (index == 10) return vec3(0.000, 0.000, 1.000); //Blue
-                if (index == 11) return vec3(0.447, 0.000, 0.894); //Violet
-                if (index == 12) return vec3(0.894, 0.000, 0.447); //Rose
-                if (index == 13) return vec3(0.500, 0.250, 0.000); //Brown
-                if (index == 14) return vec3(0.830, 0.670, 0.220); //Gold
-                if (index == 15) return vec3(0.250, 0.500, 0.250); //ForestGreen
-                return vec3(0.0);
-            }
-                        
-            void main() {
-                gl_FragColor = vec4(vTexcoord.rg, 1.0, 1.0);
-            }
-            `;
-            let vs = gl.createShader(gl.VERTEX_SHADER);
-            if (vs) {
-                gl.shaderSource(vs, vshader);
-                gl.compileShader(vs);
-                let status = gl.getShaderParameter(vs, gl.COMPILE_STATUS);
-                let infoLog = gl.getShaderInfoLog(vs);
-                if (!status && infoLog) {
-                    hflog.error("LibXOR Vertex Shader did not compile");
-                    hflog.error(infoLog);
-                    gl.deleteShader(vs);
-                    vs = null;
-                }
-            }
-            let fs = gl.createShader(gl.FRAGMENT_SHADER);
-            if (fs) {
-                gl.shaderSource(fs, fshader);
-                gl.compileShader(fs);
-                let status = gl.getShaderParameter(fs, gl.COMPILE_STATUS);
-                let infoLog = gl.getShaderInfoLog(fs);
-                if (!status && infoLog) {
-                    hflog.error("LibXOR Fragment Shader did not compile");
-                    hflog.error(infoLog);
-                    gl.deleteShader(fs);
-                    fs = null;
-                }
-            }
-            let p = gl.createProgram();
-            if (p && fs && vs) {
-                gl.attachShader(p, vs);
-                gl.attachShader(p, fs);
-                gl.linkProgram(p);
-                let status = gl.getProgramParameter(p, gl.LINK_STATUS);
-                let infoLog = gl.getProgramInfoLog(p);
-                if (infoLog) {
-                    hflog.error("LibXOR Program did not link");
-                    hflog.error(infoLog);
-                    gl.deleteProgram(p);
-                    p = null;
-                }
-            }
-            if (p) {
-                this.shaderProgram = p;
-                this.vertShader = vs;
-                this.fragShader = fs;
-                this.aPosition = gl.getAttribLocation(p, "aPosition");
-                this.aNormal = gl.getAttribLocation(p, "aNormal");
-                this.aTexcoord = gl.getAttribLocation(p, "aTexcoord");
-                this.aColor = gl.getAttribLocation(p, "aColor");
-                this.aGeneric = gl.getAttribLocation(p, "aGeneric");
-                this.uTexture0 = gl.getUniformLocation(p, "Texture0");
-                this.uProjectionMatrix = gl.getUniformLocation(p, "ProjectionMatrix");
-                this.uCameraMatrix = gl.getUniformLocation(p, "CameraMatrix");
-                this.uWorldMatrix = gl.getUniformLocation(p, "WorldMatrix");
-            }
-            // Textures
-            if (!this.spriteTexture) {
-                this.spriteTexture = gl.createTexture();
-            }
-            if (this.spriteTexture) {
-                gl.bindTexture(gl.TEXTURE_2D, this.spriteTexture);
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 128, 128, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.spriteImage);
-                gl.generateMipmap(gl.TEXTURE_2D);
-            }
-            if (!this.charTexture) {
-            }
-            if (!this.tileTexture) {
-            }
-        }
-    }
-    enableVertexAttrib(gl, location, size, type, stride, offset) {
-        if (location < 0)
-            return;
-        gl.enableVertexAttribArray(location);
-        gl.vertexAttribPointer(location, size, type, false, stride, offset);
-    }
-    disableVertexAttrib(gl, location) {
-        if (location < 0)
-            return;
-        gl.disableVertexAttribArray(location);
-    }
-    render() {
-        if (!this.canvas || !this.gl)
-            return;
-        let gl = this.gl;
-        let xor = this.xor;
-        this.createBuffers();
-        let s = Math.sin(xor.t1);
-        gl.clearColor(0.3 * s, 0.1 * s, 0.2 * s, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        this.projectionMatrix = Matrix4.makeOrtho2D(0, this.canvas.width, this.canvas.height, 0);
-        gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-        // General Order of Drawing
-        // 1. Upload Palette ROM Textures
-        // 2. Upload Character ROM Textures
-        // 3. Upload Sprite ROM Textures
-        // 4. Upload 3D Geometry
-        // 5. Draw Tile Layer 0
-        // 6. Draw Sprites
-        // 7. Draw Tile Layer 1
-        gl.enable(gl.DEPTH_TEST);
-        gl.depthFunc(gl.LEQUAL);
-        // bind ABO and configure vertex array
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.drawABO);
-        this.enableVertexAttrib(gl, this.aPosition, 3, gl.FLOAT, 64, 0);
-        this.enableVertexAttrib(gl, this.aNormal, 3, gl.FLOAT, 64, 12);
-        this.enableVertexAttrib(gl, this.aTexcoord, 3, gl.FLOAT, 64, 24);
-        this.enableVertexAttrib(gl, this.aColor, 4, gl.FLOAT, 64, 36);
-        this.enableVertexAttrib(gl, this.aGeneric, 3, gl.FLOAT, 64, 52);
-        gl.useProgram(this.shaderProgram);
-        // set uniforms
-        if (this.uTexture0)
-            gl.uniform1i(this.uTexture0, 0);
-        if (this.uWorldMatrix)
-            gl.uniformMatrix4fv(this.uWorldMatrix, false, this.worldMatrix.toColMajorArray());
-        if (this.uCameraMatrix)
-            gl.uniformMatrix4fv(this.uCameraMatrix, false, this.cameraMatrix.toColMajorArray());
-        if (this.uProjectionMatrix)
-            gl.uniformMatrix4fv(this.uProjectionMatrix, false, this.projectionMatrix.toColMajorArray());
-        // draw sprites
-        // bind textures
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.spriteTexture);
-        gl.drawArrays(gl.TRIANGLES, 0, this.MaxSprites * 6);
-        // gl.activeTexture(gl.TEXTURE1);
-        // gl.bindTexture(gl.TEXTURE_2D, this.tileTexture);
-        // gl.activeTexture(gl.TEXTURE1);
-        // gl.bindTexture(gl.TEXTURE_2D, this.charTexture);
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, null);
-        gl.useProgram(null);
-        this.disableVertexAttrib(gl, this.aPosition);
-        this.disableVertexAttrib(gl, this.aNormal);
-        this.disableVertexAttrib(gl, this.aTexcoord);
-        this.disableVertexAttrib(gl, this.aColor);
-        this.disableVertexAttrib(gl, this.aGeneric);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    }
-}
-/// <reference path="../SoundSystem.ts" />
-var XOR;
-(function (XOR) {
-    class DAHDSREnvelope {
-        constructor(delay = 0.0, // delay to start
-        delayCV = 0.0, // level at start
-        attack = 0.0, // how long to ramp from 0 to 1
-        attackCV = 1.0, // Highest level (normally 1)
-        hold = 10.0, // how long to hold signal at highest amplitude
-        decay = 0.0, // how long to ramp from 1 to sustain
-        sustainCV = 1.0, // level of the sustain
-        release = 0.0, // how long to ramp from sustain to 0
-        releaseCV = 0.0 // lowest level of ramp (normally 0)
-        ) {
-            this.delay = delay;
-            this.delayCV = delayCV;
-            this.attack = attack;
-            this.attackCV = attackCV;
-            this.hold = hold;
-            this.decay = decay;
-            this.sustainCV = sustainCV;
-            this.release = release;
-            this.releaseCV = releaseCV;
-        }
-    }
-    XOR.DAHDSREnvelope = DAHDSREnvelope;
-    class AttackReleaseEnvelope {
-        constructor(delay = 0.0, attack = 0.0, attackCV = 1.0, hold = 0.0, release = 0.0, releaseCV = 0.0) {
-            this.delay = delay;
-            this.attack = attack;
-            this.attackCV = attackCV;
-            this.hold = hold;
-            this.release = release;
-            this.releaseCV = releaseCV;
-        }
-    }
-    XOR.AttackReleaseEnvelope = AttackReleaseEnvelope;
-    class SimpleSamplerPlaySettings {
-        constructor(VCFfrequency1 = 1000.0, VCFfrequency2 = 1000.0, VCFsweepTime = 1.0, VCFresonance = 500.0, VCAattack = 0.0, VCAhold = 1.0, VCArelease = 1.0, sampleLoop = true) {
-            this.VCFfrequency1 = VCFfrequency1;
-            this.VCFfrequency2 = VCFfrequency2;
-            this.VCFsweepTime = VCFsweepTime;
-            this.VCFresonance = VCFresonance;
-            this.VCAattack = VCAattack;
-            this.VCAhold = VCAhold;
-            this.VCArelease = VCArelease;
-            this.sampleLoop = sampleLoop;
-        }
-    }
-    XOR.SimpleSamplerPlaySettings = SimpleSamplerPlaySettings;
-    class Sample {
-        constructor(buffer = null, loaded = false, haderror = false) {
-            this.buffer = buffer;
-            this.loaded = loaded;
-            this.haderror = haderror;
-            this.VCF = null;
-            this.VCA = null;
-            this.VCAenvelope = new DAHDSREnvelope();
-            this.VCOenvelope = new DAHDSREnvelope();
-            this.VCFenvelope = new DAHDSREnvelope();
-            this.VCFresonance = 1.0;
-            this.VCFenvelope.attack = 1;
-            this.VCFenvelope.decay = 1;
-            this.VCFenvelope.release = 1;
-            this.VCFenvelope.sustainCV = 0.5;
-        }
-        play(ss, time = 0) {
-            let t = ss.context.currentTime;
-            let source = ss.context.createBufferSource();
-            let VCF = ss.context.createBiquadFilter();
-            let VCA = ss.context.createGain();
-            source.buffer = this.buffer;
-            source.loop = true;
-            source.connect(VCF);
-            VCF.connect(ss.gainNode);
-            // source.connect(ss.gainNode);
-            // source.connect(VCF);
-            // VCF.connect(VCA);
-            // VCA.connect(ss.gainNode);
-            let detune1 = 8;
-            let detune2 = 1;
-            let detuneTime = 2;
-            source.playbackRate.setValueAtTime(detune1, t);
-            source.playbackRate.linearRampToValueAtTime(detune2, t + detuneTime);
-            let to = setTimeout(() => {
-                source.stop();
-            }, detuneTime * 1000);
-            VCF.type = 'lowpass';
-            VCF.frequency.value = 1440.0;
-            VCF.Q.value = 10.0; //100.0;//this.VCFresonance;
-            let vcfEnv = this.VCFenvelope;
-            vcfEnv.delayCV = 0.0;
-            vcfEnv.attack = 1.0;
-            vcfEnv.attackCV = 1200.0;
-            vcfEnv.hold = 0.0;
-            vcfEnv.release = 1.0;
-            vcfEnv.releaseCV = 0.0;
-            VCF.frequency.setValueAtTime(vcfEnv.delayCV, t);
-            t += vcfEnv.delay;
-            VCF.frequency.setValueAtTime(vcfEnv.delayCV, t);
-            t += vcfEnv.attack;
-            VCF.frequency.linearRampToValueAtTime(vcfEnv.attackCV, t);
-            t += vcfEnv.hold;
-            VCF.frequency.linearRampToValueAtTime(vcfEnv.attackCV, t);
-            t += vcfEnv.release;
-            VCF.frequency.linearRampToValueAtTime(vcfEnv.releaseCV, t);
-            let vcaEnv = this.VCAenvelope;
-            t = ss.context.currentTime;
-            VCA.gain.setValueAtTime(this.VCAenvelope.delayCV, t);
-            t += vcaEnv.delay;
-            VCA.gain.setValueAtTime(this.VCAenvelope.delayCV, t);
-            t += vcaEnv.attack;
-            VCA.gain.linearRampToValueAtTime(vcaEnv.attackCV, t);
-            t += vcaEnv.hold;
-            VCA.gain.setValueAtTime(vcaEnv.attackCV, t);
-            t += vcaEnv.decay;
-            VCA.gain.linearRampToValueAtTime(vcaEnv.sustainCV, t);
-            t += vcaEnv.release;
-            VCA.gain.linearRampToValueAtTime(vcaEnv.releaseCV, t);
-            // configure envelopes
-            source.start(time);
-            this.VCA = VCA;
-            this.VCF = VCF;
-        }
-    }
-    XOR.Sample = Sample;
-    class Sampler {
-        constructor(ss) {
-            this.ss = ss;
-            this.samples = new Map();
-        }
-        loadSample(id, url, logErrors = true) {
-            let self = this;
-            let xhr = new XMLHttpRequest();
-            xhr.open('GET', url);
-            xhr.responseType = 'arraybuffer';
-            xhr.onload = () => {
-                self.ss.context.decodeAudioData(xhr.response, (buffer) => {
-                    // on success
-                    let s = new Sample(buffer, true, false);
-                    self.samples.set(id, s);
-                    if (logErrors)
-                        hflog.info('loaded ', url);
-                }, () => {
-                    // on error
-                    let s = new Sample(null, false, true);
-                    self.samples.set(id, s);
-                    if (logErrors)
-                        hflog.info('failed to load ', url);
-                });
-            };
-            xhr.onabort = () => {
-                if (logErrors)
-                    hflog.error('Could not load ', url);
-                self.samples.set(id, new Sample(null, false, true));
-            };
-            xhr.onerror = () => {
-                if (logErrors)
-                    hflog.error('Could not load ', url);
-                self.samples.set(id, new Sample(null, false, true));
-            };
-            this.samples.set(id, new Sample());
-            xhr.send();
-        }
-        playSample(id, time = 0) {
-            let s = this.samples.get(id);
-            if (!s)
+        render(rc, sg) {
+            if (!rc.usable) {
+                //hflog.warn("IndexedGeometryMesh Called, but render config is unusable.");
                 return;
-            s.play(this.ss, time);
+            }
+            // Rendering code goes here
+            this.build();
+            let gl = this.fx.gl;
+            if (!gl)
+                return;
+            let offsets = [0, 12, 24, 36];
+            let locs = [
+                rc.getAttribLocation("aPosition"),
+                rc.getAttribLocation("aNormal"),
+                rc.getAttribLocation("aColor"),
+                rc.getAttribLocation("aTexcoord")
+            ];
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._vbo);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._ibo);
+            for (let i = 0; i < 4; i++) {
+                if (locs[i] >= 0) {
+                    gl.enableVertexAttribArray(locs[i]);
+                    gl.vertexAttribPointer(locs[i], 3, gl.FLOAT, false, 48, offsets[i]);
+                }
+            }
+            for (let s of this.surfaces) {
+                sg.usemtl(s.mtllib, s.mtl);
+                gl.drawElements(s.mode, s.count, gl.UNSIGNED_INT, s.offset * 4);
+            }
+            for (let i = 0; i < 4; i++) {
+                if (locs[i] >= 0) {
+                    gl.disableVertexAttribArray(locs[i]);
+                }
+            }
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+        }
+        renderplain(rc) {
+            if (!rc.usable) {
+                //hflog.warn("IndexedGeometryMesh Called, but render config is unusable.");
+                return;
+            }
+            // Rendering code goes here
+            this.build();
+            let gl = this.fx.gl;
+            if (!gl)
+                return;
+            let offsets = [0, 12, 24, 36];
+            let locs = [
+                rc.getAttribLocation("aPosition"),
+                rc.getAttribLocation("aNormal"),
+                rc.getAttribLocation("aColor"),
+                rc.getAttribLocation("aTexcoord")
+            ];
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._vbo);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._ibo);
+            for (let i = 0; i < 4; i++) {
+                if (locs[i] >= 0) {
+                    gl.enableVertexAttribArray(locs[i]);
+                    gl.vertexAttribPointer(locs[i], 3, gl.FLOAT, false, 48, offsets[i]);
+                }
+            }
+            for (let s of this.surfaces) {
+                gl.drawElements(s.mode, s.count, gl.UNSIGNED_INT, s.offset * 4);
+            }
+            for (let i = 0; i < 4; i++) {
+                if (locs[i] >= 0) {
+                    gl.disableVertexAttribArray(locs[i]);
+                }
+            }
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+        }
+        renderEdges(rc) {
+            let gl = this.fx.gl;
+            if (!gl)
+                return;
+            let ebo = this.edgeMesh.buildBuffers(gl);
+            let offsets = [0, 12, 24, 36];
+            let stride = 48;
+            let locs = [
+                rc.getAttribLocation("aPosition"),
+                rc.getAttribLocation("aNormal"),
+                rc.getAttribLocation("aFace1Normal"),
+                rc.getAttribLocation("aFace2Normal")
+            ];
+            gl.bindBuffer(gl.ARRAY_BUFFER, ebo);
+            for (let i = 0; i < locs.length; i++) {
+                if (locs[i] >= 0) {
+                    gl.enableVertexAttribArray(locs[i]);
+                    gl.vertexAttribPointer(locs[i], 3, gl.FLOAT, false, 48, offsets[i]);
+                }
+            }
+            gl.drawArrays(gl.LINES, 0, this.edgeMesh.eboCount);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            for (let i = 0; i < locs.length; i++) {
+                if (locs[i] >= 0) {
+                    gl.disableVertexAttribArray(locs[i]);
+                }
+            }
+        }
+        loadOBJ(lines, scenegraph = null, path = null) {
+            let positions = [];
+            let normals = [];
+            let colors = [];
+            let texcoords = [];
+            // in case there are no mtllib's, usemtl's, o's, g's, or s's
+            this.begin(WebGLRenderingContext.TRIANGLES);
+            for (let tokens of lines) {
+                if (tokens.length >= 3) {
+                    if (tokens[0] == "v") {
+                        let position = FxTextParser.ParseVector(tokens);
+                        positions.push(position);
+                        this.edgeMesh.addVertex(position);
+                    }
+                    else if (tokens[0] == "vn") {
+                        normals.push(FxTextParser.ParseVector(tokens));
+                    }
+                    else if (tokens[0] == "vt") {
+                        texcoords.push(FxTextParser.ParseVector(tokens));
+                    }
+                    else if (tokens[0] == "vc") {
+                        let color = FxTextParser.ParseVector(tokens);
+                        colors.push(color);
+                        this.color(color.x, color.y, color.z);
+                    }
+                    else if (tokens[0] == "f") {
+                        let indices = FxTextParser.ParseFace(tokens);
+                        let edgeIndices = [];
+                        let ncount = normals.length;
+                        let tcount = texcoords.length;
+                        let pcount = positions.length;
+                        let vcount = indices.length / 3;
+                        for (let j = 1; j < vcount - 1; j++) {
+                            for (let k = 0; k < 3; k++) {
+                                let i = (k == 0) ? 0 : j + k - 1;
+                                let n = indices[i * 3 + 2];
+                                if (n >= 0 && n < ncount)
+                                    this.normal3(normals[n]);
+                                let t = indices[i * 3 + 1];
+                                if (t >= 0 && t < tcount)
+                                    this.texcoord3(texcoords[t]);
+                                let p = indices[i * 3 + 0];
+                                if (p >= 0 && p < pcount)
+                                    this.vertex3(positions[p]);
+                                this.addIndex(-1);
+                                edgeIndices.push(indices[i * 3]);
+                            }
+                        }
+                        this.edgeMesh.addFace(edgeIndices);
+                    }
+                }
+                else if (tokens.length >= 2) {
+                    if (tokens[0] == "mtllib") {
+                        if (scenegraph && path)
+                            scenegraph.load(path + tokens[1]);
+                        this.mtllib(FxTextParser.ParseIdentifier(tokens));
+                        this.begin(WebGLRenderingContext.TRIANGLES);
+                    }
+                    else if (tokens[0] == "usemtl") {
+                        this.usemtl(FxTextParser.ParseIdentifier(tokens));
+                        this.begin(WebGLRenderingContext.TRIANGLES);
+                    }
+                    else if (tokens[0] == "o") {
+                        this.begin(WebGLRenderingContext.TRIANGLES);
+                    }
+                    else if (tokens[0] == "g") {
+                        this.begin(WebGLRenderingContext.TRIANGLES);
+                    }
+                    else if (tokens[0] == "s") {
+                        this.begin(WebGLRenderingContext.TRIANGLES);
+                    }
+                }
+            }
+            this.build();
         }
     }
-    XOR.Sampler = Sampler;
-})(XOR || (XOR = {}));
+    Fluxions.FxIndexedGeometryMesh = FxIndexedGeometryMesh;
+})(Fluxions || (Fluxions = {}));
 /// <reference path="LibXOR.ts" />
-/// <reference path="Audio/Sampler.ts" />
+/// <reference path="../Fluxions/FxIndexedGeometryMesh.ts"/>
 var XOR;
 (function (XOR) {
-    class SoundSystem {
+    class MeshSystem {
         constructor(xor) {
             this.xor = xor;
-            this.sampler = new XOR.Sampler(this);
-            this.context = new AudioContext();
-            this.masterVolume = this.context.createGain();
-            // let self = this;
-            // window.addEventListener("load", (e) => {
-            //     self.context = new AudioContext();
-            // }, false);
+            this.meshes = new Map();
         }
-        init() {
-            this.masterVolume.connect(this.context.destination);
-            this.masterVolume.gain.value = 0.5;
+        create(name) {
+            if (!this.xor.fx)
+                throw "Fluxions is not initialized";
+            let mesh = new Fluxions.FxIndexedGeometryMesh(this.xor.fx);
+            this.meshes.set(name, mesh);
+            return mesh;
         }
-        get volume() { return this.masterVolume.gain.value; }
-        set volume(v) { this.masterVolume.gain.value = GTE.clamp(v, 0.0, 1.0); }
-        get gainNode() { return this.masterVolume; }
-    }
-    XOR.SoundSystem = SoundSystem;
-})(XOR || (XOR = {}));
-/// <reference path="../../Fluxions/GTE.ts" />
-class XORMouseEvent {
-    constructor(button = 0, clicks = 0, buttons = 0, position = Vector2.make(0, 0), screen = Vector2.make(0, 0), delta = Vector2.make(0, 0), ctrlKey = false, altKey = false, shiftKey = false, metaKey = false) {
-        this.button = button;
-        this.clicks = clicks;
-        this.buttons = buttons;
-        this.position = position;
-        this.screen = screen;
-        this.delta = delta;
-        this.ctrlKey = ctrlKey;
-        this.altKey = altKey;
-        this.shiftKey = shiftKey;
-        this.metaKey = metaKey;
-    }
-    copyMouseEvent(e) {
-        this.delta.x = e.offsetX - this.position.x;
-        this.delta.y = e.offsetY - this.position.y;
-        this.position.x = e.offsetX;
-        this.position.y = e.offsetY;
-        this.screen.x = e.screenX;
-        this.screen.y = e.screenY;
-        this.buttons = e.buttons;
-        this.button = e.button;
-        this.clicks = e.detail;
-        this.ctrlKey = e.ctrlKey;
-        this.altKey = e.altKey;
-        this.shiftKey = e.shiftKey;
-        this.metaKey = e.metaKey;
-    }
-}
-/// <reference path="../../Fluxions/GTE.ts" />
-/**
- * @member buttons Map<number, number>
- * @member axes Map<number, number>
- * @member enabled boolean
- */
-class XORGamepadState {
-    constructor() {
-        this.buttons = new Map();
-        this.axes = new Map();
-        this.lastButtons = 0;
-        this.currentButtons = 0;
-        this.anyButtonPressed = true;
-        this.numButtons = 0;
-        this.numAxes = 0;
-        this.enabled = false;
-        this.id = null;
-        for (let i = 0; i < 17; i++) {
-            this.buttons.set(i, 0.0);
+        load(name, url) {
+            if (!this.xor.fx)
+                throw "Fluxions is not initialized";
+            let mesh = new Fluxions.FxIndexedGeometryMesh(this.xor.fx);
+            this.meshes.set(name, mesh);
+            let tl = new XOR.TextFileLoader(url, (data, name, p) => {
+                let textParser = new FxTextParser(data);
+                mesh.loadOBJ(textParser.lines);
+            });
+            return mesh;
         }
-    }
-    copyInfo(state) {
-        this.lastButtons = this.currentButtons;
-        this.currentButtons = 0;
-        let bit = 1;
-        for (let i = 0; i < state.buttons.length; i++) {
-            this.buttons.set(i, state.buttons[i].value);
-            if (state.buttons[i].value != 0.0)
-                this.currentButtons |= bit;
-            bit <<= 1;
-        }
-        if (this.currentButtons > 0 && this.currentButtons != this.lastButtons) {
-            this.anyButtonPressed = true;
-        }
-        for (let i = 0; i < state.axes.length; i++) {
-            this.axes.set(i, state.axes[i]);
-        }
-    }
-    button(i) {
-        let v = this.buttons.get(i);
-        if (v)
-            return v;
-        return 0.0;
-    }
-    axe(i) {
-        let v = this.axes.get(i);
-        if (v)
-            return v;
-        return 0.0;
-    }
-    get left() { return this.button(14) > 0.5 || this.axe(0) < -0.5; }
-    get right() { return this.button(15) > 0.5 || this.axe(0) > 0.5; }
-    get up() { return this.button(12) > 0.5 || this.axe(1) < -0.5; }
-    get down() { return this.button(13) > 0.5 || this.axe(1) > 0.5; }
-    get b0() { return this.button(0) > 0.5; }
-    get b1() { return this.button(1) > 0.5; }
-    get b2() { return this.button(2) > 0.5; }
-    get b3() { return this.button(3) > 0.5; }
-    get leftright() { return (this.left ? -1.0 : 0.0) + (this.right ? 1.0 : 0.0); }
-    get updown() { return (this.down ? -1.0 : 0.0) + (this.up ? 1.0 : 0.0); }
-}
-/// <reference path="LibXOR.ts" />
-/// <reference path="Input/XORMouseEvent.ts" />
-/// <reference path="Input/XORGamepadState.ts" />
-class InputSystem {
-    constructor(xor) {
-        this.xor = xor;
-        /** @type {Map<string, number} */
-        this.keys = new Map();
-        /** @type {Map<string, number} */
-        this.codes = new Map();
-        this.modifiers = 0;
-        this.canvas = null;
-        this.mouseXY = Vector2.make(0, 0);
-        this.mouse = new XORMouseEvent();
-        /** @type {Map<number, XORMouseEvent>} */
-        this.mouseButtons = new Map();
-        this.mouseOver = false;
-        /** @type {Map<number, XORGamepadState>} */
-        this.gamepads = new Map();
-        this.gamepadAPI = false;
-    }
-    init() {
-        let self = this;
-        window.onkeydown = (e) => {
-            self.onkeydown(e);
-        };
-        window.onkeyup = (e) => {
-            self.onkeyup(e);
-        };
-        for (let i = 0; i < 5; i++) {
-            this.mouseButtons.set(i, new XORMouseEvent());
-        }
-        for (let i = 0; i < 5; i++) {
-            this.gamepads.set(i, new XORGamepadState());
-        }
-        window.addEventListener("gamepadconnected", (ev) => {
-            let e = (ev);
-            let gp = new XORGamepadState();
-            gp.enabled = true;
-            gp.id = e.gamepad.id;
-            gp.numButtons = e.gamepad.buttons.length;
-            gp.numAxes = e.gamepad.buttons.length;
-            gp.copyInfo(e.gamepad);
-            self.gamepads.set(e.gamepad.index, gp);
-            hflog.info("gamepad %d connected", e.gamepad.index);
-        });
-        window.addEventListener("gamepaddisconnected", (ev) => {
-            let e = (ev);
-            let gp = self.gamepads.get(e.gamepad.index);
-            if (gp) {
-                gp.enabled = false;
+        render(name, rc) {
+            if (!this.xor.fx)
+                throw "Fluxions is not initialized";
+            if (!name) {
+                return null;
             }
-            hflog.info("gamepad %d disconnected", e.gamepad.index);
-        });
-        this.gamepadAPI = true;
-        hflog.info("capturing gamepads");
-    }
-    poll() {
-        let gamepads = navigator.getGamepads();
-        if (gamepads) {
-            for (let i = 0; i < gamepads.length; i++) {
-                let gp = this.gamepads.get(i);
-                let gamepad = gamepads[i];
-                if (gamepad && gp) {
-                    gp.copyInfo(gamepad);
+            else if (this.meshes.has(name)) {
+                let mesh = this.meshes.get(name);
+                if (mesh) {
+                    mesh.renderplain(rc);
+                    return mesh;
                 }
             }
-        }
-    }
-    captureMouse(e) {
-        this.canvas = e;
-        let self = this;
-        this.canvas.onmousedown = (e) => {
-            self.mouse.copyMouseEvent(e);
-            let button = self.mouseButtons.get(e.button);
-            if (button) {
-                button.copyMouseEvent(e);
-            }
-        };
-        this.canvas.onmouseup = (e) => {
-            self.mouse.copyMouseEvent(e);
-            let button = self.mouseButtons.get(e.button);
-            if (button) {
-                button.copyMouseEvent(e);
-            }
-        };
-        this.canvas.onmousemove = (e) => {
-            self.mouse.copyMouseEvent(e);
-        };
-        this.canvas.onmouseenter = (e) => {
-            self.mouseOver = true;
-        };
-        this.canvas.onmouseleave = (e) => {
-            self.mouseOver = false;
-        };
-    }
-    checkKeys(keys) {
-        for (let key of keys) {
-            if (this.codes.has(key)) {
-                if (this.codes.get(key) != 0.0) {
-                    return 1.0;
-                }
-            }
-            if (this.keys.has(key)) {
-                if (this.keys.get(key) != 0.0) {
-                    return 1.0;
-                }
-            }
-        }
-        return 0.0;
-    }
-    pollGamepads() {
-        for (let i = 0; i < 4; i++) {
-            let gp = this.gamepads.get(i);
-            if (!gp)
-                continue;
-            Gamepad;
-        }
-    }
-    get mousecurpos() { return this.mouse.position; }
-    get mouseclick() { let b = this.mouseButtons.get(0); if (!b)
-        return Vector2.make(0, 0); return b.position; }
-    get mouseshadertoy() { return Vector4.make(this.mousecurpos.x, this.mousecurpos.y, this.mouseclick.x, this.mouseclick.y); }
-    changeModifier(bit, state) {
-        bit = bit | 0;
-        if (bit > 8)
-            return;
-        if (state) {
-            this.modifiers |= bit;
-        }
-        else {
-            this.modifiers &= ~bit;
-        }
-    }
-    translateKeyToCode(key) {
-        if (key.length == 1) {
-            let s = key.toUpperCase();
-            if (s[0] >= 'A' && s[0] <= 'Z')
-                return 'Key' + s[0];
-            if (s[0] >= '0' && s[0] <= '9')
-                return 'Digit' + s[0];
-            if (s[0] == ' ')
-                return "Space";
-        }
-        if (key == "Left" || key == "ArrowLeft")
-            return "ArrowLeft";
-        if (key == "Right" || key == "ArrowRight")
-            return "ArrowRight";
-        if (key == "Up" || key == "ArrowUp")
-            return "ArrowUp";
-        if (key == "Down" || key == "ArrowDown")
-            return "ArrowDown";
-        if (key == "Esc" || key == "Escape")
-            return "Escape";
-        if (key == "Enter" || key == "Return")
-            return "Enter";
-        return "Unidentified";
-    }
-    onkeydown(e) {
-        if (e.key == "Shift")
-            this.changeModifier(1, true);
-        if (e.key == "Ctrl")
-            this.changeModifier(2, true);
-        if (e.key == "Alt")
-            this.changeModifier(4, true);
-        this.keys.set(e.key, 1);
-        if (e.code != undefined) {
-            this.codes.set(e.code, 1);
-        }
-        else {
-            this.codes.set(this.translateKeyToCode(e.key), 1);
-        }
-        if (e.key == "F12")
-            return;
-        e.preventDefault();
-    }
-    onkeyup(e) {
-        if (e.key == "Shift")
-            this.changeModifier(1, false);
-        if (e.key == "Ctrl")
-            this.changeModifier(2, false);
-        if (e.key == "Alt")
-            this.changeModifier(4, false);
-        this.keys.set(e.key, 0);
-        if (e.code != undefined) {
-            this.codes.set(e.code, 0);
-        }
-        else {
-            this.codes.set(this.translateKeyToCode(e.key), 0);
-        }
-        if (e.key == "F12")
-            return;
-        e.preventDefault();
-    }
-}
-/// <reference path="LibXOR.ts" />
-class PaletteSystem {
-    constructor(xor) {
-        this.xor = xor;
-        this.BLACK = 0;
-        this.GRAY33 = 1;
-        this.GRAY67 = 2;
-        this.WHITE = 3;
-        this.RED = 4;
-        this.ORANGE = 5;
-        this.YELLOW = 6;
-        this.GREEN = 7;
-        this.CYAN = 8;
-        this.AZURE = 9;
-        this.BLUE = 10;
-        this.VIOLET = 11;
-        this.ROSE = 12;
-        this.BROWN = 13;
-        this.GOLD = 14;
-        this.FORESTGREEN = 15;
-    }
-    /**
-     *
-     * @param index (0 = BLACK, 1 = GRAY33, 2 = GRAY67, 3 = WHITE, 4 = RED, 5 = ORANGE, 6 = YELLOW, 7 = GREEN, 8 = CYAN, 9 = AZURE, 10 = BLUE, 11 = VIOLET, 12 = ROSE, 13 = BROWN, 14 = GOLD, 15 = FORESTGREEN)
-     * @returns Vector3 color with RGB values 0 to 1
-     */
-    getColor(index) {
-        if (index == 0)
-            return GTE.vec3(0.000, 0.000, 0.000); //Black
-        if (index == 1)
-            return GTE.vec3(0.333, 0.333, 0.333); //Gray33
-        if (index == 2)
-            return GTE.vec3(0.667, 0.667, 0.667); //Gray67
-        if (index == 3)
-            return GTE.vec3(1.000, 1.000, 1.000); //White
-        if (index == 4)
-            return GTE.vec3(1.000, 0.000, 0.000); //Red
-        if (index == 5)
-            return GTE.vec3(0.894, 0.447, 0.000); //Orange
-        if (index == 6)
-            return GTE.vec3(0.894, 0.894, 0.000); //Yellow
-        if (index == 7)
-            return GTE.vec3(0.000, 1.000, 0.000); //Green
-        if (index == 8)
-            return GTE.vec3(0.000, 0.707, 0.707); //Cyan
-        if (index == 9)
-            return GTE.vec3(0.000, 0.447, 0.894); //Azure
-        if (index == 10)
-            return GTE.vec3(0.000, 0.000, 1.000); //Blue
-        if (index == 11)
-            return GTE.vec3(0.447, 0.000, 0.894); //Violet
-        if (index == 12)
-            return GTE.vec3(0.894, 0.000, 0.447); //Rose
-        if (index == 13)
-            return GTE.vec3(0.500, 0.250, 0.000); //Brown
-        if (index == 14)
-            return GTE.vec3(0.830, 0.670, 0.220); //Gold
-        if (index == 15)
-            return GTE.vec3(0.250, 0.500, 0.250); //ForestGreen
-        return GTE.vec3(0.0, 0.0, 0.0); // Black
-    }
-    /**
-     * calcColor(color1, color2, colormix, color1hue, color2hue, negative)
-     * @param color1 0 to 15
-     * @param color2 0 to 15
-     * @param colormix 0 to 7
-     * @param color1hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
-     * @param color2hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
-     * @param negative 0 = none, 1 = 1 - RGB
-     * @returns Vector3 color with RGB values 0 to 1
-     */
-    calcColor(color1, color2, colormix, color1hue, color2hue, negative) {
-        let c1 = this.getColor(color1);
-        let c2 = this.getColor(color2);
-        let ch1 = this.hueshiftColor(c1, color1hue);
-        let ch2 = this.hueshiftColor(c2, color2hue);
-        let cmix = this.mixColors(ch1, ch2, colormix);
-        let cneg = negative ? this.negativeColor(cmix) : cmix;
-        return cneg;
-    }
-    /**
-     * calcColorBits(bits)
-     * @param bits 16 bit number (0-3: color1, 4-7: color2, 8-10: mix, 9-11: color1 hue shift, 12-14: color2 hue shift, 15: negative)
-     * @returns Vector3 color with RGB values 0 to 1
-     */
-    calcColorBits(bits) {
-        let color1 = (bits | 0) & 0xF;
-        let color2 = (bits >> 4) & 0xF;
-        let colormix = (bits >> 8) & 0x7;
-        let color1hue = (bits >> 11) & 0x3;
-        let color2hue = (bits >> 14) & 0x3;
-        let negative = (bits >> 15) & 0x1;
-        return this.calcColor(color1, color2, colormix, color1hue, color2hue, negative);
-    }
-    /**
-     * calcBits(color1, color2, colormix, color1hue, color2hue, negative)
-     * @param color1 0 to 15
-     * @param color2 0 to 15
-     * @param colormix 0 to 7
-     * @param color1hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
-     * @param color2hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
-     * @param negative 0 = none, 1 = 1 - RGB
-     * @returns number representing 16-bit XOR color model
-     */
-    calcBits(color1, color2, colormix, color1hue, color2hue, negative) {
-        let bits = 0;
-        bits |= (color1 & 0xF);
-        bits |= (color2 & 0xF) << 4;
-        bits |= (colormix & 0x7) << 8;
-        bits |= (color1hue & 0x3) << 11;
-        bits |= (color2hue & 0x3) << 14;
-        bits |= (negative & 0x1) << 15;
-        return bits;
-    }
-    /**
-     * mixColors(color1, color2, mix)
-     * @param color1 RGB color with values 0 to 1
-     * @param color2 RGB color with values 0 to 1
-     * @param mix 0 to 7 representing lerp mix
-     * @returns Vector3 color with RGB values 0 to 1
-     */
-    mixColors(color1, color2, mix) {
-        let t = GTE.clamp(1.0 - mix / 7.0, 0.0, 1.0);
-        return GTE.vec3(GTE.lerp(color1.x, color2.x, t), GTE.lerp(color1.y, color2.y, t), GTE.lerp(color1.z, color2.z, t));
-    }
-    /**
-     * hueshiftcolor(color, shift)
-     * @param color RGB color with values 0 to 1
-     * @param shift 0 = no shift, 1 = 7.5 degrees, 2 = 15 degrees, 3 = 180 degrees
-     * @returns Vector3 color with RGB values 0 to 1
-     */
-    hueshiftColor(color, shift) {
-        let hue = 0;
-        if (shift == 1)
-            hue = 7.5 / 360;
-        if (shift == 2)
-            hue = 15 / 360;
-        if (shift == 3)
-            hue = 0.5;
-        let hsl = PaletteSystem.rgb2hsl(color);
-        hsl.x += hue;
-        return PaletteSystem.hsl2rgb(hsl);
-    }
-    /**
-     * negativeColor(color3)
-     * @param color RGB color with values 0 to 1
-     * @returns Vector3 representing 1 - color
-     */
-    negativeColor(color) {
-        return GTE.vec3(1.0 - color.x, 1.0 - color.y, 1.0 - color.z);
-    }
-    /**
-     * getHtmlColor(color: Vector3)
-     * @param color RGB color with values 0 to 1
-     * @returns string valid html color
-     */
-    getHtmlColor(color) {
-        let r = (GTE.clamp(color.x * 255.99, 0, 255) | 0).toString(16);
-        let g = (GTE.clamp(color.y * 255.99, 0, 255) | 0).toString(16);
-        let b = (GTE.clamp(color.z * 255.99, 0, 255) | 0).toString(16);
-        if (r.length % 2)
-            r = '0' + r;
-        if (g.length % 2)
-            g = '0' + g;
-        if (b.length % 2)
-            b = '0' + b;
-        return '#' + r + g + b;
-    }
-    /**
-     * setpalette(paletteIndex, colorIndex, color1, color2, colormix, color1hue, color2hue, negative)
-     * @param paletteIndex 0 to 15
-     * @param colorIndex 0 to 15
-     * @param color1 0 to 15
-     * @param color2 0 to 15
-     * @param colormix 0 to 7
-     * @param color1hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
-     * @param color2hue 0 to 3 (0 = no shift, 1 = +7.5 degrees, 2 = +15 degrees, 3 = +180 degrees)
-     * @param negative 0 = none, 1 = 1 - RGB
-     * @returns nothing
-     */
-    setpalette(paletteIndex, colorIndex, color1, color2, colormix, color1hue, color2hue, negative) {
-        let bits = this.calcBits(color1, color2, colormix, color1hue, color2hue, negative);
-        this.setpalettebits(paletteIndex, colorIndex, bits);
-    }
-    /**
-     * setpalettebits(paletteIndex, colorIndex, bits)
-     * @param paletteIndex 0 to 15
-     * @param colorIndex 0 to 15
-     * @param bits 16 bit number (0-3: color1, 4-7: color2, 8-10: mix, 9-11: color1 hue shift, 12-14: color2 hue shift, 15: negative)
-     * @returns nothing
-     */
-    setpalettebits(paletteIndex, colorIndex, bits) {
-        if (!isFinite(paletteIndex) || paletteIndex < 0 || paletteIndex > 15)
-            return;
-        if (!isFinite(colorIndex) || colorIndex < 0 || colorIndex > 15)
-            return;
-        this.xor.memory.POKE(this.xor.memory.PALETTESTART + paletteIndex * 16 + colorIndex, bits);
-    }
-    /**
-     * getpalette(paletteIndex, colorIndex)
-     * @param paletteIndex 0 - 15
-     * @param colorIndex 0 - 15
-     * @returns Vector3 color with RGB values 0 to 1
-     */
-    getpalette(paletteIndex, colorIndex) {
-        let bits = this.getpalettebits(paletteIndex, colorIndex);
-        return this.calcColorBits(bits);
-    }
-    /**
-     * getpalettebits(paletteIndex, colorIndex)
-     * @param paletteIndex 0 - 15
-     * @param colorIndex 0 - 15
-     * @returns integer representing 16-bit LibXOR color model
-     */
-    getpalettebits(paletteIndex, colorIndex) {
-        if (!isFinite(paletteIndex) || paletteIndex < 0 || paletteIndex > 15)
-            return 0;
-        if (!isFinite(colorIndex) || colorIndex < 0 || colorIndex > 15)
-            return 0;
-        return this.xor.memory.PEEK(this.xor.memory.PALETTESTART + paletteIndex * 16 + colorIndex);
-    }
-    static hue2rgb(f1, f2, hue) {
-        if (hue < 0.0)
-            hue += 1.0;
-        else if (hue > 1.0)
-            hue -= 1.0;
-        let res = 0.0;
-        if ((6.0 * hue) < 1.0)
-            res = f1 + (f2 - f1) * 6.0 * hue;
-        else if ((2.0 * hue) < 1.0)
-            res = f2;
-        else if ((3.0 * hue) < 2.0)
-            res = f1 + (f2 - f1) * ((2.0 / 3.0) - hue) * 6.0;
-        else
-            res = f1;
-        return res;
-    }
-    static hsl2rgb(hsl) {
-        if (hsl.y == 0.0) {
-            return GTE.vec3(hsl.z, hsl.z, hsl.z); // Luminance
-        }
-        else {
-            let f2;
-            if (hsl.z < 0.5)
-                f2 = hsl.z * (1.0 + hsl.y);
-            else
-                f2 = hsl.z + hsl.y - hsl.y * hsl.z;
-            let f1 = 2.0 * hsl.z - f2;
-            return GTE.vec3(PaletteSystem.hue2rgb(f1, f2, hsl.x + (1.0 / 3.0)), PaletteSystem.hue2rgb(f1, f2, hsl.x), PaletteSystem.hue2rgb(f1, f2, hsl.x - (1.0 / 3.0)));
-        }
-    }
-    static rgb2hsl(rgb) {
-        let cmin = Math.min(rgb.x, Math.min(rgb.y, rgb.z));
-        let cmax = Math.max(rgb.x, Math.max(rgb.y, rgb.z));
-        let diff = cmax - cmin;
-        let l = 0.5 * (cmin + cmax);
-        let s = 0.0;
-        let h = 0.0;
-        let r = rgb.x;
-        let g = rgb.y;
-        let b = rgb.z;
-        if (diff < 1.0 / 255.0) {
-            return GTE.vec3(h, s, l);
-        }
-        else {
-            if (l < 0.5) {
-                s = diff / (cmax + cmin);
-            }
-            else {
-                s = diff / (2.0 - cmax - cmin);
-            }
-            let r2 = (cmax - r) / diff;
-            let g2 = (cmax - g) / diff;
-            let b2 = (cmax - b) / diff;
-            if (r == cmax) {
-                h = (g == cmin ? 5.0 + b2 : 1.0 - g2);
-            }
-            else if (g == cmax) {
-                h = (b == cmin ? 1.0 + r2 : 3.0 - b2);
-            }
-            else {
-                h = (r == cmin ? 3.0 + g2 : 5.0 - r2);
-            }
-            h /= 6.0;
-            if (h < 0.0)
-                h += 1.0;
-            else if (h > 1.0)
-                h -= 1.0;
-        }
-        return GTE.vec3(h, s, l);
-    }
-}
-/// <reference path="LibXOR.ts" />
-/// <reference path="Fluxions/RenderConfig.ts" />
-class RenderConfigSystem {
-    constructor(xor) {
-        this.xor = xor;
-        this.renderconfigs = new Map();
-    }
-    create(name) {
-        if (!this.xor.fluxions)
-            throw "Fluxions is not initialized";
-        let rc = new RenderConfig(this.xor.fluxions);
-        this.renderconfigs.set(name, rc);
-        return rc;
-    }
-    load(name, vshaderUrl, fshaderUrl) {
-        if (!this.xor.fluxions)
-            throw "Fluxions is not initialized";
-        let rc = new RenderConfig(this.xor.fluxions);
-        this.renderconfigs.set(name, rc);
-        let sl = new XORUtils.ShaderLoader(vshaderUrl, fshaderUrl, (vsource, fsource) => {
-            rc.compile(vsource, fsource);
-            hflog.log("Loaded " + vshaderUrl + " and " + fshaderUrl);
-        });
-        return rc;
-    }
-    use(name) {
-        if (!this.xor.fluxions)
-            throw "Fluxions is not initialized";
-        if (!name) {
-            this.xor.fluxions.gl.useProgram(null);
-        }
-        else if (this.renderconfigs.has(name)) {
-            let rc = this.renderconfigs.get(name);
-            if (rc) {
-                rc.use();
-                return rc;
-            }
-        }
-        return null;
-    }
-}
-/// <reference path="LibXOR.ts" />
-/// <reference path="Fluxions/Fluxions.ts"/>
-class MeshSystem {
-    constructor(xor) {
-        this.xor = xor;
-        this.meshes = new Map();
-    }
-    create(name) {
-        if (!this.xor.fluxions)
-            throw "Fluxions is not initialized";
-        let mesh = new FxIndexedGeometryMesh(this.xor.fluxions);
-        this.meshes.set(name, mesh);
-        return mesh;
-    }
-    load(name, url) {
-        if (!this.xor.fluxions)
-            throw "Fluxions is not initialized";
-        let mesh = new FxIndexedGeometryMesh(this.xor.fluxions);
-        this.meshes.set(name, mesh);
-        let tl = new XORUtils.TextFileLoader(url, (data, name, p) => {
-            let textParser = new FxTextParser(data);
-            mesh.loadOBJ(textParser.lines);
-        });
-        return mesh;
-    }
-    render(name, rc) {
-        if (!this.xor.fluxions)
-            throw "Fluxions is not initialized";
-        if (!name) {
             return null;
         }
-        else if (this.meshes.has(name)) {
-            let mesh = this.meshes.get(name);
-            if (mesh) {
-                mesh.renderplain(rc);
-                return mesh;
+    }
+    XOR.MeshSystem = MeshSystem;
+})(XOR || (XOR = {}));
+/// <reference path="XorUtils.ts" />
+var XOR;
+(function (XOR) {
+    class TextFileLoaderSystem {
+        constructor() {
+            this.textfiles = [];
+        }
+        get failed() {
+            for (let t of this.textfiles) {
+                if (t.failed)
+                    return true;
             }
+            return false;
         }
-        return null;
-    }
-}
-/// <reference path="XORUtils.ts" />
-class XORTextFileLoaderSystem {
-    constructor() {
-        this.textfiles = [];
-    }
-    get failed() {
-        for (let t of this.textfiles) {
-            if (t.failed)
-                return true;
+        get loaded() {
+            for (let t of this.textfiles) {
+                if (!t.loaded)
+                    return false;
+            }
+            return true;
         }
-        return false;
-    }
-    get loaded() {
-        for (let t of this.textfiles) {
-            if (!t.loaded)
-                return false;
+        get percentLoaded() {
+            let a = 0;
+            for (let t of this.textfiles) {
+                if (t.loaded)
+                    a++;
+            }
+            return a / this.textfiles.length;
         }
-        return true;
-    }
-    get percentLoaded() {
-        let a = 0;
-        for (let t of this.textfiles) {
-            if (t.loaded)
-                a++;
+        wasRequested(name) {
+            for (let tf of this.textfiles) {
+                if (tf.name == name)
+                    return true;
+            }
+            return false;
         }
-        return a / this.textfiles.length;
-    }
-    wasRequested(name) {
-        for (let tf of this.textfiles) {
-            if (tf.name == name)
-                return true;
+        load(name, url, callbackfn, data) {
+            this.textfiles.push(new XOR.TextFileLoader(url, callbackfn, data));
         }
-        return false;
     }
-    load(name, url, callbackfn, data) {
-        this.textfiles.push(new XORUtils.TextFileLoader(url, callbackfn, data));
-    }
-}
+    XOR.TextFileLoaderSystem = TextFileLoaderSystem;
+})(XOR || (XOR = {}));
 /// <reference path="../Hatchetfish.ts" />
-/// <reference path="../Fluxions/GTE.ts" />
-/// <reference path="XORUtils.ts" />
-/// <reference path="Fluxions/Fluxions.ts" />
-/// <reference path="MemorySystem.ts" />
-/// <reference path="GraphicsSystem.ts" />
-/// <reference path="SoundSystem.ts" />
-/// <reference path="InputSystem.ts" />
-/// <reference path="PaletteSystem.ts" />
-/// <reference path="RenderConfigSystem.ts" />
-/// <reference path="MeshSystem.ts" />
-/// <reference path="XORTextFileLoaderSystem.ts" />
+/// <reference path="../GTE/GTE.ts" />
+/// <reference path="XorUtils.ts" />
+/// <reference path="XorMemorySystem.ts" />
+/// <reference path="XorGraphicsSystem.ts" />
+/// <reference path="XorSoundSystem.ts" />
+/// <reference path="XorInputSystem.ts" />
+/// <reference path="XorPaletteSystem.ts" />
+/// <reference path="XorMeshSystem.ts" />
+/// <reference path="XorTextFileLoaderSystem.ts" />
+/// <reference path="../Fluxions/Fluxions.ts" />
 /**
  * @class LibXOR
  * @member {FxRenderingContext} fluxions
@@ -5718,22 +5817,23 @@ class LibXOR {
         this.t0 = 0.0;
         this.dt = 0.0;
         this.frameCount = 0;
-        this.memory = new MemorySystem(this);
+        this.memory = new XOR.MemorySystem(this);
         this.sound = new XOR.SoundSystem(this);
-        this.input = new InputSystem(this);
-        this.palette = new PaletteSystem(this);
-        this.renderconfigs = new RenderConfigSystem(this);
-        this.meshes = new MeshSystem(this);
-        this.textfiles = new XORTextFileLoaderSystem();
+        this.input = new XOR.InputSystem(this);
+        this.palette = new XOR.PaletteSystem(this);
+        this.meshes = new XOR.MeshSystem(this);
+        this.textfiles = new XOR.TextFileLoaderSystem();
         this.oninit = () => { };
         this.onupdate = (dt) => { };
         let n = document.getElementById(parentId);
         if (!n)
             throw "Unable to initialize LibXOR due to bad parentId '" + parentId.toString() + "'";
         this.parentElement = n;
-        this.graphics = new GraphicsSystem(this);
-        this.fluxions = new FxRenderingContext(this);
+        this.graphics = new XOR.GraphicsSystem(this);
+        this.fluxions = new Fluxions.FxRenderingContext(this);
     }
+    get renderconfigs() { return this.fluxions.renderconfigs; }
+    get fx() { return this.fluxions; }
     start() {
         this.t0 = 0;
         this.t1 = 0;

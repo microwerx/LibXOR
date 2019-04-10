@@ -1,15 +1,18 @@
 /// <reference path="../Hatchetfish.ts" />
-/// <reference path="../Fluxions/GTE.ts" />
-/// <reference path="XORUtils.ts" />
-/// <reference path="Fluxions/Fluxions.ts" />
-/// <reference path="MemorySystem.ts" />
-/// <reference path="GraphicsSystem.ts" />
-/// <reference path="SoundSystem.ts" />
-/// <reference path="InputSystem.ts" />
-/// <reference path="PaletteSystem.ts" />
-/// <reference path="RenderConfigSystem.ts" />
-/// <reference path="MeshSystem.ts" />
-/// <reference path="XORTextFileLoaderSystem.ts" />
+/// <reference path="../GTE/GTE.ts" />
+/// <reference path="XorUtils.ts" />
+/// <reference path="XorMemorySystem.ts" />
+/// <reference path="XorGraphicsSystem.ts" />
+/// <reference path="XorSoundSystem.ts" />
+/// <reference path="XorInputSystem.ts" />
+/// <reference path="XorPaletteSystem.ts" />
+/// <reference path="XorMeshSystem.ts" />
+/// <reference path="XorTextFileLoaderSystem.ts" />
+/// <reference path="../Fluxions/Fluxions.ts" />
+
+type FxIndexedGeometryMesh = Fluxions.FxIndexedGeometryMesh;
+type FxRenderConfig = Fluxions.FxRenderConfig;
+type FxRenderingContext = Fluxions.FxRenderingContext;
 
 /**
  * @class LibXOR
@@ -22,15 +25,14 @@ class LibXOR {
     public frameCount = 0;
 
     public parentElement: HTMLElement;
-    public graphics: GraphicsSystem;
+    public graphics: XOR.GraphicsSystem;
     public fluxions: FxRenderingContext;
-    public memory = new MemorySystem(this);
+    public memory = new XOR.MemorySystem(this);
     public sound = new XOR.SoundSystem(this);
-    public input = new InputSystem(this);
-    public palette = new PaletteSystem(this);
-    public renderconfigs = new RenderConfigSystem(this);
-    public meshes = new MeshSystem(this);
-    public textfiles = new XORTextFileLoaderSystem();
+    public input = new XOR.InputSystem(this);
+    public palette = new XOR.PaletteSystem(this);
+    public meshes = new XOR.MeshSystem(this);
+    public textfiles = new XOR.TextFileLoaderSystem();
 
     public oninit = () => { };
     public onupdate = (dt: number) => { };
@@ -40,9 +42,12 @@ class LibXOR {
         if (!n) throw "Unable to initialize LibXOR due to bad parentId '" + parentId.toString() + "'";
         this.parentElement = n;
 
-        this.graphics = new GraphicsSystem(this);
-        this.fluxions = new FxRenderingContext(this);
+        this.graphics = new XOR.GraphicsSystem(this);
+        this.fluxions = new Fluxions.FxRenderingContext(this);
     }
+
+    get renderconfigs(): Fluxions.FxRenderConfigSystem { return this.fluxions.renderconfigs; }
+    get fx(): FxRenderingContext { return this.fluxions; }
 
     start() {
         this.t0 = 0;

@@ -1,4 +1,5 @@
-/// <reference path="Fluxions.ts" />
+/// <reference path="../GTE/GTE.ts" />
+/// <reference path="FxRenderingContext.ts" />
 
 class FxFBO {
     private _fbo: WebGLFramebuffer;

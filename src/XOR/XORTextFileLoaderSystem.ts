@@ -1,44 +1,46 @@
-/// <reference path="XORUtils.ts" />
+/// <reference path="XorUtils.ts" />
 
-type XORTextFileLoaderCallback = (data: string, name: string, parameter: number) => void;
+namespace XOR {
+    type TextFileLoaderCallback = (data: string, name: string, parameter: number) => void;
 
-class XORTextFileLoaderSystem {
-    private textfiles: XORUtils.TextFileLoader[] = [];
+    export class TextFileLoaderSystem {
+        private textfiles: XOR.TextFileLoader[] = [];
 
-    constructor() {
+        constructor() {
 
-    }
-
-    get failed(): boolean {
-        for (let t of this.textfiles) {
-            if (t.failed) return true;
         }
-        return false;
-    }
 
-    get loaded(): boolean {
-        for (let t of this.textfiles) {
-            if (!t.loaded) return false;
+        get failed(): boolean {
+            for (let t of this.textfiles) {
+                if (t.failed) return true;
+            }
+            return false;
         }
-        return true;
-    }
 
-    get percentLoaded(): number {
-        let a = 0;
-        for (let t of this.textfiles) {
-            if (t.loaded) a++;
+        get loaded(): boolean {
+            for (let t of this.textfiles) {
+                if (!t.loaded) return false;
+            }
+            return true;
         }
-        return a / this.textfiles.length;
-    }
 
-    wasRequested(name: string): boolean {
-        for (let tf of this.textfiles) {
-            if (tf.name == name) return true;
+        get percentLoaded(): number {
+            let a = 0;
+            for (let t of this.textfiles) {
+                if (t.loaded) a++;
+            }
+            return a / this.textfiles.length;
         }
-        return false;
-    }
 
-    load(name: string, url: string, callbackfn: XORTextFileLoaderCallback, data: number): void {
-        this.textfiles.push(new XORUtils.TextFileLoader(url, callbackfn, data));
+        wasRequested(name: string): boolean {
+            for (let tf of this.textfiles) {
+                if (tf.name == name) return true;
+            }
+            return false;
+        }
+
+        load(name: string, url: string, callbackfn: TextFileLoaderCallback, data: number): void {
+            this.textfiles.push(new XOR.TextFileLoader(url, callbackfn, data));
+        }
     }
 }

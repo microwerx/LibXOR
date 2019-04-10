@@ -39,7 +39,7 @@ class App {
         rc.readFromFBOs = ["gbuffer"];
 
         this.xor.meshes.load('teapot', 'models/mitsuba.obj');
-        this.xor.meshes.load('rect', 'rect.obj');
+        this.xor.meshes.load('rect', 'models/rect.obj');
 
         let screen = this.xor.meshes.create('fullscreenquad');
         let pal = this.xor.palette;
