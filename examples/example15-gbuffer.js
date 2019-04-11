@@ -10,6 +10,10 @@ class App {
         p.innerHTML = `Display G-Buffer.`;
 
         let controls = document.getElementById('controls');
+
+        this.azimuth = 0;
+        this.inclination = 0;
+        this.dist = 5;
     }
 
     init() {
@@ -44,7 +48,13 @@ class App {
     update() {
         let xor = this.xor;
         if (xor.input.checkKeys([" ", "Space"])) {
+            this.azimuth = 0;
+            this.inclination = 0;
+            this.distance = 5;
         }
+
+        this.azimuth = xor.input.mouse.position.x;
+        this.inclination = xor.input.mouse.position.y;
     }
 
     render() {
@@ -52,7 +62,8 @@ class App {
         xor.graphics.clear(xor.palette.AZURE);
 
         let pmatrix = Matrix4.makePerspectiveY(45.0, 1.5, 1.0, 100.0);
-        let cmatrix = Matrix4.makeOrbit(-xor.t1*5.0, 0, 3.0);
+        // let cmatrix = Matrix4.makeOrbit(-xor.t1*5.0, 0, 3.0);
+        let cmatrix = Matrix4.makeOrbit(this.azimuth, this.inclination, this.distance);
         let rc = xor.renderconfigs.use('gbuffer');
         if (rc) {
             rc.uniformMatrix4f('ProjectionMatrix', pmatrix);
