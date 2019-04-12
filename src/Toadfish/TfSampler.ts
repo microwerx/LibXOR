@@ -58,6 +58,7 @@ namespace TF {
             }
 
         play(ss: XOR.SoundSystem, time: number = 0) {
+            if (!ss.enabled) return;
             let t = ss.context_.currentTime;
             let source = ss.context_.createBufferSource();
             let VCF = ss.context_.createBiquadFilter();
@@ -164,7 +165,7 @@ namespace TF {
             xhr.send();
         }
 
-        playSample(id: number, time: number = 0) {
+        playSample(id: number, time: number = 0) {            
             let s = this.samples.get(id);
             if (!s) return;
             s.play(this.ss, time);

@@ -2345,10 +2345,12 @@ var TF;
             this.VCFenvelope.sustainCV = 0.5;
         }
         play(ss, time = 0) {
-            let t = ss.context.currentTime;
-            let source = ss.context.createBufferSource();
-            let VCF = ss.context.createBiquadFilter();
-            let VCA = ss.context.createGain();
+            if (!ss.enabled)
+                return;
+            let t = ss.context_.currentTime;
+            let source = ss.context_.createBufferSource();
+            let VCF = ss.context_.createBiquadFilter();
+            let VCA = ss.context_.createGain();
             source.buffer = this.buffer;
             source.loop = true;
             source.connect(VCF);
@@ -2385,7 +2387,7 @@ var TF;
             t += vcfEnv.release;
             VCF.frequency.linearRampToValueAtTime(vcfEnv.releaseCV, t);
             let vcaEnv = this.VCAenvelope;
-            t = ss.context.currentTime;
+            t = ss.context_.currentTime;
             VCA.gain.setValueAtTime(this.VCAenvelope.delayCV, t);
             t += vcaEnv.delay;
             VCA.gain.setValueAtTime(this.VCAenvelope.delayCV, t);
@@ -2415,7 +2417,7 @@ var TF;
             xhr.open('GET', url);
             xhr.responseType = 'arraybuffer';
             xhr.onload = () => {
-                self.ss.context.decodeAudioData(xhr.response, (buffer) => {
+                self.ss.context_.decodeAudioData(xhr.response, (buffer) => {
                     // on success
                     let s = new Sample(buffer, true, false);
                     self.samples.set(id, s);
@@ -2459,26 +2461,30 @@ var XOR;
         constructor(xor) {
             this.xor = xor;
             this.sampler = new TF.Sampler(this);
+            this.enabled_ = false;
             try {
                 window.AudioContext = window.AudioContext || window.webkitAudioContext;
                 this.context_ = new AudioContext();
                 this.masterVolume = this.context_.createGain();
+                this.enabled_ = true;
             }
             catch (e) {
                 hflog.error('Web Audio API not supported');
             }
         }
+        get enabled() { return this.enabled_; }
+        get disabled() { return !this.enabled_; }
         get context() { return this.context_; }
         init() {
-            if (!this.context_)
+            if (!this.enabled)
                 return;
             this.masterVolume = this.context_.createGain();
             this.masterVolume.connect(this.context_.destination);
             this.masterVolume.gain.value = 0.5;
         }
-        get volume() { if (!this.context_)
+        get volume() { if (!this.enabled)
             return 0; return this.masterVolume.gain.value; }
-        set volume(v) { if (!this.context_)
+        set volume(v) { if (!this.enabled)
             return; this.masterVolume.gain.value = GTE.clamp(v, 0.0, 1.0); }
         get gainNode() { return this.masterVolume; }
     }
