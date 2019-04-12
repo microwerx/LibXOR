@@ -2459,21 +2459,27 @@ var XOR;
         constructor(xor) {
             this.xor = xor;
             this.sampler = new TF.Sampler(this);
-            this.masterVolume = this.context.createGain();
             try {
                 window.AudioContext = window.AudioContext || window.webkitAudioContext;
-                this.context = new AudioContext();
+                this.context_ = new AudioContext();
+                this.masterVolume = this.context_.createGain();
             }
             catch (e) {
                 hflog.error('Web Audio API not supported');
             }
         }
+        get context() { return this.context_; }
         init() {
-            this.masterVolume.connect(this.context.destination);
+            if (!this.context_)
+                return;
+            this.masterVolume = this.context_.createGain();
+            this.masterVolume.connect(this.context_.destination);
             this.masterVolume.gain.value = 0.5;
         }
-        get volume() { return this.masterVolume.gain.value; }
-        set volume(v) { this.masterVolume.gain.value = GTE.clamp(v, 0.0, 1.0); }
+        get volume() { if (!this.context_)
+            return 0; return this.masterVolume.gain.value; }
+        set volume(v) { if (!this.context_)
+            return; this.masterVolume.gain.value = GTE.clamp(v, 0.0, 1.0); }
         get gainNode() { return this.masterVolume; }
     }
     XOR.SoundSystem = SoundSystem;

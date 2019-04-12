@@ -58,10 +58,10 @@ namespace TF {
             }
 
         play(ss: XOR.SoundSystem, time: number = 0) {
-            let t = ss.context.currentTime;
-            let source = ss.context.createBufferSource();
-            let VCF = ss.context.createBiquadFilter();
-            let VCA = ss.context.createGain();
+            let t = ss.context_.currentTime;
+            let source = ss.context_.createBufferSource();
+            let VCF = ss.context_.createBiquadFilter();
+            let VCA = ss.context_.createGain();
 
             source.buffer = this.buffer;
             source.loop = true;
@@ -105,7 +105,7 @@ namespace TF {
             VCF.frequency.linearRampToValueAtTime(vcfEnv.releaseCV, t);
 
             let vcaEnv = this.VCAenvelope;
-            t = ss.context.currentTime;
+            t = ss.context_.currentTime;
             VCA.gain.setValueAtTime(this.VCAenvelope.delayCV, t);
             t += vcaEnv.delay;
             VCA.gain.setValueAtTime(this.VCAenvelope.delayCV, t);
@@ -140,7 +140,7 @@ namespace TF {
             xhr.open('GET', url);
             xhr.responseType = 'arraybuffer';
             xhr.onload = () => {
-                self.ss.context.decodeAudioData(xhr.response, (buffer) => {
+                self.ss.context_.decodeAudioData(xhr.response, (buffer) => {
                     // on success
                     let s = new Sample(buffer, true, false);
                     self.samples.set(id, s);
