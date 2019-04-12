@@ -2459,12 +2459,14 @@ var XOR;
         constructor(xor) {
             this.xor = xor;
             this.sampler = new TF.Sampler(this);
-            this.context = new AudioContext();
             this.masterVolume = this.context.createGain();
-            // let self = this;
-            // window.addEventListener("load", (e) => {
-            //     self.context = new AudioContext();
-            // }, false);
+            try {
+                window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                this.context = new AudioContext();
+            }
+            catch (e) {
+                hflog.error('Web Audio API not supported');
+            }
         }
         init() {
             this.masterVolume.connect(this.context.destination);
