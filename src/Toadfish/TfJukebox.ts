@@ -2,7 +2,7 @@
 
 namespace TF {
     export class Jukebox {
-        constructor(public xor: LibXOR) {
+        constructor(public ss: XOR.SoundSystem) {
 
         }
     }

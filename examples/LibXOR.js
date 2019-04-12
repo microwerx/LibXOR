@@ -2453,14 +2453,26 @@ var TF;
     }
     TF.Sampler = Sampler;
 })(TF || (TF = {}));
+/// <reference path="../XorSoundSystem.ts" />
+var TF;
+(function (TF) {
+    class Jukebox {
+        constructor(ss) {
+            this.ss = ss;
+        }
+    }
+    TF.Jukebox = Jukebox;
+})(TF || (TF = {}));
 /// <reference path="LibXOR.ts" />
 /// <reference path="../Toadfish/TfSampler.ts" />
+/// <reference path="../Toadfish/TfJukebox.ts" />
 var XOR;
 (function (XOR) {
     class SoundSystem {
         constructor(xor) {
             this.xor = xor;
             this.sampler = new TF.Sampler(this);
+            this.jukebox = new TF.Jukebox(this);
             this.enabled_ = false;
             try {
                 window.AudioContext = window.AudioContext || window.webkitAudioContext;

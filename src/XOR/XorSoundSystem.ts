@@ -1,12 +1,14 @@
 /// <reference path="LibXOR.ts" />
 /// <reference path="../Toadfish/TfSampler.ts" />
+/// <reference path="../Toadfish/TfJukebox.ts" />
 
 namespace XOR {
     export class SoundSystem {
         sampler = new TF.Sampler(this);
-        context_: AudioContext;
+        jukebox = new TF.Jukebox(this);
+        private context_: AudioContext;
         private masterVolume: GainNode;
-        enabled_ = false;
+        private enabled_ = false;
 
         constructor(private xor: LibXOR) {
             try {
