@@ -91,6 +91,33 @@ function createCheckRow(parent, id, checked) {
 }
 
 /**
+ * createDivButton adds a button to the control list
+ * @param {HTMLElement} parent The parent HTMLElement
+ * @param {string} id The name of the button's id
+ * @param {boolean} checked Is it checked or not
+ */
+function createDivRow(parent, id) {
+    let lContent = "<div class='column left'><label for='" + id + "'>" + id + "<label></div>";
+    let rContent = "<div class='column right' id='" + id + "'>";
+    rContent += "</div>";
+    let row = createRow(lContent, rContent);
+    row.id = "row" + id;
+    row.className = "row";
+    parent.appendChild(row);
+}
+
+/**
+ * setDivRowContents
+ * @param {string} id 
+ * @param {string} content 
+ */
+function setDivRowContents(id, content) {
+    let e = document.getElementById(id);
+    if (!e) return;
+    e.innerHTML = content;
+}
+
+/**
  * getRangeValue returns the number of a range control
  * @param {number} id 
  * @returns the value of the range control or 0
