@@ -8,15 +8,44 @@ function accum(a, b, bscale) {
     a.z += b.z * bscale;
 }
 
+let maxErrors = 100;
 /**
  * 
  * @param {string} variable name of variable
  * @param {number} x value to check
  */
 function checkFinite(variable, x) {
-    if (!isFinite(x)) {
+    if (!isFinite(x) && maxErrors-- >= 0) {
         hflog.error(variable, x);
     }
+}
+
+/**
+ * 
+ * @param {number} x 
+ */
+function makeFinite(x, msg) {
+    if (!isFinite(x)) x = 0;
+    if (maxErrors > 0) {
+        hflog.error("makeFinite3: ", msg);
+        maxErrors--;
+    }
+}
+
+/**
+ * 
+ * @param {Vector3} v 
+ */
+function makeFinite3(v, msg) {
+    if (!isFinite(v.x) || !isFinite(v.y) || !isFinite(v.z)) {
+        v.reset();
+        if (maxErrors > 0) {
+            hflog.error("makeFinite3: ", msg);
+            maxErrors--;
+        }
+        return false;
+    }
+    return true;
 }
 
 /**
@@ -26,16 +55,21 @@ function checkFinite(variable, x) {
  * @param {number} s 
  */
 function sphW(o1, o2, s) {
-    let r = o1.distanceTo(o2);
-    let rOverS = Math.max(1e-5, r / s);
-    let C = 1.0 / (Math.PI * Math.pow(s, 3));
-    if (0 <= rOverS && rOverS <= 1) {
-        let rOverS2 = rOverS * rOverS;
-        let rOverS3 = rOverS * rOverS2;
-        return C * (1.0 - 1.5 * rOverS2 + 0.75 * rOverS3);
+    if (s == 0.0) {
+        if (o1 === o2) return 1.0;
+        else return 0.0;
     }
-    else if (rOverS <= 2) {
-        return C * (0.25 * Math.pow(2 - rOverS, 3.0));
+    let h = s * 1000.0;
+    let r = o1.x.distance(o2.x);
+    let q = r / s;
+    let C = 1.0 / (Math.PI);// * Math.pow(h, 3));
+    if (q <= 1) {
+        let q2 = q * q;
+        let q3 = q * q * q;
+        return C * (1.0 - 1.5 * q2 + 0.75 * q3);
+    }
+    else if (q <= 2) {
+        return C * (0.25 * Math.pow(2 - q, 3.0));
     }
     return 0;
 }
@@ -47,14 +81,19 @@ function sphW(o1, o2, s) {
  * @param {number} s Support Radius
  */
 function sphdW(o1, o2, s) {
-    let r = o1.distanceTo(o2);
-    let rOverS = Math.max(1e-5, r / s);
-    let C = 1.0 / (Math.PI * Math.pow(s, 4));
-    if (0.0 <= rOverS && rOverS <= 1.0) {
-        return C * 3.0 * (-1.0 + 1.5 * rOverS);
+    if (s == 0.0) {
+        if (o1 === o2) return 1.0;
+        else return 0.0;
     }
-    else if (rOverS <= 2) {
-        return C * 1.5 * Math.pow(2.0 - rOverS, 2.0);
+    let h = s * 1000.0;
+    let r = o1.x.distance(o2.x);
+    let q = r / s;
+    let C = 1.0 / (Math.PI);// * Math.pow(h, 4));
+    if (q <= 1.0) {
+        return C * 3.0 * (-1.0 + 1.5 * q);
+    }
+    else if (q <= 2) {
+        return C * 1.5 * Math.pow(2.0 - q, 2.0);
     }
     return 0.0;
 }
@@ -66,14 +105,19 @@ function sphdW(o1, o2, s) {
  * @param {number} s Support Radius
  */
 function sphddW(o1, o2, s) {
-    let r = o1.distanceTo(o2);
-    let rOverS = Math.max(1e-5, r / s);
-    let C = 1.0 / (Math.PI * Math.pow(s, 5.0));
-    if (0.0 <= rOverS && rOverS <= 1.0) {
-        return C * 3.0 * (-1.0 + 1.5 * rOverS);
+    if (s == 0.0) {
+        if (o1 === o2) return 1.0;
+        else return 0.0;
     }
-    else if (rOverS <= 2) {
-        return C * 1.5 * (2.0 - rOverS);
+    let h = s * 1000;
+    let r = o1.x.distance(o2.x);
+    let q = r / s;
+    let C = 1.0 / (Math.PI);// * Math.pow(h, 5.0));
+    if (q <= 1.0) {
+        return C * 3.0 * (-1.0 + 1.5 * q);
+    }
+    else if (q <= 2) {
+        return C * 1.5 * (2.0 - q);
     }
     return 0.0;
 }
@@ -148,6 +192,18 @@ class StateVector {
     }
 
     /**
+     * Detects whether the otherSV intersects our object
+     * @param {StateVector} otherSV 
+     */
+    softDetectCollision(otherSV) {
+        let totalRadius = 0.1 * this.radius + otherSV.radius;
+        if (this.x.distance(otherSV.x) < totalRadius) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Moves this state vector object in a direction amount units.
      * @param {Vector3} dir 
      * @param {number} amount 
@@ -186,6 +242,7 @@ class Simulation {
         this.wind = Vector3.make();
         this.numObjects = 100;
         this.G = 0.0;
+        this.sphgravity = false;
         this.p = 2;
         this.useCollisions = false;
         this.randoma = 0.0;
@@ -203,6 +260,8 @@ class Simulation {
         this.Ks = 2.2e9;          // bulk modulus (normally measured in GPa)
         this.c2 = this.Ks / this.density;
         this.nu = 1.0;
+        this.minBoundValue = -2;
+        this.maxBoundValue = 2;
     }
 
     syncControls() {
@@ -211,12 +270,13 @@ class Simulation {
 
         this.supportRadius = getRangeValue("fSupportRadius");
         this.density = Math.exp(getRangeValue("fDensity"));
-        this.Ks = Math.max(0.000142, getRangeValue("fKs"));
+        this.Ks = 1e9 * (Math.max(0.000142, getRangeValue("fKs")));
         this.c2 = this.Ks / this.density;
         this.nu = Math.pow(10.0, getRangeValue("fnu"));
         let G = getRangeValue("G");
         let sign = G >= 0.0 ? 1.0 : -1.0;
         let mag = Math.abs(G);
+        this.sphgravity = G > 0.0;
         this.G = sign * Math.pow(10.0, mag - 5.0) * 6.6740831e-11;
         this.useCollisions = getRangeValue("collisions");
         this.numObjects = getRangeValue("objects");
@@ -259,8 +319,10 @@ class Simulation {
             // sv.m = (Math.random() * 50) + 25;
             do {
                 sv.m = randomg(this.fMassMean, this.fMassSigma);
-            } while (sv.m < 0.0);
-            sv.radius = 0.01 + sv.m / 1000.0;
+            } while (sv.m < 0.1);
+            sv.radius = randomg(this.fMassMean, this.fMassSigma) / 1000.0;
+            // sv.radius = sv.m / 10000.0;
+            sv.m = sv.radius * sv.radius * Math.PI * this.density;
             // if (i == 0) {
             //     sv.x = Vector3.make();
             //     sv.v = Vector3.make();
@@ -279,6 +341,7 @@ class Simulation {
      */
     calcSystemDynamics(dt) {
         for (let sv of this.objects) {
+            sv.a.reset();
             if (this.randomP > 0.0 && Math.random() < this.randomP) {
                 sv.a = S().scale(Math.random() * this.randoma);
             }
@@ -350,51 +413,49 @@ class Simulation {
         this.pMax = -1e12;
         this.uMin = 1e12;
         this.uMax = -1e12;
-        this.density = 0.0;
         let bbox = new GTE.BoundingBox();
         let i = 0;
         for (let sv of this.objects) {
             sv.d = 0.0;
-            sv.density = 0.0;
+            // sv.m = sv.radius * sv.radius * Math.PI * this.density;
+            sv.m = 4.1887902 * Math.pow(sv.radius, 3) * this.density;
+            sv.density = this.density;
             this.sphW[i][i] = 0.0;
             sv.pgrad = Vector3.make();
             sv.ugrad = Vector3.make();
-            this.density += this.objects[i].m;
             bbox.add(this.objects[i].x);
             i++;
         }
-        this.density /= bbox.width * bbox.height;
         this.c2 = this.Ks / this.density;
     }
 
     sphDensitiesPressures() {
+        let w = 0;
         for (let i = 0; i < this.objects.length; i++) {
             let o1 = this.objects[i];
-            for (let j = 0; j < this.objects.length; j++) {
-                //if (i == j) continue;
+            for (let j = 0; j < this.objects.length; j++) {                
                 let o2 = this.objects[j];
 
-                let w = sphW(o1, o2, this.supportRadius);
-                o1.d += w;
-                let dw = sphdW(o1, o2, this.supportRadius);
-                let ddw = sphddW(o1, o2, this.supportRadius);
+                w = sphW(o1, o2, o1.radius * this.supportRadius);
+                let dw = sphdW(o1, o2, o1.radius * this.supportRadius);
+                let ddw = sphddW(o1, o2, o1.radius * this.supportRadius);
                 this.sphW[i][j] = w;
                 this.sphdW[i][j] = dw;
                 this.sphddW[i][j] = ddw;
 
-                //if (w <= 0.0) continue;
+                // this.pMin = Math.min(this.pMin, w);
+                // this.pMax = Math.max(this.pMax, w);
 
                 // calculate density
+                if (i == j) continue;
                 o1.density += o2.m * w;
             }
             // Density is measured kg/m**3
-            o1.density = Math.max(0.0, o1.density);
+            // o1.density = Math.max(this.density, o1.density);
             // calculate reference density
-            let rho_0 = this.density;// * 9.8 * (10 - o1.x.y);
+            let rho_0 = this.density;
             // m**2/s**2 * (kg/m**3 - kg/m**3) is kg / (m s**2) (Pa)
             o1.p = this.c2 * (o1.density - rho_0);
-            // this.pMin = Math.min(o1.p, rho_0);
-            // this.pMax = Math.max(o1.p, rho_0);
             this.pMin = Math.min(this.pMin, o1.p);
             this.pMax = Math.max(this.pMax, o1.p);
         }
@@ -404,109 +465,157 @@ class Simulation {
         for (let i = 0; i < this.objects.length; i++) {
             let o1 = this.objects[i];
             for (let j = 0; j < this.objects.length; j++) {
-                //if (i == j) continue;
-                let o2 = this.objects[j];
-
-                //if (this.sphW[i][j] <= 0.0) continue;
-
                 let dw = this.sphdW[i][j];
+                if (dw == 0.0) continue;                
+                let o2 = this.objects[j];
                 let rhoSquared1 = o1.density * o1.density;
                 let rhoSquared2 = o2.density * o2.density;
                 let ximinusxj = Vector3.sub(o1.x, o2.x);
                 o1.pgrad.accum(ximinusxj, -o2.m * (o1.p / rhoSquared1 + o2.p / rhoSquared2) * dw);
+                makeFinite3(o1.pgrad, "pgrad");
             }
         }
     }
 
     sphDiffusion() {
+        if (this.nu <= 100.0) return;
         for (let i = 0; i < this.objects.length; i++) {
             let o1 = this.objects[i];
             for (let j = 0; j < this.objects.length; j++) {
-                if (i == j) continue;
-                let o2 = this.objects[j];
-
-                //if (this.sphW[i][j] <= 0.0) continue;
-
                 let ddw = this.sphddW[i][j];
+                if (ddw == 0.0) continue;
+                let o2 = this.objects[j];
                 let ujminusui = Vector3.sub(o2.u, o1.u);
                 o1.ugrad.accum(ujminusui, this.nu * ddw * o2.m / o1.density);
+                makeFinite3(o1.ugrad, "ugrad");
             }
         }
     }
 
-    sphApplyForces() {
-        let dt = 0.0005;
-        this.objects.sort(function(a, b) {
+    /**
+     * 
+     * @param {number} dt 
+     */
+    sphApplyForces(dt) {
+        this.objects.sort(function (a, b) {
             return a.x.y < b.x.y;
         });
-        for (let t = 0; t < 0.01; t += dt) {
-            let halfdt = 0.5 * dt;
-            let c = Math.sqrt(this.c2);
-            let i = 0;
-            for (let sv of this.objects) {
-                let oldU = sv.u.clone();
-                let oldA = sv.a.clone();
-                let oldX = sv.x.clone();
-                let forces = sv.pgrad.add(sv.ugrad).add(Vector3.make(0.0, -9.8, 0.0));
-                sv.a.copy(forces);
-                sv.u.accum(sv.a, halfdt);
-                sv.x.accum(sv.u, dt);
-                sv.u.accum(sv.a, halfdt);
+        let halfdt = 0.5 * dt;
+        let c = Math.sqrt(this.c2);
+        let i = 0;
+        for (let sv of this.objects) {
+            let oldU = sv.u.clone();
+            let oldA = sv.a.clone();
+            let oldX = sv.x.clone();
 
-                sv.umag = sv.u.length();
-                if (sv.umag > c) {
-                    sv.u.scale(c / sv.umag);
-                    sv.umag = c;
-                }
-                this.uMin = Math.min(this.uMin, sv.umag);
-                this.uMax = Math.max(this.uMax, sv.umag);
-                let o1 = sv;
-                let collisionFound = true;
-                let maxTries = 5;
-                while (collisionFound && maxTries-- > 0) {
-                    collisionFound = false;
-                    for (let j = 0; j < this.objects.length; j++) {
-                        if (i == j) continue;
-                        let o2 = this.objects[j];
-                        if (o1.detectCollision(o2)) {
-                            this.respondToCollisionNoElastic(o1, o2);
-                            collisionFound = true;
-                        }
+            makeFinite3(sv.u, "ubefore");
+
+            let forces = sv.pgrad.add(sv.ugrad);
+
+            if (this.sphgravity) {
+                forces.accum(Vector3.make(0.0, -9.8, 0.0), 1.0);
+            }
+
+            if (this.drag > 0.0) {
+                forces.accum(sv.u, -this.drag);
+            }
+
+            sv.a.copy(forces);
+            sv.u.accum(sv.a, halfdt);
+            sv.x.accum(sv.u, dt);
+            sv.u.accum(sv.a, halfdt);
+
+            makeFinite3(sv.u, "uafter");
+
+            sv.umag = sv.u.length();
+            if (sv.umag > c) {
+                sv.u.scale(0.1 * c / sv.umag);
+                sv.umag = 0.1*c;
+            }
+            let umag = sv.umag;
+            this.uMin = Math.min(this.uMin, umag);
+            this.uMax = Math.max(this.uMax, umag);
+            let o1 = sv;
+            let collisionFound = true;
+            let maxTries = 2;
+            while (collisionFound && maxTries-- > 0) {
+                collisionFound = false;
+                for (let j = 0; j < this.objects.length; j++) {
+                    if (i == j) continue;
+                    let o2 = this.objects[j];
+                    let tries = 5;
+                    while (tries-- > 0 && o1.detectCollision(o2)) {
+                        this.respondToCollision(o1, o2);
+                        this.sphBoundParticle(o1);
+                        this.sphBoundParticle(o2);
+                        collisionFound = true;
                     }
                 }
-                // if (collisionFound){
-                //     sv.x.copy(oldX);
-                //     sv.a.copy(oldA);
-                //     sv.u.copy(oldU);
-                // }
-                i++;
             }
+            // if (collisionFound) {
+            //     sv.x.copy(oldX);
+            //     sv.a.copy(oldA);
+            //     sv.u.copy(oldU);
+            // }
+            // if (!collisionFound) {
+                let v = sv.x.sub(oldX).scale(1.0/dt);
+                sv.u.copy(v);
+            // }
+            // sv.x = clamp3(sv.x, this.minBoundValue, this.maxBoundValue);
+            // i++;
         }
     }
 
-    sph() {
+    sphBoundParticles() {
+        for (let sv of this.objects) {
+            let min = this.minBoundValue + sv.radius;
+            let max = this.maxBoundValue - sv.radius;
+            if (sv.x.x < min && sv.u.x < 0) sv.u.x = -sv.u.x;
+            if (sv.x.y < min && sv.u.y < 0) sv.u.y = -sv.u.y;
+            if (sv.x.x > max && sv.u.x > 0) sv.u.x = -sv.u.x;
+            if (sv.x.y > max && sv.u.y > 0) sv.u.y = -sv.u.y;
+            sv.x = clamp3(sv.x, min, max);
+        }
+    }
+
+    sphBoundParticle(sv) {
+        let min = this.minBoundValue + sv.radius;
+        let max = this.maxBoundValue - sv.radius;
+        if (sv.x.x < min && sv.u.x < 0) sv.u.x = -sv.u.x;
+        if (sv.x.y < min && sv.u.y < 0) sv.u.y = -sv.u.y;
+        if (sv.x.x > max && sv.u.x > 0) sv.u.x = -sv.u.x;
+        if (sv.x.y > max && sv.u.y > 0) sv.u.y = -sv.u.y;
+        sv.x = clamp3(sv.x, min, max);
+    }
+
+    sph(timeElapsed) {
         this.sphInit();
         this.sphDensitiesPressures();
         this.sphPressureGradient();
         this.sphDiffusion();
-        this.sphApplyForces();
+        let dt = 0.001;
+        for (let t = 0; t < timeElapsed; t += dt) {
+            this.sphApplyForces(dt);
+            this.sphBoundParticles();
+        }
     }
 
     boundParticles(minValue = -2, maxValue = 2) {
         for (let sv of this.objects) {
-            // let old = sv.x.clone();
+            let min = minValue + sv.radius;
+            let max = maxValue - sv.radius;
+    
+            if (sv.x.x < min && sv.u.x < 0) sv.v.x = -sv.v.x;
+            if (sv.x.y < min && sv.u.y < 0) sv.v.y = -sv.v.y;
+            if (sv.x.x > max && sv.u.x > 0) sv.v.x = -sv.v.x;
+            if (sv.x.y > max && sv.u.y > 0) sv.v.y = -sv.v.y;
 
-            if (sv.x.x < minValue || sv.x.x > maxValue) sv.v.x = -sv.v.x;
-            if (sv.x.y < minValue || sv.x.y > maxValue) sv.v.y = -sv.v.y;
-
-            if (sv.x.x < minValue || sv.x.x > maxValue) sv.u.x = 0;
-            if (sv.x.y < minValue || sv.x.y > maxValue) sv.u.y = 0;
-
-            sv.x = clamp3(sv.x, minValue, maxValue);
-            // if (old.distance(sv.x) > 0) {
-            //     sv.x = S().scale(2 * Math.random());
-            //     sv.v = S().scale(Math.random() * 0.1);
-            // }
+            if (sv.x.x < min && sv.u.x < 0) sv.u.x = -sv.u.x;
+            if (sv.x.y < min && sv.u.y < 0) sv.u.y = -sv.u.y;
+            if (sv.x.x > max && sv.u.x > 0) sv.u.x = -sv.u.x;
+            if (sv.x.y > max && sv.u.y > 0) sv.u.y = -sv.u.y;
+    
+            sv.x = clamp3(sv.x, min, max);
         }
     }
 
@@ -518,8 +627,8 @@ class Simulation {
     respondToCollisionNoElastic(o1, o2) {
         let dirTo = o1.dirTo(o2);
         let distance = o1.distanceTo(o2);
-        let moveByAmount = 0.5 * Math.abs(distance);
-        o1.moveBy(dirTo, -moveByAmount);
+        let moveByAmount = Math.abs(distance);
+        //o1.moveBy(dirTo, -moveByAmount);
         o2.moveBy(dirTo, moveByAmount);
     }
 
@@ -543,21 +652,59 @@ class Simulation {
         let x2minusx1 = Vector3.sub(o2.x, o1.x);
         let dSquared1 = x1minusx2.lengthSquared();
         let dSquared2 = x2minusx1.lengthSquared();
-        let b1 = -2 * o2.m * Vector3.dot(v1minusv2, x1minusx2) / (totalMass * dSquared1);
-        let b2 = -2 * o1.m * Vector3.dot(v2minusv1, x2minusx1) / (totalMass * dSquared2);
+        let b1 = -2 * o2.m;
+        let b2 = -2 * o1.m;
+        if (dSquared1 > 0.0) b1 *= Vector3.dot(v1minusv2, x1minusx2) / (totalMass * dSquared1);
+        if (dSquared2 <= 0.0) b2 *= Vector3.dot(v2minusv1, x2minusx1) / (totalMass * dSquared2);
         o1.v.accum(x1minusx2, b1);
         o2.v.accum(x2minusx1, b2);
     }
 
+    /**
+     * Handles the response to collision between object 1 and 2
+     * @param {StateVector} o1 Object 1
+     * @param {StateVector} o2 Object 2
+     */
+    softRespondToCollision(o1, o2) {
+        let dirTo = o1.dirTo(o2);
+        let distance = o1.distanceTo(o2);
+        let moveByAmount = 0.05 * Math.abs(distance);
+        o1.moveBy(dirTo, -moveByAmount);
+        o2.moveBy(dirTo, moveByAmount);
+
+        // elastic collision
+        let totalMass = o1.m + o2.m;
+        let v1minusv2 = Vector3.sub(o1.u, o2.u);
+        let v2minusv1 = Vector3.sub(o2.u, o1.u);
+        let x1minusx2 = Vector3.sub(o1.x, o2.x);
+        let x2minusx1 = Vector3.sub(o2.x, o1.x);
+        let dSquared1 = x1minusx2.lengthSquared();
+        let dSquared2 = x2minusx1.lengthSquared();
+        let b1 = -2 * o2.m;
+        let b2 = -2 * o1.m;
+        if (dSquared1 > 0.0) b1 *= Vector3.dot(v1minusv2, x1minusx2) / (totalMass * dSquared1);
+        if (dSquared2 <= 0.0) b2 *= Vector3.dot(v2minusv1, x2minusx1) / (totalMass * dSquared2);
+        o1.u.accum(x1minusx2, b1);
+        o2.u.accum(x2minusx1, b2);
+    }
+
     update(dt) {
         this.syncControls();
-        this.sph();
-        if (this.G != 0.0) {
-            this.acceleratorOperators(this.G, this.p);
+        this.sph(dt);
+        // if (this.G != 0.0) {
+        //     this.acceleratorOperators(this.G, this.p);
+        // }
+        // this.calcSystemDynamics(dt);
+        // this.boundParticles(this.minBoundValue, this.maxBoundValue);
+        // if (this.useCollisions > 0.5) this.detectCollisions();
+    }
+
+    moveParticle(index, x, y) {
+        if (this.objects.length > index) {
+            this.objects[index].x.x = GTE.clamp(x, this.minBoundValue, this.maxBoundValue);
+            this.objects[index].x.y = GTE.clamp(y, this.minBoundValue, this.maxBoundValue);
+            this.detectCollisions();
         }
-        this.calcSystemDynamics(dt);
-        this.boundParticles();
-        if (this.useCollisions > 0.5) this.detectCollisions();
     }
 }
 
@@ -578,9 +725,9 @@ class App {
         createCheckRow(controls, "bPMag", true);
         createDivRow(controls, "U");
         createDivRow(controls, "p");
-        createRangeRow(controls, "fSupportRadius", 0.50, 0.0, 3.0, 0.01);
+        createRangeRow(controls, "fSupportRadius", 1.00, 0.0, 10.0, 0.05);
         createRangeRow(controls, "fDensity", 7.00, 0.0, 10.0, 0.1);
-        createRangeRow(controls, "fKs", 2.2, 0.0, 3.0, 0.1);
+        createRangeRow(controls, "fKs", 2.2, 0.0, 10.0, 0.1);
         createRangeRow(controls, "fnu", 1.0, 0.0, 10.0, 0.1);
         createRangeRow(controls, "fDrag", 0.00, -0.99, 0.99, 0.01);
         createRangeRow(controls, "fWindAngle", 0, -180, 180, 1);
@@ -588,11 +735,11 @@ class App {
         createRangeRow(controls, "G", 0.0, -10.0, 10.0, 0.1);
         createRangeRow(controls, "p", 2, -4, 4, 0.1);
         createRangeRow(controls, "collisions", 0, 0, 1);
-        createRangeRow(controls, "objects", 50, 1, 500);
+        createRangeRow(controls, "objects", 200, 1, 500);
         createRangeRow(controls, "randoma", 0.0, 0.0, 10.0, 0.1);
         createRangeRow(controls, "randomP", 0.0, 0.0, 1.0, 0.001);
-        createRangeRow(controls, "fMassMean", 25.0, 0.0, 50.0, 0.1);
-        createRangeRow(controls, "fMassSigma", 0.0, 0.0, 25.0, 0.1);
+        createRangeRow(controls, "fMassMean", 50.0, 0.0, 100.0, 0.1);
+        createRangeRow(controls, "fMassSigma", 10.0, 0.0, 25.0, 0.1);
         createRangeRow(controls, "fInitialP", 1.0, 0.0, 1.0, 0.05);
 
         this.visualizeU = false;
@@ -616,7 +763,7 @@ class App {
 
         let circle = this.xor.meshes.create('circle');
         circle.color3(pal.calcColor(pal.WHITE, pal.WHITE, 0, 0, 0, 0));
-        circle.circle(0, 0, 0.5, 16);
+        circle.circle(0, 0, 1.0, 16);
 
         let bg = this.xor.meshes.create('bg');
         bg.color3(pal.getColor(pal.BLACK));
@@ -633,6 +780,14 @@ class App {
         let resetSim = false;
         if (xor.input.checkKeys([" ", "Space"])) {
             resetSim = true;
+        }
+
+        if (xor.input.mouseOver) {
+            let w = xor.graphics.width;
+            let h = xor.graphics.height;
+            let x = xor.input.mouse.position.x;
+            let y = xor.input.mouse.position.y;
+            this.sim.moveParticle(0, 4 * (x - w / 2) / w, -4 * (y - h / 2) / h);
         }
 
         this.visualizeU = getCheckValue("bUMag");
@@ -660,9 +815,11 @@ class App {
             //xor.meshes.render('bg', rc);
 
             let p1 = this.sim.pMin;
-            let pTotal = this.sim.pMax - p1;
+            let p2 = this.sim.pMax;
+            let pTotal = Math.max(p2 - p1, p1 + 1.0);
             let u1 = this.sim.uMin;
-            let uTotal = this.sim.uMax - u1;
+            let u2 = this.sim.uMax;
+            let uTotal = Math.max(u2 - u1, u1 + 1.0);
             let ototal = this.sim.objects.length;
 
             let i = 0;
@@ -672,7 +829,7 @@ class App {
                 let r = (this.visualizeP) ? pmag : 0.0;
                 let g = (this.visualizeU) ? umag : 0.0;
                 let m = Matrix4.makeTranslation3(sv.x);
-                m.multMatrix(Matrix4.makeScale(2 * sv.radius, 2 * sv.radius, 2 * sv.radius));
+                m.multMatrix(Matrix4.makeScale(sv.radius, sv.radius, sv.radius));
                 rc.uniformMatrix4f('WorldMatrix', m);
                 //let color = Vector3.make(sv.density / 1000.0, 0.0, 1.0);
                 let color = Vector3.make(r, g, 1.0);//i/ototal);

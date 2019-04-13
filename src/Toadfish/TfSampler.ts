@@ -59,10 +59,12 @@ namespace TF {
 
         play(ss: XOR.SoundSystem, time: number = 0) {
             if (!ss.enabled) return;
-            let t = ss.context_.currentTime;
-            let source = ss.context_.createBufferSource();
-            let VCF = ss.context_.createBiquadFilter();
-            let VCA = ss.context_.createGain();
+            let ctx = ss.context;
+            if (!ctx) return;
+            let t = ctx.currentTime;
+            let source = ctx.createBufferSource();
+            let VCF = ctx.createBiquadFilter();
+            let VCA = ctx.createGain();
 
             source.buffer = this.buffer;
             source.loop = true;
@@ -106,7 +108,7 @@ namespace TF {
             VCF.frequency.linearRampToValueAtTime(vcfEnv.releaseCV, t);
 
             let vcaEnv = this.VCAenvelope;
-            t = ss.context_.currentTime;
+            t = ctx.currentTime;
             VCA.gain.setValueAtTime(this.VCAenvelope.delayCV, t);
             t += vcaEnv.delay;
             VCA.gain.setValueAtTime(this.VCAenvelope.delayCV, t);
@@ -136,12 +138,14 @@ namespace TF {
         }
 
         loadSample(id: number, url: string, logErrors = true) {
+            let ctx = this.ss.context;
+            if (!ctx) return;
             let self = this;
             let xhr = new XMLHttpRequest();
             xhr.open('GET', url);
             xhr.responseType = 'arraybuffer';
             xhr.onload = () => {
-                self.ss.context_.decodeAudioData(xhr.response, (buffer) => {
+                ctx.decodeAudioData(xhr.response, (buffer) => {
                     // on success
                     let s = new Sample(buffer, true, false);
                     self.samples.set(id, s);

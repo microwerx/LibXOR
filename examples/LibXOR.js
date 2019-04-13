@@ -31,7 +31,7 @@ class Hatchetfish {
     writeToLog(prefix, message, ...optionalParams) {
         let text = prefix + ": " + message;
         for (let op of optionalParams) {
-            if (op.toString) {
+            if (op && op.hasOwnProperty('toString')) {
                 text += " " + op.toString();
             }
             else {
@@ -2347,10 +2347,13 @@ var TF;
         play(ss, time = 0) {
             if (!ss.enabled)
                 return;
-            let t = ss.context_.currentTime;
-            let source = ss.context_.createBufferSource();
-            let VCF = ss.context_.createBiquadFilter();
-            let VCA = ss.context_.createGain();
+            let ctx = ss.context;
+            if (!ctx)
+                return;
+            let t = ctx.currentTime;
+            let source = ctx.createBufferSource();
+            let VCF = ctx.createBiquadFilter();
+            let VCA = ctx.createGain();
             source.buffer = this.buffer;
             source.loop = true;
             source.connect(VCF);
@@ -2387,7 +2390,7 @@ var TF;
             t += vcfEnv.release;
             VCF.frequency.linearRampToValueAtTime(vcfEnv.releaseCV, t);
             let vcaEnv = this.VCAenvelope;
-            t = ss.context_.currentTime;
+            t = ctx.currentTime;
             VCA.gain.setValueAtTime(this.VCAenvelope.delayCV, t);
             t += vcaEnv.delay;
             VCA.gain.setValueAtTime(this.VCAenvelope.delayCV, t);
@@ -2412,12 +2415,15 @@ var TF;
             this.samples = new Map();
         }
         loadSample(id, url, logErrors = true) {
+            let ctx = this.ss.context;
+            if (!ctx)
+                return;
             let self = this;
             let xhr = new XMLHttpRequest();
             xhr.open('GET', url);
             xhr.responseType = 'arraybuffer';
             xhr.onload = () => {
-                self.ss.context_.decodeAudioData(xhr.response, (buffer) => {
+                ctx.decodeAudioData(xhr.response, (buffer) => {
                     // on success
                     let s = new Sample(buffer, true, false);
                     self.samples.set(id, s);
@@ -2774,6 +2780,8 @@ var XOR;
             }
             if (e.key == "F12")
                 return;
+            if (e.key == "i" && this.modifiers == 3)
+                return;
             e.preventDefault();
         }
         onkeyup(e) {
@@ -2791,6 +2799,8 @@ var XOR;
                 this.codes.set(this.translateKeyToCode(e.key), 0);
             }
             if (e.key == "F12")
+                return;
+            if (e.key == "i" && this.modifiers == 3)
                 return;
             e.preventDefault();
         }
@@ -3801,6 +3811,7 @@ var Fluxions;
             this._resized = true;
             if (!xor.graphics.gl)
                 throw "Unable to start Fluxions without valid gl context";
+            /** @property {WebGLRenderingContext} gl */
             this.gl = xor.graphics.gl;
             this.textures = new Fluxions.FxTextureSystem(this);
             this.fbos = new Fluxions.FxFboSystem(this);

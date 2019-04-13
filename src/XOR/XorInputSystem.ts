@@ -169,6 +169,7 @@ namespace XOR {
                 this.codes.set(this.translateKeyToCode(e.key), 1);
             }
             if (e.key == "F12") return;
+            if (e.key == "i" && this.modifiers == 3) return;
             e.preventDefault();
         }
 
@@ -183,6 +184,7 @@ namespace XOR {
                 this.codes.set(this.translateKeyToCode(e.key), 0);
             }
             if (e.key == "F12") return;
+            if (e.key == "i" && this.modifiers == 3) return;
             e.preventDefault();
         }
     }

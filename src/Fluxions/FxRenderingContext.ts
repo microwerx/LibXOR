@@ -17,6 +17,7 @@ namespace Fluxions {
 
         constructor(public xor: LibXOR) {
             if (!xor.graphics.gl) throw "Unable to start Fluxions without valid gl context";
+            /** @property {WebGLRenderingContext} gl */
             this.gl = xor.graphics.gl;
             this.textures = new FxTextureSystem(this);
             this.fbos = new FxFboSystem(this);

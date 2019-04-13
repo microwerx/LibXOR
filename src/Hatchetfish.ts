@@ -33,8 +33,8 @@ class Hatchetfish {
 
     private writeToLog(prefix: string, message: string, ...optionalParams: any[]) {
         let text = prefix + ": " + message;
-        for (let op of optionalParams) {
-            if (op.toString) {
+        for (let op of optionalParams) {            
+            if (op && op.hasOwnProperty('toString') {
                 text += " " + op.toString();
             } else {
                 text += " <unknown>"
