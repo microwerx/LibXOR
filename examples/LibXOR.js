@@ -1957,8 +1957,8 @@ var XOR;
                 hflog.info("Capturing mouse");
             }
         }
-        clear(index) {
-            let c = this.xor.palette.getColor(index);
+        clear(color1 = XOR.Color.BLACK, color2 = XOR.Color.BLACK, mix = 0, hue1 = XOR.HueShift.Zero, hue2 = XOR.HueShift.Zero, neg = 0) {
+            let c = this.xor.palette.calcColor(color1, color2, mix, hue1, hue2, neg);
             this.clearrgba(c.r, c.g, c.b, 1.0);
         }
         clear3(color) {
@@ -2810,6 +2810,32 @@ var XOR;
 /// <reference path="LibXOR.ts" />
 var XOR;
 (function (XOR) {
+    let Color;
+    (function (Color) {
+        Color[Color["BLACK"] = 0] = "BLACK";
+        Color[Color["GRAY33"] = 1] = "GRAY33";
+        Color[Color["GRAY67"] = 2] = "GRAY67";
+        Color[Color["WHITE"] = 3] = "WHITE";
+        Color[Color["RED"] = 4] = "RED";
+        Color[Color["ORANGE"] = 5] = "ORANGE";
+        Color[Color["YELLOW"] = 6] = "YELLOW";
+        Color[Color["GREEN"] = 7] = "GREEN";
+        Color[Color["CYAN"] = 8] = "CYAN";
+        Color[Color["AZURE"] = 9] = "AZURE";
+        Color[Color["BLUE"] = 10] = "BLUE";
+        Color[Color["VIOLET"] = 11] = "VIOLET";
+        Color[Color["ROSE"] = 12] = "ROSE";
+        Color[Color["BROWN"] = 13] = "BROWN";
+        Color[Color["GOLD"] = 14] = "GOLD";
+        Color[Color["FORESTGREEN"] = 15] = "FORESTGREEN";
+    })(Color = XOR.Color || (XOR.Color = {}));
+    let HueShift;
+    (function (HueShift) {
+        HueShift[HueShift["Zero"] = 0] = "Zero";
+        HueShift[HueShift["SevenHalf"] = 1] = "SevenHalf";
+        HueShift[HueShift["Fifteen"] = 2] = "Fifteen";
+        HueShift[HueShift["OneEighty"] = 3] = "OneEighty";
+    })(HueShift = XOR.HueShift || (XOR.HueShift = {}));
     class PaletteSystem {
         constructor(xor) {
             this.xor = xor;

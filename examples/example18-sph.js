@@ -1,4 +1,4 @@
-/* global Vector3 createButtonRow createRangeRow createCheckRow */
+/* global XOR Vector3 createButtonRow createRangeRow createCheckRow createDivRow setDivRowContents getCheckValue */
 /// <reference path="LibXOR.js" />
 /// <reference path="htmlutils.js" />
 
@@ -27,7 +27,7 @@ function checkFinite(variable, x) {
 function makeFinite(x, msg) {
     if (!isFinite(x)) x = 0;
     if (maxErrors > 0) {
-        hflog.error("makeFinite3: ", msg);
+        hflog.error("makeFinite3: " + msg);
         maxErrors--;
     }
 }
@@ -62,7 +62,7 @@ function sphW(o1, o2, s) {
     let h = s * 1000.0;
     let r = o1.x.distance(o2.x);
     let q = r / s;
-    let C = 1.0 / (Math.PI);// * Math.pow(h, 3));
+    let C = 1.0 / (Math.PI * Math.pow(h, 3));
     if (q <= 1) {
         let q2 = q * q;
         let q3 = q * q * q;
@@ -88,9 +88,9 @@ function sphdW(o1, o2, s) {
     let h = s * 1000.0;
     let r = o1.x.distance(o2.x);
     let q = r / s;
-    let C = 1.0 / (Math.PI);// * Math.pow(h, 4));
+    let C = 1.0 / (Math.PI * Math.pow(h, 4));
     if (q <= 1.0) {
-        return C * 3.0 * (-1.0 + 1.5 * q);
+        return C * 3.0 * q * (0.75 * q - 1.0);
     }
     else if (q <= 2) {
         return C * 1.5 * Math.pow(2.0 - q, 2.0);
@@ -112,9 +112,9 @@ function sphddW(o1, o2, s) {
     let h = s * 1000;
     let r = o1.x.distance(o2.x);
     let q = r / s;
-    let C = 1.0 / (Math.PI);// * Math.pow(h, 5.0));
+    let C = 1.0 / (Math.PI * Math.pow(h, 5.0));
     if (q <= 1.0) {
-        return C * 3.0 * (-1.0 + 1.5 * q);
+        return C * 3.0 * (1.5 * q - 1.0);
     }
     else if (q <= 2) {
         return C * 1.5 * (2.0 - q);
@@ -176,7 +176,9 @@ class StateVector {
         this.u = Vector3.make();    // fluid velocity
         this.pgrad = 0.0;           // pressure gradient
         this.ugrad = Vector3.make();
-        this.umag = 0.0;
+        this.uviz = 0.0;
+        this.pviz = 0.0;
+        this.oldx = Vector3.make();
     }
 
     /**
@@ -262,17 +264,19 @@ class Simulation {
         this.nu = 1.0;
         this.minBoundValue = -2;
         this.maxBoundValue = 2;
+        this.vizGradients = false;
     }
 
     syncControls() {
         setDivRowContents("U", "Min: " + this.uMin.toExponential(5) + " -- " + "Max: " + this.uMax.toExponential(5));
         setDivRowContents("p", "Min: " + this.pMin.toExponential(5) + " -- " + "Max: " + this.pMax.toExponential(5));
+        this.vizGradients = getCheckValue("bGradients");
 
         this.supportRadius = getRangeValue("fSupportRadius");
         this.density = Math.exp(getRangeValue("fDensity"));
         this.Ks = 1e9 * (Math.max(0.000142, getRangeValue("fKs")));
         this.c2 = this.Ks / this.density;
-        this.nu = Math.pow(10.0, getRangeValue("fnu"));
+        this.nu = Math.pow(10.0, getRangeValue("fnu")) - 10;
         let G = getRangeValue("G");
         let sign = G >= 0.0 ? 1.0 : -1.0;
         let mag = Math.abs(G);
@@ -306,29 +310,9 @@ class Simulation {
             let sv = new StateVector();
             let dice = Math.random();
             sv.x = S().scale(dice);
-            sv.v = Vector3.make();//S().scale(Math.random());//Vector3.make(); //S();
-            if (dice > this.fInitialP) {
-                sv.v = S().scale(0.5 + Math.random());
-                sv.v.z = sv.v.x;
-                sv.v.x = sv.v.y;
-                sv.v.y = sv.v.z;
-                sv.v.z = 0.0;
-                sv.u.copy(sv.v);
-                sv.v.reset();
-            }
-            // sv.m = (Math.random() * 50) + 25;
-            do {
-                sv.m = randomg(this.fMassMean, this.fMassSigma);
-            } while (sv.m < 0.1);
+            sv.v = Vector3.make();
             sv.radius = randomg(this.fMassMean, this.fMassSigma) / 1000.0;
-            // sv.radius = sv.m / 10000.0;
             sv.m = sv.radius * sv.radius * Math.PI * this.density;
-            // if (i == 0) {
-            //     sv.x = Vector3.make();
-            //     sv.v = Vector3.make();
-            //     sv.m = 100000000;                
-            //     sv.radius = 1;
-            // }
             sv.a = Vector3.make();
             this.objects.push(sv);
         }
@@ -417,6 +401,7 @@ class Simulation {
         let i = 0;
         for (let sv of this.objects) {
             sv.d = 0.0;
+            sv.oldx.copy(sv.x);
             // sv.m = sv.radius * sv.radius * Math.PI * this.density;
             sv.m = 4.1887902 * Math.pow(sv.radius, 3) * this.density;
             sv.density = this.density;
@@ -433,31 +418,25 @@ class Simulation {
         let w = 0;
         for (let i = 0; i < this.objects.length; i++) {
             let o1 = this.objects[i];
-            for (let j = 0; j < this.objects.length; j++) {                
+            for (let j = 0; j < this.objects.length; j++) {
                 let o2 = this.objects[j];
 
-                w = sphW(o1, o2, o1.radius * this.supportRadius);
-                let dw = sphdW(o1, o2, o1.radius * this.supportRadius);
-                let ddw = sphddW(o1, o2, o1.radius * this.supportRadius);
+                w = sphW(o1, o2, o1.radius + this.supportRadius);
+                let dw = sphdW(o1, o2, o1.radius + this.supportRadius);
+                let ddw = sphddW(o1, o2, o1.radius + this.supportRadius);
                 this.sphW[i][j] = w;
                 this.sphdW[i][j] = dw;
                 this.sphddW[i][j] = ddw;
 
-                // this.pMin = Math.min(this.pMin, w);
-                // this.pMax = Math.max(this.pMax, w);
-
                 // calculate density
-                if (i == j) continue;
+                // if (i == j) continue;
                 o1.density += o2.m * w;
             }
             // Density is measured kg/m**3
-            // o1.density = Math.max(this.density, o1.density);
             // calculate reference density
             let rho_0 = this.density;
             // m**2/s**2 * (kg/m**3 - kg/m**3) is kg / (m s**2) (Pa)
             o1.p = this.c2 * (o1.density - rho_0);
-            this.pMin = Math.min(this.pMin, o1.p);
-            this.pMax = Math.max(this.pMax, o1.p);
         }
     }
 
@@ -466,7 +445,7 @@ class Simulation {
             let o1 = this.objects[i];
             for (let j = 0; j < this.objects.length; j++) {
                 let dw = this.sphdW[i][j];
-                if (dw == 0.0) continue;                
+                if (dw == 0.0) continue;
                 let o2 = this.objects[j];
                 let rhoSquared1 = o1.density * o1.density;
                 let rhoSquared2 = o2.density * o2.density;
@@ -478,7 +457,7 @@ class Simulation {
     }
 
     sphDiffusion() {
-        if (this.nu <= 100.0) return;
+        // if (this.nu <= 100.0) return;
         for (let i = 0; i < this.objects.length; i++) {
             let o1 = this.objects[i];
             for (let j = 0; j < this.objects.length; j++) {
@@ -486,7 +465,7 @@ class Simulation {
                 if (ddw == 0.0) continue;
                 let o2 = this.objects[j];
                 let ujminusui = Vector3.sub(o2.u, o1.u);
-                o1.ugrad.accum(ujminusui, this.nu * ddw * o2.m / o1.density);
+                o1.ugrad.accum(ujminusui, this.nu * ddw * o2.m / this.density);
                 makeFinite3(o1.ugrad, "ugrad");
             }
         }
@@ -497,9 +476,9 @@ class Simulation {
      * @param {number} dt 
      */
     sphApplyForces(dt) {
-        this.objects.sort(function (a, b) {
-            return a.x.y < b.x.y;
-        });
+        // this.objects.sort(function (a, b) {
+        //     return a.x.y < b.x.y;
+        // });
         let halfdt = 0.5 * dt;
         let c = Math.sqrt(this.c2);
         let i = 0;
@@ -527,14 +506,20 @@ class Simulation {
 
             makeFinite3(sv.u, "uafter");
 
-            sv.umag = sv.u.length();
-            if (sv.umag > c) {
-                sv.u.scale(0.1 * c / sv.umag);
-                sv.umag = 0.1*c;
+            let umag = sv.u.length();
+            if (sv.uviz > c) {
+                sv.u.scale(0.1 * c / umag);
+                sv.umag = 0.1 * c;
             }
-            let umag = sv.umag;
-            this.uMin = Math.min(this.uMin, umag);
-            this.uMax = Math.max(this.uMax, umag);
+            // this.uMin = Math.min(this.uMin, umag);
+            // this.uMax = Math.max(this.uMax, umag);
+            sv.uviz = this.vizGradients ? sv.ugrad.length() : sv.u.length();
+            //sv.uviz = this.sphddW[i][0];
+            this.uMin = Math.min(this.uMin, sv.uviz);
+            this.uMax = Math.max(this.uMax, sv.uviz);
+            sv.pviz = this.vizGradients ? sv.pgrad.length() : sv.p;
+            this.pMin = Math.min(this.pMin, sv.pviz);
+            this.pMax = Math.max(this.pMax, sv.pviz);
             let o1 = sv;
             let collisionFound = true;
             let maxTries = 2;
@@ -552,17 +537,15 @@ class Simulation {
                     }
                 }
             }
-            // if (collisionFound) {
-            //     sv.x.copy(oldX);
-            //     sv.a.copy(oldA);
-            //     sv.u.copy(oldU);
-            // }
-            // if (!collisionFound) {
-                let v = sv.x.sub(oldX).scale(1.0/dt);
-                sv.u.copy(v);
-            // }
-            // sv.x = clamp3(sv.x, this.minBoundValue, this.maxBoundValue);
-            // i++;
+
+            // Two approaches here: Either figure out the actual velocity travelled
+            // based on the position -OR- use the direction the particle actually
+            // travelled but at its calculated velocity
+
+            // let v = sv.x.sub(oldX).scale(1.0/dt);
+            let v = sv.x.sub(oldX).normalize().scale(umag);
+            sv.u.copy(v);
+            i++;
         }
     }
 
@@ -593,7 +576,7 @@ class Simulation {
         this.sphDensitiesPressures();
         this.sphPressureGradient();
         this.sphDiffusion();
-        let dt = 0.001;
+        let dt = 0.01;
         for (let t = 0; t < timeElapsed; t += dt) {
             this.sphApplyForces(dt);
             this.sphBoundParticles();
@@ -604,7 +587,7 @@ class Simulation {
         for (let sv of this.objects) {
             let min = minValue + sv.radius;
             let max = maxValue - sv.radius;
-    
+
             if (sv.x.x < min && sv.u.x < 0) sv.v.x = -sv.v.x;
             if (sv.x.y < min && sv.u.y < 0) sv.v.y = -sv.v.y;
             if (sv.x.x > max && sv.u.x > 0) sv.v.x = -sv.v.x;
@@ -614,7 +597,7 @@ class Simulation {
             if (sv.x.y < min && sv.u.y < 0) sv.u.y = -sv.u.y;
             if (sv.x.x > max && sv.u.x > 0) sv.u.x = -sv.u.x;
             if (sv.x.y > max && sv.u.y > 0) sv.u.y = -sv.u.y;
-    
+
             sv.x = clamp3(sv.x, min, max);
         }
     }
@@ -691,6 +674,9 @@ class Simulation {
     update(dt) {
         this.syncControls();
         this.sph(dt);
+
+        // TODO: Enable the previous acceleration operators from previous examples
+
         // if (this.G != 0.0) {
         //     this.acceleratorOperators(this.G, this.p);
         // }
@@ -714,36 +700,38 @@ class App {
         this.sim = new Simulation();
 
         let p = document.getElementById('desc');
-        p.innerHTML = `This app demonstrates the use of acceleration operators.`;
+        p.innerHTML = `<p>This app demonstrates smoothed particle hydrodynamics.</p>`;
 
         let self = this;
         let controls = document.getElementById('controls');
         createButtonRow(controls, "bResetSim", "Reset Sim", () => {
             self.sim.reset();
         });
+        createCheckRow(controls, "bGradients", false);
         createCheckRow(controls, "bUMag", true);
         createCheckRow(controls, "bPMag", true);
         createDivRow(controls, "U");
         createDivRow(controls, "p");
-        createRangeRow(controls, "fSupportRadius", 1.00, 0.0, 10.0, 0.05);
+        createRangeRow(controls, "fSupportRadius", 0.1, 0.0, 2.0, 0.05);
         createRangeRow(controls, "fDensity", 7.00, 0.0, 10.0, 0.1);
         createRangeRow(controls, "fKs", 2.2, 0.0, 10.0, 0.1);
-        createRangeRow(controls, "fnu", 1.0, 0.0, 10.0, 0.1);
+        createRangeRow(controls, "fnu", 14.0, 12.0, 15.5, 0.1);
         createRangeRow(controls, "fDrag", 0.00, -0.99, 0.99, 0.01);
-        createRangeRow(controls, "fWindAngle", 0, -180, 180, 1);
-        createRangeRow(controls, "fWindSpeed", 0, 0, 5, 0.1);
-        createRangeRow(controls, "G", 0.0, -10.0, 10.0, 0.1);
+        // createRangeRow(controls, "fWindAngle", 0, -180, 180, 1);
+        // createRangeRow(controls, "fWindSpeed", 0, 0, 5, 0.1);
+        createRangeRow(controls, "G", 1.0, -10.0, 10.0, 0.1);
         createRangeRow(controls, "p", 2, -4, 4, 0.1);
-        createRangeRow(controls, "collisions", 0, 0, 1);
-        createRangeRow(controls, "objects", 200, 1, 500);
-        createRangeRow(controls, "randoma", 0.0, 0.0, 10.0, 0.1);
-        createRangeRow(controls, "randomP", 0.0, 0.0, 1.0, 0.001);
+        // createRangeRow(controls, "collisions", 0, 0, 1);
+        createRangeRow(controls, "objects", 500, 1, 1000);
+        // createRangeRow(controls, "randoma", 0.0, 0.0, 10.0, 0.1);
+        // createRangeRow(controls, "randomP", 0.0, 0.0, 1.0, 0.001);
         createRangeRow(controls, "fMassMean", 50.0, 0.0, 100.0, 0.1);
         createRangeRow(controls, "fMassSigma", 10.0, 0.0, 25.0, 0.1);
-        createRangeRow(controls, "fInitialP", 1.0, 0.0, 1.0, 0.05);
+        // createRangeRow(controls, "fInitialP", 1.0, 0.0, 1.0, 0.05);
 
         this.visualizeU = false;
         this.visualizeP = false;
+        this.vizParticle = null;
     }
 
     init() {
@@ -769,6 +757,7 @@ class App {
         bg.color3(pal.getColor(pal.BLACK));
         bg.rect(-5, -5, 5, 5);
         this.sim.reset();
+        this.vizParticle = this.sim.objects[0];
     }
 
     start() {
@@ -795,6 +784,8 @@ class App {
 
         if (resetSim) {
             this.sim.reset();
+            this.vizParticle = null;
+            this.vizParticle = this.sim.objects[0];
         }
 
         this.sim.update(0.016);
@@ -802,7 +793,7 @@ class App {
 
     render() {
         let xor = this.xor;
-        xor.graphics.clear(xor.palette.BROWN);
+        xor.graphics.clear(XOR.Color.BROWN, XOR.Color.WHITE, 5);
 
         let pmatrix = Matrix4.makePerspectiveY(45.0, 1.5, 1.0, 100.0);
         let cmatrix = Matrix4.makeOrbit(-90, 0, 5.0);
@@ -816,26 +807,36 @@ class App {
 
             let p1 = this.sim.pMin;
             let p2 = this.sim.pMax;
-            let pTotal = Math.max(p2 - p1, p1 + 1.0);
+            let pTotal = Math.max(p2 - p1, p1 + 0.1);
             let u1 = this.sim.uMin;
             let u2 = this.sim.uMax;
-            let uTotal = Math.max(u2 - u1, u1 + 1.0);
-            let ototal = this.sim.objects.length;
+            let uTotal = Math.max(u2 - u1, u1 + 5.0);
+
 
             let i = 0;
+            // {
+            //     let sr = this.sim.supportRadius;
+            //     let sv = this.sim.objects[0];
+            //     //this.vizParticle;
+            //     let m = Matrix4.makeTranslation3(sv.x);
+            //     m.multMatrix(Matrix4.makeScale(sv.radius + sr, sv.radius + sr, sv.radius + sr));
+            //     rc.uniformMatrix4f('WorldMatrix', m);
+            //     let color = Vector3.make(0.0, 0.0, 0.0);
+            //     rc.uniform3f('kd', color);
+            //     xor.meshes.render('circle', rc);
+            // }
+
             for (let sv of this.sim.objects) {
                 let pmag = (sv.p - p1) / pTotal;
-                let umag = (sv.umag - u1) / uTotal;
+                let umag = (sv.uviz - u1) / uTotal;
                 let r = (this.visualizeP) ? pmag : 0.0;
                 let g = (this.visualizeU) ? umag : 0.0;
                 let m = Matrix4.makeTranslation3(sv.x);
                 m.multMatrix(Matrix4.makeScale(sv.radius, sv.radius, sv.radius));
                 rc.uniformMatrix4f('WorldMatrix', m);
-                //let color = Vector3.make(sv.density / 1000.0, 0.0, 1.0);
-                let color = Vector3.make(r, g, 1.0);//i/ototal);
+                let color = Vector3.make(r, g, 1.0);
                 rc.uniform3f('kd', color);
                 xor.meshes.render('circle', rc);
-                i++;
             }
         }
         xor.renderconfigs.use(null);

@@ -1,6 +1,32 @@
 /// <reference path="LibXOR.ts" />
 
 namespace XOR {
+    export enum Color {
+        BLACK = 0,
+        GRAY33 = 1,
+        GRAY67 = 2,
+        WHITE = 3,
+        RED = 4,
+        ORANGE = 5,
+        YELLOW = 6,
+        GREEN = 7,
+        CYAN = 8,
+        AZURE = 9,
+        BLUE = 10,
+        VIOLET = 11,
+        ROSE = 12,
+        BROWN = 13,
+        GOLD = 14,
+        FORESTGREEN = 15
+    }
+
+    export enum HueShift {
+        Zero = 0,
+        SevenHalf = 1,
+        Fifteen = 2,
+        OneEighty = 3
+    }
+
     export class PaletteSystem {
         readonly BLACK = 0;
         readonly GRAY33 = 1;

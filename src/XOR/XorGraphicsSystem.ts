@@ -80,8 +80,14 @@ namespace XOR {
             }
         }
 
-        clear(index: number) {
-            let c = this.xor.palette.getColor(index);
+        clear(
+            color1: XOR.Color = Color.BLACK,
+            color2: XOR.Color = Color.BLACK,
+            mix: number = 0,
+            hue1: XOR.HueShift = HueShift.Zero,
+            hue2: XOR.HueShift = HueShift.Zero,
+            neg: number = 0) {
+            let c = this.xor.palette.calcColor(color1, color2, mix, hue1, hue2, neg);
             this.clearrgba(c.r, c.g, c.b, 1.0);
         }
 
