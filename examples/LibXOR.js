@@ -3202,7 +3202,7 @@ var Fluxions;
             const colorUniform = name + "Color";
             const depthUniform = name + "Depth";
             const resolutionUnifom = name + "Resolution";
-            const usingUniform = "Using" + name;
+            const usingUniform = name + "Enabled";
             let fbo = this._fbo.get(name) || null;
             if (!fbo)
                 return;

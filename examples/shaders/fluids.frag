@@ -9,6 +9,9 @@ uniform float map_normal_mix;
 uniform vec3 kd;
 uniform vec3 ks;
 
+uniform sampler2D FluidColor;
+uniform float FluidEnabled;
+
 uniform vec3 sunDirTo;
 uniform vec3 sunE0;
 
@@ -20,5 +23,9 @@ varying vec3 vColor;
 
 void main() {
     // set to white
-    gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+    vec3 color = vec3(0.0, 1.0, 0.0);
+    if (FluidEnabled > 0.0) {
+    	color = texture2D(FluidColor, vTexcoord.st).rgb;
+    }
+    gl_FragColor = vec4(color, 1.0);
 }

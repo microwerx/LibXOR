@@ -8,6 +8,20 @@ function accum(a, b, bscale) {
     a.z += b.z * bscale;
 }
 
+/**
+ * Set speed limit on velocity vector
+ * @param {Vector3} u 
+ * @param {number} umagmax 
+ */
+function clampSpeed(u, umagmax) {
+    let umag = u.length();
+    if (umag > umagmax) {
+        u.normalize();
+        u.accum(u, umagmax);
+    }
+    return u;
+}
+
 let maxErrors = 100;
 /**
  * 
@@ -143,6 +157,15 @@ function randomg(mu, sigma) {
 
 /**
  * 
+ * @param {number} fmean 
+ * @param {number} fsigma 
+ * @returns {number} A uniform variable between mean - sigma and mean + sigma
+ */
+function randomu(fmean, fsigma) {
+    return Math.random() * (2 * fsigma) + fmean;
+}
+/**
+ * 
  * @param {Vector3} v 
  * @param {number} minValue 
  * @param {number} maxValue 
@@ -276,7 +299,7 @@ class Simulation {
         this.density = Math.exp(getRangeValue("fDensity"));
         this.Ks = 1e9 * (Math.max(0.000142, getRangeValue("fKs")));
         this.c2 = this.Ks / this.density;
-        this.nu = Math.pow(10.0, getRangeValue("fnu")) - 10;
+        this.nu = Math.pow(10.0, getRangeValue("fnu"));
         let G = getRangeValue("G");
         let sign = G >= 0.0 ? 1.0 : -1.0;
         let mag = Math.abs(G);
@@ -311,7 +334,13 @@ class Simulation {
             let dice = Math.random();
             sv.x = S().scale(dice);
             sv.v = Vector3.make();
-            sv.radius = randomg(this.fMassMean, this.fMassSigma) / 1000.0;
+            let eta;
+            if (this.fMassSigma < 0) {
+                eta = randomu(this.fMassMean, this.fMassSigma);
+            } else {
+                eta = randomg(this.fMassMean, this.fMassSigma);
+            }
+            sv.radius = eta / 1000.0;
             sv.m = sv.radius * sv.radius * Math.PI * this.density;
             sv.a = Vector3.make();
             this.objects.push(sv);
@@ -405,7 +434,6 @@ class Simulation {
             // sv.m = sv.radius * sv.radius * Math.PI * this.density;
             sv.m = 4.1887902 * Math.pow(sv.radius, 3) * this.density;
             sv.density = this.density;
-            this.sphW[i][i] = 0.0;
             sv.pgrad = Vector3.make();
             sv.ugrad = Vector3.make();
             bbox.add(this.objects[i].x);
@@ -458,6 +486,7 @@ class Simulation {
 
     sphDiffusion() {
         // if (this.nu <= 100.0) return;
+        let nu_over_density = this.nu / this.density;
         for (let i = 0; i < this.objects.length; i++) {
             let o1 = this.objects[i];
             for (let j = 0; j < this.objects.length; j++) {
@@ -465,8 +494,9 @@ class Simulation {
                 if (ddw == 0.0) continue;
                 let o2 = this.objects[j];
                 let ujminusui = Vector3.sub(o2.u, o1.u);
-                o1.ugrad.accum(ujminusui, this.nu * ddw * o2.m / this.density);
-                makeFinite3(o1.ugrad, "ugrad");
+                // o1.ugrad.accum(ujminusui, this.nu * ddw * o2.m / this.density);
+                o1.ugrad.accum(ujminusui, nu_over_density * ddw * o2.m);
+                // makeFinite3(o1.ugrad, "ugrad");
             }
         }
     }
@@ -487,7 +517,7 @@ class Simulation {
             let oldA = sv.a.clone();
             let oldX = sv.x.clone();
 
-            makeFinite3(sv.u, "ubefore");
+            // makeFinite3(sv.u, "ubefore");
 
             let forces = sv.pgrad.add(sv.ugrad);
 
@@ -501,16 +531,14 @@ class Simulation {
 
             sv.a.copy(forces);
             sv.u.accum(sv.a, halfdt);
+            clampSpeed(sv.u, 0.1 * c);
             sv.x.accum(sv.u, dt);
             sv.u.accum(sv.a, halfdt);
+            clampSpeed(sv.u, 0.1 * c);
 
-            makeFinite3(sv.u, "uafter");
+            // makeFinite3(sv.u, "uafter");
 
             let umag = sv.u.length();
-            if (sv.uviz > c) {
-                sv.u.scale(0.1 * c / umag);
-                sv.umag = 0.1 * c;
-            }
             // this.uMin = Math.min(this.uMin, umag);
             // this.uMax = Math.max(this.uMax, umag);
             sv.uviz = this.vizGradients ? sv.ugrad.length() : sv.u.length();
@@ -725,8 +753,8 @@ class App {
         createRangeRow(controls, "objects", 500, 1, 1000);
         // createRangeRow(controls, "randoma", 0.0, 0.0, 10.0, 0.1);
         // createRangeRow(controls, "randomP", 0.0, 0.0, 1.0, 0.001);
-        createRangeRow(controls, "fMassMean", 50.0, 0.0, 100.0, 0.1);
-        createRangeRow(controls, "fMassSigma", 10.0, 0.0, 25.0, 0.1);
+        createRangeRow(controls, "fMassMean", 25.0, 0.0, 100.0, 1.0);
+        createRangeRow(controls, "fMassSigma", 10.0, -25.0, 25.0, 0.1);
         // createRangeRow(controls, "fInitialP", 1.0, 0.0, 1.0, 0.05);
 
         this.visualizeU = false;

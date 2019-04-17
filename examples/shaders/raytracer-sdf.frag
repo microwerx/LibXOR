@@ -1,3 +1,4 @@
+#version 100
 precision highp float;
 
 const float FX_DEGREES_TO_RADIANS = 0.01745329;
@@ -235,6 +236,28 @@ vec3 sfRandomDirection(vec3 N)
     return normalize(vec3(rand(), rand(), rand()) * N);
 }
 
+bool sfSolveQuadratic(in float a, in float b, in float c, out float t1, out float t2)
+{
+    float discriminant = b * b - 4.0 * a * c;
+    float denom = 2.0 * a;
+    if (denom != 0.0 && discriminant > 0.0) {
+        float s = sqrt(discriminant);
+        float r1 = (-b - s) / denom;
+        float r2 = (-b + s) / denom;
+        if (r1 < r2) {
+            t1 = r1;
+            t2 = r2;
+        }
+        else
+        {
+            t1 = r2;
+            t2 = r1;
+        }
+        return true;
+    }
+    return false;
+}
+
 //////////////////////////////////////////////////////////////////////
 // F A C T O R Y /////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -452,6 +475,31 @@ Hitable sfCreateMesh(vec3 position, Material material)
 }
 
 
+Ray sfCreateCameraRay(vec2 uv) {
+    vec3 eye = vec3(0.0, 0.0, 5.0);
+    vec3 center = vec3(0.0, 0.0, 0.0);
+    vec3 up = vec3(0.0, 1.0, 0.0);
+    float aspectRatio = iResolution.x / iResolution.y;
+    float fovy = 45.0;
+    
+    float theta = fovy * FX_DEGREES_TO_RADIANS;
+    float halfHeight = tan(theta / 2.0);
+    float halfWidth = aspectRatio * halfHeight;
+    float distanceToFocus = length(eye - center);
+    vec3 w = normalize(eye - center);
+    vec3 u = cross(up, w);
+    vec3 v = cross(w, u);
+    vec3 horizontal = 2.0 * distanceToFocus * halfWidth * u;
+    vec3 vertical = 2.0 * distanceToFocus * halfHeight * v;
+    vec3 lowerLeftCorner = eye
+        - (distanceToFocus*halfWidth) * u
+        - (distanceToFocus*halfHeight) * v
+        - distanceToFocus * w;
+    vec3 window = uv.s * horizontal + uv.t * vertical;
+    return sfCreateRay(eye, lowerLeftCorner + window - eye);
+}
+
+
 //////////////////////////////////////////////////////////////////////
 // I N T E R S E C T I O N S /////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -624,7 +672,7 @@ bool sfRayIntersectCone(Hitable s, Ray r, float tMin, float tMax, out HitRecord 
     float a = D.x*D.x/s.radius + D.z*D.z/s.radius - D.y*D.y;
     float b = 2.0 * (D.x*E.x/s.radius + D.z*E.z/s.radius - D.y*E.y);
     float c = E.x*E.x/s.radius + E.z*E.z/s.radius - E.y*E.y;
-    if (!xratic(a, b, c, root1, root2)) {
+    if (!sfSolveQuadratic(a, b, c, root1, root2)) {
         return false;
     }
     float t;
@@ -876,12 +924,9 @@ float sdfTriangle(in vec3 p,
      dot(N,pa)*dot(N,pa)/dot2(N) );
 }
 
-
-bool sfRayIntersectMesh(Hitable s, Ray r, float tMin, float tMax, out HitRecord h)
-{
+vec3 getVertex(int which) {
     const int NUM_VERTICES = 11;
-    const int NUM_TRIANGLES = 10;
-    const int MAX_ITERATIONS = 64;
+    const int HALF_NUM_VERTICES = 6;
     vec3 vertices[NUM_VERTICES];
     vertices[0] = 0.25 * vec3( 0.0,  4.0, 0.0);
     vertices[1] = 0.25 * vec3(-2.0, -1.0, 0.0);
@@ -894,6 +939,27 @@ bool sfRayIntersectMesh(Hitable s, Ray r, float tMin, float tMax, out HitRecord 
     vertices[8] = 0.25 * vec3(-3.0,  0.0, 0.0);
     vertices[9] = 0.25 * vec3(-4.0, -1.0, 0.0);
     vertices[10]= 0.25 * vec3(-3.0, -4.0, 0.0);
+
+	// OK, try to do a little bit of binary search
+	// to get around the fact that you can't use
+	// non-constant indices into arrays. =^)
+    if (which < HALF_NUM_VERTICES) {
+		for (int i = 0; i < HALF_NUM_VERTICES; i++) {
+			if (i == which) return vertices[i];
+		}
+    }
+	else {
+		for (int i = HALF_NUM_VERTICES; i < NUM_VERTICES; i++) {
+			if (i == which) return vertices[i];
+		}
+	}
+	return vec3(0.0);
+}
+
+bool sfRayIntersectMesh(Hitable s, Ray r, float tMin, float tMax, out HitRecord h)
+{
+    const int NUM_TRIANGLES = 10;
+    const int MAX_ITERATIONS = 64;
     int indices[NUM_TRIANGLES * 3];
     indices[0] = 0; // 0
     indices[1] = 1;
@@ -916,7 +982,7 @@ bool sfRayIntersectMesh(Hitable s, Ray r, float tMin, float tMax, out HitRecord 
     indices[18] = 6; // 6
     indices[19] = 5;
     indices[20] = 3;
-    indices[21] = 7; // 7
+    indices[21] = 7;  // 7
     indices[22] = 6;
     indices[23] = 3;
     indices[24] = 1;
@@ -936,18 +1002,17 @@ bool sfRayIntersectMesh(Hitable s, Ray r, float tMin, float tMax, out HitRecord 
     O = R * O;
     D = R * D;
     int idx = 0;
-    for (int i = 0; i < NUM_TRIANGLES; i++, idx += 3)
+    for (int i = 0; i < NUM_TRIANGLES; i++)
     {
         float t = tMin;
         float lastD = 1e6;
+        vec3 v1 = getVertex(indices[i*3+0]);
+        vec3 v2 = getVertex(indices[i*3+1]);
+        vec3 v3 = getVertex(indices[i*3+2]);
         for (int j = 0; j < MAX_ITERATIONS; j++)
         {
             vec3 testN;
-            float d = sdfTriangle(O + t * D,
-                                  vertices[indices[idx+0]],
-                                  vertices[indices[idx+1]],
-                                  vertices[indices[idx+2]],
-                                  testN);
+            float d = sdfTriangle(O + t * D, v1, v2, v3, testN);
             if (d < EPSILON) {
                 if (bestT > t) {
                     bestT = t;
@@ -962,6 +1027,7 @@ bool sfRayIntersectMesh(Hitable s, Ray r, float tMin, float tMax, out HitRecord 
             t += d;
             if (t > bestT) break;
         }
+        idx += 3;
     }
     if (bestT > tMin && bestT < tMax) {
         h.t = bestT;
@@ -1014,141 +1080,6 @@ bool sfRayIntersect(Hitable s, Ray r, float tMin, float tMax, out HitRecord h)
     return false;
 }
 
-
-//////////////////////////////////////////////////////////////////////
-// F A C T O R Y /////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-    
-Material sfCreateMaterial(vec3 Kd, vec3 Ks, float roughness)
-{
-    Material m;
-    m.Kd = Kd;
-    m.Ks = Ks;
-    m.Ke = Black;
-    m.roughness = roughness;
-    m.indexOfRefraction = 1.333;
-    m.type = MATERIAL_DIFFUSE;
-    return m;
-}
-
-Material sfCreateDiffuseMaterial(vec3 Kd, float roughness)
-{
-    Material m;
-    m.Kd = Kd;
-    m.Ks = White;
-    m.Ke = Black;
-    m.roughness = roughness;
-    m.indexOfRefraction = 1.0;
-    m.type = MATERIAL_DIFFUSE;
-    return m;
-}
-
-Material sfCreateSpecularMaterial(vec3 Ks, float roughness)
-{
-    Material m;
-    m.Kd = Black;
-    m.Ks = Ks;
-    m.Ke = Black;
-    m.roughness = roughness;
-    m.indexOfRefraction = 1.0;
-    m.type = MATERIAL_SPECULAR;
-    return m;
-}
-
-Material sfCreateDielectricMaterial(vec3 Kd, float indexOfRefraction)
-{
-    Material m;
-    m.Kd = Kd;
-    m.Ks = White;
-    m.Ke = Black;
-    m.roughness = 0.0;
-    m.indexOfRefraction = indexOfRefraction;
-    m.type = MATERIAL_DIELECTRIC;
-    return m;
-}
-
-Material sfCreateEmissionMaterial(vec3 Ke)
-{
-    Material m;
-    m.Kd = Black;
-    m.Ks = Black;
-    m.Ke = Ke;
-    m.roughness = 0.0;
-    m.indexOfRefraction = 1.0;
-    m.type = MATERIAL_EMISSION;
-    return m;
-}
-
-Ray sfCreateRay(vec3 origin, vec3 dir)
-{
-    Ray r;
-    r.origin = origin;
-    r.direction = normalize(dir);
-    return r;
-}
-
-Light sfCreateLight(int type, vec3 position, vec3 direction, vec3 color)
-{
-    Light l;
-    l.type = type;
-    l.position = position;
-    l.direction = direction;
-    l.color = color;
-    return l;
-}
-
-HitRecord sfCreateHitRecord(float t, vec3 P, vec3 N)
-{
-    HitRecord h;
-    h.t = t;
-    h.P = P;
-    h.N = N;
-    return h;
-}
-
-Hitable sfCreateSphere(vec3 position, float radius, Material material)
-{
-    Hitable h;
-    h.type = HITABLE_SPHERE;
-    h.position = position;
-    h.radius = radius;
-    h.material = material;
-    return h;
-}
-
-Hitable sfCreatePlane(vec3 position, vec3 normal, Material material)
-{
-    Hitable h;
-    h.type = HITABLE_PLANE;
-    h.position = position;
-    h.normal = normalize(normal);
-    h.material = material;
-    return h;
-}
-
-Ray sfCreateCameraRay(vec2 uv) {
-    vec3 eye = vec3(0.0, 0.0, 5.0);
-    vec3 center = vec3(0.0, 0.0, 0.0);
-    vec3 up = vec3(0.0, 1.0, 0.0);
-    float aspectRatio = iResolution.x / iResolution.y;
-    float fovy = 45.0;
-    
-    float theta = fovy * FX_DEGREES_TO_RADIANS;
-    float halfHeight = tan(theta / 2.0);
-    float halfWidth = aspectRatio * halfHeight;
-    float distanceToFocus = length(eye - center);
-    vec3 w = normalize(eye - center);
-    vec3 u = cross(up, w);
-    vec3 v = cross(w, u);
-    vec3 horizontal = 2.0 * distanceToFocus * halfWidth * u;
-    vec3 vertical = 2.0 * distanceToFocus * halfHeight * v;
-    vec3 lowerLeftCorner = eye
-        - (distanceToFocus*halfWidth) * u
-        - (distanceToFocus*halfHeight) * v
-        - distanceToFocus * w;
-    vec3 window = uv.s * horizontal + uv.t * vertical;
-    return sfCreateRay(eye, lowerLeftCorner + window - eye);
-}
 
 //////////////////////////////////////////////////////////////////////
 // S H A D E R S /////////////////////////////////////////////////////
@@ -1323,12 +1254,14 @@ vec3 sfRayCast(Ray r)
 }
 
 void sfCreateScene() {
-    sfAddHitable(sfCreateSphere(vec3(1.0, sin(iTime) + 0.0, 0.0), 0.5,
-                                sfCreateMaterial(Blue, White, 0.0)));
-    sfAddHitable(sfCreateCylinder(vec3(-1.0, 0.0, 0.0), 0.5,
-                                sfCreateMaterial(Gray67, White, 0.0)));
     sfAddHitable(sfCreateSphere(vec3(0.0, -1001.0, 0.0), 1000.5,
                                 sfCreateMaterial(Brown, White, 0.0)));
+    sfAddHitable(sfCreateSphere(vec3(1.0, sin(iTime) + 0.0, 0.0), 0.5,
+                                sfCreateMaterial(Blue, White, 0.0)));
+    sfAddHitable(sfCreateCylinder(vec3(-1.0, 0.0, 0.0), 0.5, 1.0,
+                                sfCreateMaterial(Gray67, White, 0.0)));
+    // sfAddHitable(sfCreateMesh(vec3(-1.0, 0.0, 0.0), sfCreateMaterial(Red, White, 0.0)));
+    // sfAddHitable(sfCreateSuperquadric(vec3(-1.0, 0.0, 0.0), 0.5, 1.0, 1.0, sfCreateMaterial(Red, White, 0.0)));
 }
 
 vec3 Sunfish(in Ray r)

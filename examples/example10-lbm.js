@@ -1,4 +1,5 @@
 /// <reference path="LibXOR.js" />
+/// <reference path="../src/LibXOR.ts" />
 /* global Vector3 */
 
 class App {
@@ -33,11 +34,11 @@ class App {
 
         let lb = this.xor.renderconfigs.load('lattice-boltzmann', 'shaders/fluids.vert', 'shaders/fluids-lattice-boltzmann.frag');
         lb.useDepthTest = false;
-        lb.writeToFBO = "lbm";
+        lb.writeToFBO = "Fluid";
 
         let rc = this.xor.renderconfigs.load('default', 'shaders/fluids.vert', 'shaders/fluids.frag');
         rc.useDepthTest = false;
-        rc.readFromFBOs = ["lbm"];
+        rc.readFromFBOs = ["Fluid"];
 
         let pal = this.xor.palette;
 
