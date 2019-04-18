@@ -38,11 +38,15 @@ namespace Fluxions {
             if (!this.fx) throw "Fluxions is not initialized";
             let rc = new FxRenderConfig(this.fx);
             this.renderconfigs.set(name, rc);
+            rc.name = name;
             return rc;
         }
 
         load(name: string, vshaderUrl: string, fshaderUrl: string): FxRenderConfig {
             let rc = new FxRenderConfig(this.fx);
+            rc.name = name;
+            rc.vshaderUrl = vshaderUrl;
+            rc.fshaderUrl = fshaderUrl;
             this.renderconfigs.set(name, rc);
             let sl = new XOR.ShaderLoader(vshaderUrl, fshaderUrl, (vsource, fsource) => {
                 rc.compile(vsource, fsource);

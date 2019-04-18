@@ -11,7 +11,7 @@ uniform vec3 ks;
 
 uniform sampler2D gbufferColor;
 uniform sampler2D gbufferDepth;
-uniform int Usinggbuffer;
+uniform float gbufferEnabled;
 uniform vec2 gbufferResolution;
 
 uniform vec3 sunDirTo;
@@ -34,5 +34,5 @@ void main() {
     vec3 gbuf = texture2D(gbufferColor, vTexcoord.st).rgb;
     vec3 map = texture2D(map_kd, vTexcoord.st).rgb;
     // set to white
-    gl_FragColor = vec4(gbuf, 1.0);
+    gl_FragColor = vec4(gbufferEnabled > 0.0 ? gbuf : map, 1.0);
 }

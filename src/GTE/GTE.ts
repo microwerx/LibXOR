@@ -56,6 +56,19 @@ namespace GTE {
         return x < a ? a : x > b ? b : x;
     }
 
+    /**
+     * Wraps x in the range [a, b]
+     * @param x The number to wrap
+     * @param a The low end of the range
+     * @param b The high end of the range
+     */
+    export function wrap(x: number, a: number, b: number) {
+        let x1 = Math.min(a, b);
+        let x2 = Math.max(a, b);
+        if (x < x1) return x2 - (x1 - x) % (x2 - x1);
+        return x1 + (x - x1) % (x2 - x1);
+    }
+
     // 0 <= mix <= 1
     export function lerp(a: number, b: number, mix: number) {
         return mix * a + (1 - mix) * b;

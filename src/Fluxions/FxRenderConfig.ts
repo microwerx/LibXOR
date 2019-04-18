@@ -27,6 +27,9 @@
 
 namespace Fluxions {
     export class FxRenderConfig {
+        public name = "unknown";
+        public vshaderUrl = "unknown.vert";
+        public fshaderUrl = "unknown.frag";
         private _isCompiled = false;
         private _isLinked = false;
         private _vertShader: WebGLShader | null = null;
@@ -67,6 +70,8 @@ namespace Fluxions {
         public textures: FxTextureUniform[] = [];
         private _texturesBound: number = 0;
 
+        private _warnings = 10;
+
         constructor(private fx: FxRenderingContext) { }
 
         get usable(): boolean { return this.isCompiledAndLinked(); }
@@ -103,6 +108,10 @@ namespace Fluxions {
                 if (!t) continue;
                 gl.activeTexture(gl.TEXTURE0 + unit);
                 gl.bindTexture(t.target, t.texture);
+                gl.texParameteri(t.target, gl.TEXTURE_MIN_FILTER, t.minFilter);
+                gl.texParameteri(t.target, gl.TEXTURE_MIN_FILTER, t.magFilter);
+                gl.texParameteri(t.target, gl.TEXTURE_WRAP_S, t.wrapS);
+                gl.texParameteri(t.target, gl.TEXTURE_WRAP_T, t.wrapT);
                 gl.uniform1i(u, unit);
                 unit++;
             }
@@ -159,6 +168,9 @@ namespace Fluxions {
             let location = gl.getUniformLocation(this._program, uniformName);
             if (location != null) {
                 gl.uniform1f(location, x);
+            } else if (this._warnings > 0) {
+                this._warnings--;
+                hflog.warn(uniformName + " is not a uniform for rc " + this.name);
             }
         }
 

@@ -127,6 +127,9 @@ namespace XOR {
         get mousecurpos(): Vector2 { return this.mouse.position; }
         get mouseclick(): Vector2 { let b = this.mouseButtons.get(0); if (!b) return Vector2.make(0, 0); return b.position; }
         get mouseshadertoy(): Vector4 { return Vector4.make(this.mousecurpos.x, this.mousecurpos.y, this.mouseclick.x, this.mouseclick.y); }
+        get mouseButton1(): boolean { return (this.mouse.buttons & 1) > 0; }
+        get mouseButton2(): boolean { return (this.mouse.buttons & 2) > 0; }
+        get mouseButton3(): boolean { return (this.mouse.buttons & 4) > 0; }
 
         private changeModifier(bit: number, state: boolean) {
             bit = bit | 0;

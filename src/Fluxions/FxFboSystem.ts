@@ -62,12 +62,11 @@ namespace Fluxions {
                     fbo.use(rc.clearWriteToFBO, rc.disableWriteToFBOColorWrites);
                     this.currentFBO = fbo;
                 }
-            } else {
-                let unit = startUnit;
-                for (let fbo of rc.readFromFBOs) {
-                    this.configureFBO(rc, fbo, unit, unit + 1);
-                    unit += 2;
-                }
+            }
+            let unit = startUnit;
+            for (let fbo of rc.readFromFBOs) {
+                this.configureFBO(rc, fbo, unit, unit + 1);
+                unit += 2;
             }
         }
 
@@ -78,9 +77,9 @@ namespace Fluxions {
             const usingUniform = name + "Enabled";
             let fbo = this._fbo.get(name) || null;
             if (!fbo) return;
-            rc.uniform2f(resolutionUnifom, fbo.dimensions);
-            rc.uniform1i(usingUniform, rc.writesToFBO ? 1 : 0);
             if (!rc.writesToFBO && fbo.complete) {
+                rc.uniform2f(resolutionUnifom, fbo.dimensions);
+                rc.uniform1f(usingUniform, rc.writesToFBO ? 0 : 1);
                 fbo.bindTextures(colorUnit, depthUnit);
                 if (fbo.color) rc.uniform1i(colorUniform, colorUnit);
                 if (fbo.depth) rc.uniform1i(depthUniform, depthUnit);

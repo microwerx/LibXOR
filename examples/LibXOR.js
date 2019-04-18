@@ -1385,6 +1385,20 @@ var GTE;
         return x < a ? a : x > b ? b : x;
     }
     GTE.clamp = clamp;
+    /**
+     * Wraps x in the range [a, b]
+     * @param x The number to wrap
+     * @param a The low end of the range
+     * @param b The high end of the range
+     */
+    function wrap(x, a, b) {
+        let x1 = Math.min(a, b);
+        let x2 = Math.max(a, b);
+        if (x < x1)
+            return x2 - (x1 - x) % (x2 - x1);
+        return x1 + (x - x1) % (x2 - x1);
+    }
+    GTE.wrap = wrap;
     // 0 <= mix <= 1
     function lerp(a, b, mix) {
         return mix * a + (1 - mix) * b;
@@ -2729,6 +2743,9 @@ var XOR;
         get mouseclick() { let b = this.mouseButtons.get(0); if (!b)
             return Vector2.make(0, 0); return b.position; }
         get mouseshadertoy() { return Vector4.make(this.mousecurpos.x, this.mousecurpos.y, this.mouseclick.x, this.mouseclick.y); }
+        get mouseButton1() { return (this.mouse.buttons & 1) > 0; }
+        get mouseButton2() { return (this.mouse.buttons & 2) > 0; }
+        get mouseButton3() { return (this.mouse.buttons & 4) > 0; }
         changeModifier(bit, state) {
             bit = bit | 0;
             if (bit > 8)
@@ -3190,12 +3207,10 @@ var Fluxions;
                     this.currentFBO = fbo;
                 }
             }
-            else {
-                let unit = startUnit;
-                for (let fbo of rc.readFromFBOs) {
-                    this.configureFBO(rc, fbo, unit, unit + 1);
-                    unit += 2;
-                }
+            let unit = startUnit;
+            for (let fbo of rc.readFromFBOs) {
+                this.configureFBO(rc, fbo, unit, unit + 1);
+                unit += 2;
             }
         }
         configureFBO(rc, name, colorUnit, depthUnit) {
@@ -3206,9 +3221,9 @@ var Fluxions;
             let fbo = this._fbo.get(name) || null;
             if (!fbo)
                 return;
-            rc.uniform2f(resolutionUnifom, fbo.dimensions);
-            rc.uniform1i(usingUniform, rc.writesToFBO ? 1 : 0);
             if (!rc.writesToFBO && fbo.complete) {
+                rc.uniform2f(resolutionUnifom, fbo.dimensions);
+                rc.uniform1f(usingUniform, rc.writesToFBO ? 0 : 1);
                 fbo.bindTextures(colorUnit, depthUnit);
                 if (fbo.color)
                     rc.uniform1i(colorUniform, colorUnit);
@@ -3452,6 +3467,9 @@ var Fluxions;
     class FxRenderConfig {
         constructor(fx) {
             this.fx = fx;
+            this.name = "unknown";
+            this.vshaderUrl = "unknown.vert";
+            this.fshaderUrl = "unknown.frag";
             this._isCompiled = false;
             this._isLinked = false;
             this._vertShader = null;
@@ -3488,6 +3506,7 @@ var Fluxions;
             this.readFromFBOs = [];
             this.textures = [];
             this._texturesBound = 0;
+            this._warnings = 10;
         }
         get usable() { return this.isCompiledAndLinked(); }
         isCompiledAndLinked() {
@@ -3522,6 +3541,10 @@ var Fluxions;
                     continue;
                 gl.activeTexture(gl.TEXTURE0 + unit);
                 gl.bindTexture(t.target, t.texture);
+                gl.texParameteri(t.target, gl.TEXTURE_MIN_FILTER, t.minFilter);
+                gl.texParameteri(t.target, gl.TEXTURE_MIN_FILTER, t.magFilter);
+                gl.texParameteri(t.target, gl.TEXTURE_WRAP_S, t.wrapS);
+                gl.texParameteri(t.target, gl.TEXTURE_WRAP_T, t.wrapT);
                 gl.uniform1i(u, unit);
                 unit++;
             }
@@ -3576,6 +3599,10 @@ var Fluxions;
             let location = gl.getUniformLocation(this._program, uniformName);
             if (location != null) {
                 gl.uniform1f(location, x);
+            }
+            else if (this._warnings > 0) {
+                this._warnings--;
+                hflog.warn(uniformName + " is not a uniform for rc " + this.name);
             }
         }
         uniform2f(uniformName, v) {
@@ -3793,10 +3820,14 @@ var Fluxions;
                 throw "Fluxions is not initialized";
             let rc = new Fluxions.FxRenderConfig(this.fx);
             this.renderconfigs.set(name, rc);
+            rc.name = name;
             return rc;
         }
         load(name, vshaderUrl, fshaderUrl) {
             let rc = new Fluxions.FxRenderConfig(this.fx);
+            rc.name = name;
+            rc.vshaderUrl = vshaderUrl;
+            rc.fshaderUrl = fshaderUrl;
             this.renderconfigs.set(name, rc);
             let sl = new XOR.ShaderLoader(vshaderUrl, fshaderUrl, (vsource, fsource) => {
                 rc.compile(vsource, fsource);
@@ -4232,6 +4263,44 @@ var Fluxions;
             this.target = target;
             this.texture = texture;
             this.id = "";
+            this.minFilter = WebGLRenderingContext.NEAREST;
+            this.magFilter = WebGLRenderingContext.NEAREST;
+            this.wrapS = WebGLRenderingContext.REPEAT;
+            this.wrapT = WebGLRenderingContext.REPEAT;
+        }
+        setMinMagFilter(minFilter, magFilter) {
+            switch (minFilter) {
+                case WebGLRenderingContext.NEAREST:
+                case WebGLRenderingContext.LINEAR:
+                case WebGLRenderingContext.NEAREST_MIPMAP_NEAREST:
+                case WebGLRenderingContext.NEAREST_MIPMAP_LINEAR:
+                case WebGLRenderingContext.LINEAR_MIPMAP_NEAREST:
+                case WebGLRenderingContext.LINEAR_MIPMAP_LINEAR:
+                    this.minFilter = minFilter;
+                    break;
+            }
+            switch (magFilter) {
+                case WebGLRenderingContext.NEAREST:
+                case WebGLRenderingContext.LINEAR:
+                    this.magFilter = magFilter;
+                    break;
+            }
+        }
+        setWrapST(wrapS, wrapT) {
+            switch (wrapS) {
+                case WebGLRenderingContext.REPEAT:
+                case WebGLRenderingContext.CLAMP_TO_EDGE:
+                case WebGLRenderingContext.MIRRORED_REPEAT:
+                    this.wrapS = wrapS;
+                    break;
+            }
+            switch (wrapT) {
+                case WebGLRenderingContext.REPEAT:
+                case WebGLRenderingContext.CLAMP_TO_EDGE:
+                case WebGLRenderingContext.MIRRORED_REPEAT:
+                    this.wrapT = wrapT;
+                    break;
+            }
         }
     }
     Fluxions.FxTexture = FxTexture;
