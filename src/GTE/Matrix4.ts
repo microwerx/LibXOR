@@ -149,6 +149,10 @@ class Matrix4 {
 		return this.multMatrix(Matrix4.makeTranslation(x, y, z));
 	}
 
+	translate3(v: Vector3): Matrix4 {
+		return this.multMatrix(Matrix4.makeTranslation(v.x, v.y, v.z));
+	}
+
 	rotate(angleInDegrees: number, x: number, y: number, z: number): Matrix4 {
 		return this.multMatrix(Matrix4.makeRotation(angleInDegrees, x, y, z));
 	}

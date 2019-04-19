@@ -17,9 +17,19 @@ namespace XOR {
             return mesh;
         }
 
-        load(name: string, url: string): FxIndexedGeometryMesh {
+        /**
+         * 
+         * @param {string} name name of the object
+         * @param {string} url location of the OBJ file
+         * @returns {FxIndexedGeometryMesh}
+         */
+        load(name: string, url: string,
+            rescaleBBox: GTE.BoundingBox | null = null,
+            rescaleCenter: Vector3 | null): FxIndexedGeometryMesh {
             if (!this.xor.fx) throw "Fluxions is not initialized";
             let mesh = new Fluxions.FxIndexedGeometryMesh(this.xor.fx);
+            mesh.rescaleBBox = rescaleBBox;
+            if (rescaleCenter) mesh.rescaleCenter.copy(rescaleCenter);
             this.meshes.set(name, mesh);
             let tl = new XOR.TextFileLoader(url, (data: string, name: string, p: number) => {
                 let textParser = new FxTextParser(data);

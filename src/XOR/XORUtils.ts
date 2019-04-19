@@ -146,11 +146,11 @@ namespace XOR {
             });
             xhr.addEventListener("abort", (e) => {
                 self._failed = true;
-                console.error("unable to GET " + url);
+                hflog.error("[abort] unable to GET " + url);
             });
             xhr.addEventListener("error", (e) => {
                 self._failed = true;
-                console.error("unable to GET " + url);
+                hflog.error("[error] unable to GET " + url);
             });
             xhr.open("GET", url);
             xhr.send();

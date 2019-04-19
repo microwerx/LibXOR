@@ -939,6 +939,9 @@ class Matrix4 {
     translate(x, y, z) {
         return this.multMatrix(Matrix4.makeTranslation(x, y, z));
     }
+    translate3(v) {
+        return this.multMatrix(Matrix4.makeTranslation(v.x, v.y, v.z));
+    }
     rotate(angleInDegrees, x, y, z) {
         return this.multMatrix(Matrix4.makeRotation(angleInDegrees, x, y, z));
     }
@@ -1264,6 +1267,16 @@ var GTE;
             let b = new BoundingBox();
             return b.copy(this);
         }
+        sameAs(bbox) {
+            if (this.maxBounds.distanceSquared(bbox.maxBounds) >= 0.0001)
+                return false;
+            if (this.minBounds.distanceSquared(bbox.minBounds) >= 0.0001)
+                return false;
+            return true;
+        }
+        whdString() { return this.width.toFixed(2) + "x" + this.height.toFixed(2) + "x" + this.depth.toFixed(2); }
+        minString() { return "(" + this.minBounds.x.toFixed(2) + ", " + this.minBounds.y.toFixed(2) + ", " + this.minBounds.z.toFixed(2) + ")"; }
+        maxString() { return "(" + this.maxBounds.x.toFixed(2) + ", " + this.maxBounds.y.toFixed(2) + ", " + this.maxBounds.z.toFixed(2) + ")"; }
         get width() { return this.maxBounds.x - this.minBounds.x; }
         get height() { return this.maxBounds.y - this.minBounds.y; }
         get depth() { return this.maxBounds.z - this.minBounds.z; }
@@ -1625,11 +1638,11 @@ var XOR;
             });
             xhr.addEventListener("abort", (e) => {
                 self._failed = true;
-                console.error("unable to GET " + url);
+                hflog.error("[abort] unable to GET " + url);
             });
             xhr.addEventListener("error", (e) => {
                 self._failed = true;
-                console.error("unable to GET " + url);
+                hflog.error("[error] unable to GET " + url);
             });
             xhr.open("GET", url);
             xhr.send();
@@ -4466,14 +4479,18 @@ class FxTextParser {
         let token = _token.replace("//", "/0/");
         let tokens = token.split("/");
         if (tokens.length >= 1) {
-            indices[0] = parseInt(tokens[0]) - 1;
+            let index = parseInt(tokens[0]);
+            indices[0] = index < 0 ? index : index - 1;
         }
         if (tokens.length == 2) {
-            indices[2] = parseInt(tokens[1]) - 1;
+            let index = parseInt(tokens[1]);
+            indices[2] = index < 0 ? index : index - 1;
         }
         else if (tokens.length == 3) {
-            indices[1] = parseInt(tokens[1]) - 1;
-            indices[2] = parseInt(tokens[2]) - 1;
+            let index = parseInt(tokens[1]);
+            indices[1] = index < 0 ? index : index - 1;
+            index = parseInt(tokens[12]);
+            indices[2] = index < 0 ? index : index - 1;
         }
         return indices;
     }
@@ -5307,6 +5324,17 @@ var Fluxions;
 /// <reference path="FxEdgeMesh.ts" />
 var Fluxions;
 (function (Fluxions) {
+    function docenter(x, centering) {
+        if (x > 0.0) {
+            if (centering < 0)
+                return 0;
+            if (centering == 0)
+                return 0.5 * x;
+            if (centering > 0)
+                return x;
+        }
+        return 0.0;
+    }
     class FxIndexedGeometryMesh {
         constructor(fx) {
             this.fx = fx;
@@ -5321,6 +5349,8 @@ var Fluxions;
             this._vboData = new Float32Array(0);
             this._iboData = new Uint32Array(0);
             this.aabb = new GTE.BoundingBox();
+            this.rescaleBBox = null;
+            this.rescaleCenter = Vector3.make();
             let gl = this.fx.gl;
             let vbo = gl.createBuffer();
             let ibo = gl.createBuffer();
@@ -5353,14 +5383,14 @@ var Fluxions;
             this.texcoord(0, 0, 0);
             this.position(x1, y1, 0);
             this.addIndex(-1);
-            this.texcoord(0, 1, 0);
-            this.position(x1, y2, 0);
+            this.texcoord(1, 0, 0);
+            this.position(x2, y1, 0);
             this.addIndex(-1);
             this.texcoord(1, 1, 0);
             this.position(x2, y2, 0);
             this.addIndex(-1);
-            this.texcoord(1, 0, 0);
-            this.position(x2, y1, 0);
+            this.texcoord(0, 1, 0);
+            this.position(x1, y2, 0);
             this.addIndex(-1);
         }
         circle(ox, oy, radius = 0.5, segments = 32) {
@@ -5467,10 +5497,50 @@ var Fluxions;
         // DrawTexturedRect(bottomLeft: Vector3, upperRight: Vector3,
         //     minTexCoord: Vector3, maxTexCoord: Vector3): void {
         // }
+        rescale() {
+            if (!this.rescaleBBox)
+                return;
+            if (this.rescaleBBox.sameAs(this.aabb))
+                return;
+            let centering = GTE.vec3(0, 0, 1);
+            let bbox = new GTE.BoundingBox();
+            const stride = 12;
+            const numVertices = this.vertices.length / stride;
+            let M = Matrix4.makeIdentity();
+            let t = 1.0 / this.aabb.maxSize;
+            let s = t * this.rescaleBBox.maxSize;
+            let diffx = 1.0 - t * this.aabb.width;
+            let diffy = 1.0 - t * this.aabb.height;
+            let diffz = 1.0 - t * this.aabb.depth;
+            let tx = docenter(diffx, this.rescaleCenter.x) + this.rescaleBBox.minBounds.x;
+            let ty = docenter(diffy, this.rescaleCenter.y) + this.rescaleBBox.minBounds.y;
+            let tz = docenter(diffz, this.rescaleCenter.z) + this.rescaleBBox.minBounds.z;
+            M.translate(tx, ty, tz);
+            M.scale(s, s, s);
+            M.translate3(this.aabb.minBounds.negate());
+            for (let i = 0; i < numVertices; i++) {
+                let v = Vector3.make(this.vertices[i * stride + 0], this.vertices[i * stride + 1], this.vertices[i * stride + 2]);
+                v = M.transform3(v);
+                bbox.add(v);
+                this.vertices[i * stride + 0] = v.x;
+                this.vertices[i * stride + 1] = v.y;
+                this.vertices[i * stride + 2] = v.z;
+            }
+            // hflog.info("diff " + diffx.toFixed(3) + ", " + diffy.toFixed(3) + ", " + diffz.toFixed(3))
+            // hflog.info("aabb size: " + this.aabb.maxSize.toFixed(3) + " -- " + this.aabb.whdString());
+            // hflog.info("rebb size: " + this.rescaleBBox.maxSize.toFixed(3) + " -- " + this.rescaleBBox.whdString());
+            // hflog.info("rebb min: " + " -- " + this.rescaleBBox.minString());
+            // hflog.info("rebb max: " + " -- " + this.rescaleBBox.maxString());
+            // hflog.info("bbox size: " + bbox.maxSize.toFixed(3) + " -- " + bbox.whdString());
+            // hflog.info("bbox min: " + " -- " + bbox.minString());
+            // hflog.info("bbox max: " + " -- " + bbox.maxString());
+            // if (!bbox.sameAs(this.rescaleBBox)) hflog.error('Bounding boxes don\'t match!');
+        }
         build() {
             // Building the VBO goes here
             if (!this._dirty)
                 return;
+            this.rescale();
             this._vboData = new Float32Array(this.vertices);
             this._iboData = new Uint32Array(this.indices);
             let gl = this.fx.gl;
@@ -5617,15 +5687,37 @@ var Fluxions;
                         let tcount = texcoords.length;
                         let pcount = positions.length;
                         let vcount = indices.length / 3;
+                        for (let j = 0; j < vcount; j++) {
+                            let p = indices[j * 3 + 0];
+                            if (p < 0)
+                                indices[j * 3] = pcount + p;
+                        }
                         for (let j = 1; j < vcount - 1; j++) {
+                            let N;
+                            try {
+                                let p1 = indices[0];
+                                let p2 = indices[j * 3];
+                                let p3 = indices[(j + 1) * 3];
+                                let sidea = positions[p2].sub(positions[p1]);
+                                let sideb = positions[p3].sub(positions[p1]);
+                                N = Vector3.cross(sidea, sideb).normalize();
+                            }
+                            catch (e) {
+                                hflog.error("something bad happen");
+                                break;
+                            }
                             for (let k = 0; k < 3; k++) {
                                 let i = (k == 0) ? 0 : j + k - 1;
                                 let n = indices[i * 3 + 2];
                                 if (n >= 0 && n < ncount)
                                     this.normal3(normals[n]);
+                                else
+                                    this.normal3(N);
                                 let t = indices[i * 3 + 1];
                                 if (t >= 0 && t < tcount)
                                     this.texcoord3(texcoords[t]);
+                                else
+                                    this.texcoord3(Vector3.makeZero());
                                 let p = indices[i * 3 + 0];
                                 if (p >= 0 && p < pcount)
                                     this.vertex3(positions[p]);
@@ -5679,10 +5771,19 @@ var XOR;
             this.meshes.set(name, mesh);
             return mesh;
         }
-        load(name, url) {
+        /**
+         *
+         * @param {string} name name of the object
+         * @param {string} url location of the OBJ file
+         * @returns {FxIndexedGeometryMesh}
+         */
+        load(name, url, rescaleBBox = null, rescaleCenter) {
             if (!this.xor.fx)
                 throw "Fluxions is not initialized";
             let mesh = new Fluxions.FxIndexedGeometryMesh(this.xor.fx);
+            mesh.rescaleBBox = rescaleBBox;
+            if (rescaleCenter)
+                mesh.rescaleCenter.copy(rescaleCenter);
             this.meshes.set(name, mesh);
             let tl = new XOR.TextFileLoader(url, (data, name, p) => {
                 let textParser = new FxTextParser(data);

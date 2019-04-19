@@ -39,7 +39,10 @@ class App {
         rc.addTexture("test2D", "map_kd");
         rc.readFromFBOs = ["gbuffer"];
 
-        this.xor.meshes.load('teapot', 'models/mitsuba.obj');
+        let bbox = new GTE.BoundingBox();
+        bbox.add(Vector3.make(-0.5, -0.5, -0.5));
+        bbox.add(Vector3.make(0.5, 0.5, 0.5));
+        this.xor.meshes.load('teapot', 'models/cornellbox_orig.obj', bbox);
 
         let screen = this.xor.meshes.create('fullscreenquad');
         let pal = this.xor.palette;

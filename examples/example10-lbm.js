@@ -7,8 +7,8 @@ class Flame {
         this.a = 1.0;
         this.b = 1.0;
         this.radius = 5;
-        this.width = 128;
-        this.height = 256;
+        this.width = 64;
+        this.height = 128;
         this.heat = 0.6;
         this.life = 0.5;
         this.turbulence = 0.5;
@@ -31,21 +31,31 @@ class App {
         this.xor = new LibXOR("project");
 
         this.flame = new Flame();
+        this.curFluid = 0;
+        this.iFluidType = 0;
+        this.fLgaTurb = 0;
+        this.fLgaDamp = 1.0;
+        this.fLgaDiff = 1.0;
+        this.fLgaUVTurb = 0.0;
 
         let p = document.getElementById('desc');
         p.innerHTML = `This graphics demonstration uses two framebuffers to simulate a type of fluid using the Lattice-Boltzmann technique.`;
 
         let c = document.getElementById('controls');
+        createRangeRow(c, 'iFluidType', this.iFluidType, 0, 1);
         createRangeRow(c, 'fa', this.flame.width / 2, 0, this.flame.width);
         createRangeRow(c, 'fb', this.flame.height / 8, 0, this.flame.height);
         createRangeRow(c, 'fRadius', 5.0, 0.0, 25.0, 1.0);
         createRangeRow(c, 'fHeat', 0.9, 0.0, 1.0, 0.05);
         createRangeRow(c, 'fLife', 0.85, 0.5, 1.0, 0.001);
         createRangeRow(c, 'fTurbulence', 3.0, 0.0, 5.0, 0.05);
+        createRangeRow(c, 'fLgaUVTurb', 0.0, 0.0, 5.0, 0.05);
+        createRangeRow(c, 'fLgaTurb', 0.0, 0.0, 0.1, 0.001);
+        createRangeRow(c, 'fLgaDamp', 1.0, 0.9, 1.0, 0.001);
+        createRangeRow(c, 'fLgaDiff', 1.0, 0.9, 1.0, 0.001);
         // createRangeRow(c, 'iWidth', this.flame.width, 64, 512, 1);
         // createRangeRow(c, 'iHeight', this.flame.height, 64, 512, 1);
 
-        this.curFluid = 0;
     }
 
     init() {
@@ -55,8 +65,9 @@ class App {
 
         let fx = this.xor.fluxions;
         let w = this.flame.width;
-        fx.fbos.add("lb1", false, true, w, w, 1);
-        fx.fbos.add("lb2", false, true, w, w, 1);
+        let h = this.flame.height;
+        fx.fbos.add("lb1", false, true, w, h, 1);
+        fx.fbos.add("lb2", false, true, w, h, 1);
 
         // load some textures
         fx.textures.load("RadianceCLUT", "models/textures/flame_map.png");
@@ -95,6 +106,11 @@ class App {
             this.reset();
         }
         this.flame.syncControls();
+        this.iFluidType = getRangeValue('iFluidType') | 0;
+        this.fLgaTurb = getRangeValue('fLgaTurb');
+        this.fLgaDamp = getRangeValue('fLgaDamp');
+        this.fLgaDiff = getRangeValue('fLgaDiff');
+        this.fLgaUVTurb = getRangeValue('fLgaUVTurb');
 
         if (this.xor.input.mouse.buttons & 1) {
             let ar = this.flame.width / this.flame.height;
@@ -138,16 +154,21 @@ class App {
             rc.uniform1f('heat', this.flame.heat);
             rc.uniform1f('life', this.flame.life);
             rc.uniform1f('turbulence', this.flame.turbulence);
+            rc.uniform1f('fLgaUVTurbulence', this.fLgaUVTurb);
+            rc.uniform1f('fLgaTurbulence', this.fLgaTurb);
+            rc.uniform1f('fLgaDamping', this.fLgaDamp);
+            rc.uniform1f('fLgaDiffusion', this.fLgaDiff);
             rc.uniform1f('iTime', xor.t1);
+            rc.uniform1i('iFluidType', this.iFluidType);
+            rc.uniform1i('iSourceBuffer', this.curFluid);
             xor.meshes.render('fullscreenquad', rc);
-            // xor.meshes.render('rect', rc);
             rc.restore();
         }
     }
 
     render() {
         let xor = this.xor;
-        xor.graphics.clear(xor.palette.RED);
+        xor.graphics.clear(xor.palette.BLACK, xor.palette.AZURE, 1);
 
         this.simFluid();
 
@@ -161,9 +182,12 @@ class App {
             rc.uniformMatrix4f('CameraMatrix', cmatrix);
             rc.uniform3f('iResolution', GTE.vec3(xor.graphics.width, xor.graphics.height, 0));
             rc.uniform4f('iMouse', xor.input.mouseshadertoy);
+            rc.uniform1i('iFluidType', this.iFluidType);
 
             let M = Matrix4.makeIdentity();
             let S = 0.5 * xor.graphics.width / this.flame.width;
+            let y = 0.5 * (xor.graphics.height - S * this.flame.height);
+            M.translate(0, y, 0);
             M.scale(S, S, 1.0);
             rc.uniformMatrix4f('WorldMatrix', M);
             xor.meshes.render('fullscreenquad', rc);
@@ -179,11 +203,11 @@ class App {
             rc.uniform4f('iMouse', xor.input.mouseshadertoy);
 
             let M = Matrix4.makeIdentity();
-            M.translate(xor.graphics.width / 2, 0.0, 0.0);
             let S = 0.5 * xor.graphics.width / this.flame.width;
+            let y = 0.5 * (xor.graphics.height - S * this.flame.height);
+            M.translate(xor.graphics.width / 2, y, 0.0);
             M.scale(S, S, 1.0);
             rc.uniformMatrix4f('WorldMatrix', M);
-            // rc.uniformMatrix4f('WorldMatrix', Matrix4.makeTranslation(xor.graphics.width/2, 0.0, 0.0));
             xor.meshes.render('fullscreenquad', rc);
             rc.restore();
         }

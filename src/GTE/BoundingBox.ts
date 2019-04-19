@@ -42,6 +42,16 @@ namespace GTE {
             return b.copy(this);
         }
 
+        sameAs(bbox: BoundingBox): boolean {
+            if (this.maxBounds.distanceSquared(bbox.maxBounds) >= 0.0001) return false;
+            if (this.minBounds.distanceSquared(bbox.minBounds) >= 0.0001) return false;
+            return true;
+        }
+
+        whdString(): string { return this.width.toFixed(2) + "x" + this.height.toFixed(2) + "x" + this.depth.toFixed(2) }
+        minString(): string { return "(" + this.minBounds.x.toFixed(2) + ", " + this.minBounds.y.toFixed(2) + ", " + this.minBounds.z.toFixed(2) + ")" }
+        maxString(): string { return "(" + this.maxBounds.x.toFixed(2) + ", " + this.maxBounds.y.toFixed(2) + ", " + this.maxBounds.z.toFixed(2) + ")" }
+
         get width(): number { return this.maxBounds.x - this.minBounds.x; }
         get height(): number { return this.maxBounds.y - this.minBounds.y; }
         get depth(): number { return this.maxBounds.z - this.minBounds.z; }

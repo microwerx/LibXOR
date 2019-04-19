@@ -81,13 +81,17 @@ class FxTextParser {
         let token = _token.replace("//", "/0/");
         let tokens = token.split("/");
         if (tokens.length >= 1) {
-            indices[0] = parseInt(tokens[0]) - 1;
+            let index = parseInt(tokens[0]);
+            indices[0] = index < 0 ? index : index - 1;
         }
         if (tokens.length == 2) {
-            indices[2] = parseInt(tokens[1]) - 1;
+            let index = parseInt(tokens[1]);
+            indices[2] = index < 0 ? index : index - 1;
         } else if (tokens.length == 3) {
-            indices[1] = parseInt(tokens[1]) - 1;
-            indices[2] = parseInt(tokens[2]) - 1;
+            let index = parseInt(tokens[1]);
+            indices[1] = index < 0 ? index : index - 1;
+            index = parseInt(tokens[12);
+            indices[2] = index < 0 ? index : index - 1;
         }
         return indices;
     }
