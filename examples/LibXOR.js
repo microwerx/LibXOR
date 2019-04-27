@@ -2742,9 +2742,49 @@ var XOR;
     }
     XOR.XORGamepadState = XORGamepadState;
 })(XOR || (XOR = {}));
+var XOR;
+(function (XOR) {
+    class TouchState {
+        constructor(x = 0, y = 0, dx = 0, dy = 0) {
+            this.x = x;
+            this.y = y;
+            this.dx = dx;
+            this.dy = dy;
+            this.ox = 0;
+            this.oy = 0;
+            this.pressed = false;
+        }
+        get position() {
+            return new Vector3(this.x, this.y);
+        }
+        get reldelta() {
+            return new Vector3(this.dx, this.dy);
+        }
+        get touchDelta() {
+            return new Vector3(this.x - this.ox, this.y - this.oy);
+        }
+        handleTouch(t, down, reset = false) {
+            if (reset) {
+                this.dx = 0;
+                this.dy = 0;
+                this.ox = t.clientX;
+                this.oy = t.clientY;
+            }
+            else {
+                this.dx = t.clientX - this.x;
+                this.dy = t.clientY - this.y;
+            }
+            this.x = t.clientX;
+            this.y = t.clientY;
+            this.pressed = down;
+        }
+    }
+    XOR.TouchState = TouchState;
+})(XOR || (XOR = {}));
 /// <reference path="LibXOR.ts" />
 /// <reference path="XorMouseEvent.ts" />
 /// <reference path="XorGamepadState.ts" />
+/// <reference path="XorTouchState.ts" />
 var XOR;
 (function (XOR) {
     class InputSystem {
@@ -2764,6 +2804,13 @@ var XOR;
             /** @type {Map<number, XORGamepadState>} */
             this.gamepads = new Map();
             this.gamepadAPI = false;
+            this.touches = [
+                new XOR.TouchState(),
+                new XOR.TouchState(),
+                new XOR.TouchState(),
+                new XOR.TouchState(),
+                new XOR.TouchState()
+            ];
         }
         init() {
             let self = this;
@@ -2832,6 +2879,7 @@ var XOR;
             };
             this.canvas.onmousemove = (e) => {
                 self.mouse.copyMouseEvent(e);
+                hflog.info("mousemove: " + self.mouse.position.x + ", " + self.mouse.position.y);
             };
             this.canvas.onmouseenter = (e) => {
                 self.mouseOver = true;
@@ -2839,6 +2887,53 @@ var XOR;
             this.canvas.onmouseleave = (e) => {
                 self.mouseOver = false;
             };
+            this.captureTouches();
+        }
+        captureTouches() {
+            if (!this.canvas) {
+                hflog.error("Cannot register touches");
+                return;
+            }
+            let self = this;
+            this.canvas.addEventListener('touchstart', (ev) => {
+                // if (ev.touches.item(0) === ev.targetTouches.item(0)) {
+                //     hflog.info('touchstart');
+                // }
+                // if (ev.touches.length == ev.targetTouches.length) {
+                //     hflog.info('All points are on same element');
+                // }
+                // if (ev.touches.length > 1) {
+                //     hflog.info('multiple touches');
+                // }
+                if (ev.targetTouches.length > 0) {
+                    ev.preventDefault();
+                }
+                for (let i = 0; i < ev.targetTouches.length; i++) {
+                    if (i >= this.touches.length)
+                        break;
+                    this.touches[i].handleTouch(ev.targetTouches[i], true, true);
+                }
+            });
+            this.canvas.addEventListener('touchend', (ev) => {
+                // hflog.info('Removed: ' + ev.changedTouches.length);
+                // hflog.info('Remaining: ', ev.targetTouches.length);
+                // hflog.info('Document: ' + ev.touches.length);
+                if (ev.targetTouches.length > 0) {
+                    ev.preventDefault();
+                }
+                for (let i = 0; i < ev.targetTouches.length; i++) {
+                    if (i >= this.touches.length)
+                        break;
+                    this.touches[i].handleTouch(ev.targetTouches[i], false, false);
+                }
+            });
+            this.canvas.addEventListener('touchmove', (ev) => {
+                for (let i = 0; i < ev.targetTouches.length; i++) {
+                    if (i >= this.touches.length)
+                        break;
+                    this.touches[i].handleTouch(ev.targetTouches[i], true, false);
+                }
+            });
         }
         checkKeys(keys) {
             for (let key of keys) {
