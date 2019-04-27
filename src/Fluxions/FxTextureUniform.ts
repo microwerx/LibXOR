@@ -4,6 +4,7 @@ namespace Fluxions {
     export class FxTextureUniform {
         private texture: WebGLTexture | null = null;
         private sampler: null = null;
+        private unit = 0;
 
         /**
          * 

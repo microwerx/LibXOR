@@ -90,7 +90,7 @@ class FxTextParser {
         } else if (tokens.length == 3) {
             let index = parseInt(tokens[1]);
             indices[1] = index < 0 ? index : index - 1;
-            index = parseInt(tokens[12);
+            index = parseInt(tokens[2]);
             indices[2] = index < 0 ? index : index - 1;
         }
         return indices;

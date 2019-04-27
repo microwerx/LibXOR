@@ -45,6 +45,7 @@ namespace Fluxions {
         private _programLinkStatus = false;
         public uniforms: Map<string, WebGLUniformLocation | null> = new Map<string, WebGLUniformLocation | null>();
         public uniformInfo: Map<string, WebGLActiveInfo | null> = new Map<string, WebGLActiveInfo | null>();
+        private uniformUnits = new Map<string, number>();
 
         public useDepthTest = true;
         public depthTest: number = WebGLRenderingContext.LESS;
@@ -72,7 +73,7 @@ namespace Fluxions {
 
         private _warnings = 10;
 
-        constructor(private fx: FxRenderingContext) { }
+        constructor(public fx: FxRenderingContext) { }
 
         get usable(): boolean { return this.isCompiledAndLinked(); }
 
@@ -101,23 +102,35 @@ namespace Fluxions {
             gl.depthMask(this.depthMask);
 
             let unit = 0;
-            for (let texture of this.textures) {
-                let u = this.uniforms.get(texture.uniformName);
-                if (!u) continue;
-                let t = fx.textures.get(texture.textureName);
-                if (!t) continue;
-                gl.activeTexture(gl.TEXTURE0 + unit);
-                gl.bindTexture(t.target, t.texture);
-                gl.texParameteri(t.target, gl.TEXTURE_MIN_FILTER, t.minFilter);
-                gl.texParameteri(t.target, gl.TEXTURE_MIN_FILTER, t.magFilter);
-                gl.texParameteri(t.target, gl.TEXTURE_WRAP_S, t.wrapS);
-                gl.texParameteri(t.target, gl.TEXTURE_WRAP_T, t.wrapT);
-                gl.uniform1i(u, unit);
+            for (let texture of this.textures) {                
+                this.bindTextureUniform(texture.uniformName, texture.textureName, unit);
                 unit++;
             }
             this._texturesBound = unit;
 
             this.fx.fbos.configure(this, unit);
+        }
+
+        /**
+         * 
+         * @param uniform name of the uniform
+         * @param texture name of the texture
+         * @param unit >= 0 the unit, or if unit < 0 the last unit bound by this texture
+         */
+        bindTextureUniform(uniform: string, texture: string, unit: number)
+        {
+            let u = this.uniforms.get(uniform);
+            if (!u) return;
+            if (unit >= 0) this.uniformUnits.set(uniform, unit);
+            let t = this.fx.textures.get(texture);
+            if (!t) return;
+            if (unit < 0) {
+                let lastUnit = this.uniformUnits.get(uniform) || 0;                
+                t.bindUnit(lastUnit);
+            } else {
+                t.bindUnit(unit);
+            }
+            this.fx.gl.uniform1i(u, unit);
         }
 
         public restore() {

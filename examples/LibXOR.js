@@ -3547,6 +3547,7 @@ var Fluxions;
             this.samplerName = samplerName;
             this.texture = null;
             this.sampler = null;
+            this.unit = 0;
         }
         getTexture(fx) {
             if (this.texture)
@@ -3609,6 +3610,7 @@ var Fluxions;
             this._programLinkStatus = false;
             this.uniforms = new Map();
             this.uniformInfo = new Map();
+            this.uniformUnits = new Map();
             this.useDepthTest = true;
             this.depthTest = WebGLRenderingContext.LESS;
             this.depthMask = true;
@@ -3657,23 +3659,35 @@ var Fluxions;
             gl.depthMask(this.depthMask);
             let unit = 0;
             for (let texture of this.textures) {
-                let u = this.uniforms.get(texture.uniformName);
-                if (!u)
-                    continue;
-                let t = fx.textures.get(texture.textureName);
-                if (!t)
-                    continue;
-                gl.activeTexture(gl.TEXTURE0 + unit);
-                gl.bindTexture(t.target, t.texture);
-                gl.texParameteri(t.target, gl.TEXTURE_MIN_FILTER, t.minFilter);
-                gl.texParameteri(t.target, gl.TEXTURE_MIN_FILTER, t.magFilter);
-                gl.texParameteri(t.target, gl.TEXTURE_WRAP_S, t.wrapS);
-                gl.texParameteri(t.target, gl.TEXTURE_WRAP_T, t.wrapT);
-                gl.uniform1i(u, unit);
+                this.bindTextureUniform(texture.uniformName, texture.textureName, unit);
                 unit++;
             }
             this._texturesBound = unit;
             this.fx.fbos.configure(this, unit);
+        }
+        /**
+         *
+         * @param uniform name of the uniform
+         * @param texture name of the texture
+         * @param unit >= 0 the unit, or if unit < 0 the last unit bound by this texture
+         */
+        bindTextureUniform(uniform, texture, unit) {
+            let u = this.uniforms.get(uniform);
+            if (!u)
+                return;
+            if (unit >= 0)
+                this.uniformUnits.set(uniform, unit);
+            let t = this.fx.textures.get(texture);
+            if (!t)
+                return;
+            if (unit < 0) {
+                let lastUnit = this.uniformUnits.get(uniform) || 0;
+                t.bindUnit(lastUnit);
+            }
+            else {
+                t.bindUnit(unit);
+            }
+            this.fx.gl.uniform1i(u, unit);
         }
         restore() {
             let gl = this.fx.gl;
@@ -4391,6 +4405,7 @@ var Fluxions;
             this.magFilter = WebGLRenderingContext.NEAREST;
             this.wrapS = WebGLRenderingContext.REPEAT;
             this.wrapT = WebGLRenderingContext.REPEAT;
+            this.lastUnitBound = 0;
         }
         setMinMagFilter(minFilter, magFilter) {
             switch (minFilter) {
@@ -4425,6 +4440,18 @@ var Fluxions;
                     this.wrapT = wrapT;
                     break;
             }
+        }
+        bindUnit(unit) {
+            if (unit === undefined)
+                return;
+            let gl = this.fx.gl;
+            this.lastUnitBound = unit;
+            gl.activeTexture(gl.TEXTURE0 + unit);
+            gl.bindTexture(this.target, this.texture);
+            gl.texParameteri(this.target, gl.TEXTURE_MIN_FILTER, this.minFilter);
+            gl.texParameteri(this.target, gl.TEXTURE_MIN_FILTER, this.magFilter);
+            gl.texParameteri(this.target, gl.TEXTURE_WRAP_S, this.wrapS);
+            gl.texParameteri(this.target, gl.TEXTURE_WRAP_T, this.wrapT);
         }
         bind() {
             this.fx.gl.bindTexture(this.target, this.texture);
@@ -4603,7 +4630,7 @@ class FxTextParser {
         else if (tokens.length == 3) {
             let index = parseInt(tokens[1]);
             indices[1] = index < 0 ? index : index - 1;
-            index = parseInt(tokens[12]);
+            index = parseInt(tokens[2]);
             indices[2] = index < 0 ? index : index - 1;
         }
         return indices;

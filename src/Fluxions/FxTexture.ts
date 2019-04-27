@@ -7,6 +7,7 @@ namespace Fluxions {
         public magFilter = WebGLRenderingContext.NEAREST;
         public wrapS = WebGLRenderingContext.REPEAT;
         public wrapT = WebGLRenderingContext.REPEAT;
+        public lastUnitBound = 0;
 
         constructor(private fx: FxRenderingContext,
             public name: string, public url: string, public target: number, public texture: WebGLTexture) {
@@ -46,6 +47,18 @@ namespace Fluxions {
                     this.wrapT = wrapT;
                     break;
             }
+        }
+
+        bindUnit(unit: number) {
+            if (unit === undefined) return;
+            let gl = this.fx.gl;
+            this.lastUnitBound = unit;
+            gl.activeTexture(gl.TEXTURE0 + unit);
+            gl.bindTexture(this.target, this.texture);
+            gl.texParameteri(this.target, gl.TEXTURE_MIN_FILTER, this.minFilter);
+            gl.texParameteri(this.target, gl.TEXTURE_MIN_FILTER, this.magFilter);
+            gl.texParameteri(this.target, gl.TEXTURE_WRAP_S, this.wrapS);
+            gl.texParameteri(this.target, gl.TEXTURE_WRAP_T, this.wrapT);
         }
 
         bind() {
