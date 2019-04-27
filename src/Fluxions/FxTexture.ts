@@ -47,5 +47,9 @@ namespace Fluxions {
                     break;
             }
         }
+
+        bind() {
+            this.fx.gl.bindTexture(this.target, this.texture);
+        }
     }
 }

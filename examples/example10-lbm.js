@@ -130,7 +130,7 @@ class App {
         let pmatrix = Matrix4.makeOrtho2D(0, this.flame.width, 0, this.flame.height);
         let cmatrix = Matrix4.makeIdentity();
 
-        let t = fx.textures.get("RadianceCLUT")
+        let t = fx.textures.get("RadianceCLUT");
         if (!t) return;
         t.setMinMagFilter(gl.LINEAR, gl.LINEAR);
         t.setWrapST(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);

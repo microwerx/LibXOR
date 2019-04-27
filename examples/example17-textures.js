@@ -21,6 +21,7 @@ class App {
         this.iModel = 0;
         this.iTexture = 0;
         this.rc = null;
+        this.orbit = 90;
 
         let controls = document.getElementById('controls');
         createRangeRow(controls, "iMinFilter", 0, 0, 3);
@@ -48,9 +49,12 @@ class App {
         rc.addTexture("godzilla", "map_kd");
         this.rc = rc;
 
-        this.xor.meshes.load('mitsuba', 'models/mitsuba.obj');
-        this.xor.meshes.load('teapot', 'models/teapot.obj');
-        this.xor.meshes.load('rect', 'models/rect.obj');
+        let bbox = new GTE.BoundingBox();
+        bbox.add(Vector3.make(-1, -1, -1));
+        bbox.add(Vector3.make(1, 1, 1));
+        this.xor.meshes.load('mitsuba', 'models/mitsuba.obj', bbox);
+        this.xor.meshes.load('teapot', 'models/teapot.obj', bbox);
+        this.xor.meshes.load('rect', 'models/rect.obj', bbox);
     }
 
     start() {
@@ -87,6 +91,8 @@ class App {
             }
 
         }
+
+        this.orbit += xor.dt * this.fOrbitSpeed * 5.0;
     }
 
     render() {
@@ -97,7 +103,7 @@ class App {
         let rc = xor.renderconfigs.use('default');
         if (rc) {
             let pmatrix = Matrix4.makePerspectiveY(45.0, 1.5, 1.0, 100.0);
-            let cmatrix = Matrix4.makeOrbit(this.fOrbitSpeed * -xor.t1 * 5.0 + this.azimuth, this.inclination, this.distance);
+            let cmatrix = Matrix4.makeOrbit(this.orbit + this.azimuth, this.inclination, this.distance);
             rc.uniformMatrix4f('ProjectionMatrix', pmatrix);
             rc.uniformMatrix4f('CameraMatrix', cmatrix);
             rc.uniform3f('kd', Vector3.make(1.0, 0.0, 0.0));

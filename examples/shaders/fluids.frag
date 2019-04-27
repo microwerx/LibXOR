@@ -26,7 +26,7 @@ varying vec3 vColor;
 
 const int FLAMES = 0;
 const int LGA = 1;
-const vec3 BLUE = vec3(0.0, 0.2, 0.8);
+const vec3 BLUE = vec3(1.0, 0.2, 0.8);
 
 void main() {
     // set to white

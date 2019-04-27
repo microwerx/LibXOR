@@ -63,8 +63,8 @@ vec4 flickerEffect(vec2 uv) {
     float turb = turbulence * rand(uv + vec2(iTime, 0.0));
     float data = 0.0;
     float r2 = radius * radius;
-    if (x >= 1.0 && x < width - 1.0 && y >= 3.0 && y < height - 1.0) {
-        if (x >= a - radius && x < a + radius && y >= b - radius && y < b + radius) {
+    if (1>0 || x >= 1.0 && x < width - 1.0 && y >= 3.0 && y < height - 1.0) {
+        if (1>0 || x >= a - radius && x < a + radius && y >= b - radius && y < b + radius) {
             float f = (x-a) * (x-a) + (y-b) * (y-b);
             if (f < r2) {
                 data = getLattice(vec2(x, y)).a;
@@ -72,7 +72,7 @@ vec4 flickerEffect(vec2 uv) {
                 data += h * (1.0 - f / r2);
             }
         }
-        data+=0.25*getLattice(vec2(x    , y+1.0)).a;
+        data+=0.25*getLattice(vec2(x    , y-1.0)).a;
         data+=0.25*getLattice(vec2(x-1.0, y-1.0)).a;
         data+=0.25*getLattice(vec2(x+1.0, y-1.0)).a;
         data+=0.25*getLattice(vec2(x    , y-2.0)).a;
@@ -102,6 +102,11 @@ vec4 lgaEffect(vec2 uv, int step) {
         vec4 eCell = getLattice(vec2(x + 1.0, y));
         vec4 wCell = getLattice(vec2(x - 1.0, y));
 
+        vec4 nwCell = getLattice(vec2(x - 1.0, y + 1.0));
+        vec4 neCell = getLattice(vec2(x + 1.0, y + 1.0));
+        vec4 swCell = getLattice(vec2(x - 1.0, y - 1.0));
+        vec4 seCell = getLattice(vec2(x + 1.0, y - 1.0));
+
         // cell contents
         // r = particles moving North
         // g = particles moving South
@@ -116,6 +121,8 @@ vec4 lgaEffect(vec2 uv, int step) {
             float movingS = nCell.g + turb;
             float movingE = wCell.b + turb;
             float movingW = eCell.a + turb;
+
+            //movingN = fLgaDiffusion * movingN + (1.0 - fLgaDiffusion) * length(nwCell + neCell + swCell + seCell);
             
             outCell = fLgaDamping * vec4(movingN, movingS, movingE, movingW);
         }

@@ -30,6 +30,9 @@
 /// <reference path="./Sphere.ts" />
 /// <reference path="./BoundingBox.ts" />
 
+/**
+ * @namespace
+ */
 namespace GTE {
     /**
      * @returns {number} Returns a number between 0 and 255
