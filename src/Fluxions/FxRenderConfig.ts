@@ -127,10 +127,11 @@ namespace Fluxions {
             if (unit < 0) {
                 let lastUnit = this.uniformUnits.get(uniform) || 0;                
                 t.bindUnit(lastUnit);
+                this.fx.gl.uniform1i(u, lastUnit);
             } else {
                 t.bindUnit(unit);
+                this.fx.gl.uniform1i(u, unit);
             }
-            this.fx.gl.uniform1i(u, unit);
         }
 
         public restore() {

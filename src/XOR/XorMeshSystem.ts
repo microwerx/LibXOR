@@ -31,10 +31,14 @@ namespace XOR {
             mesh.rescaleBBox = rescaleBBox;
             if (rescaleCenter) mesh.rescaleCenter.copy(rescaleCenter);
             this.meshes.set(name, mesh);
-            let tl = new XOR.TextFileLoader(url, (data: string, name: string, p: number) => {
+            // let tl = new XOR.TextFileLoader(url, (data: string, name: string, p: number) => {
+            //     let textParser = new FxTextParser(data);
+            //     mesh.loadOBJ(textParser.lines);
+            // });
+            this.xor.textfiles.load(name, url, (data: string, name: string, p: number) => {
                 let textParser = new FxTextParser(data);
                 mesh.loadOBJ(textParser.lines);
-            });
+            }, 0);
             return mesh;
         }
 
