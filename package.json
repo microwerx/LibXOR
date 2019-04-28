@@ -2,7 +2,7 @@
     "name": "libxor",
     "version": "0.1.0",
     "description": "retro console library for TypeScript and JavaScript",
-    "main": "www/LibXOR.js",
+    "main": "examples/LibXOR.js",
     "scripts": {
         "tsc": "tsc",
         "tsc:w": "tsc -w",

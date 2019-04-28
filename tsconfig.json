@@ -7,8 +7,9 @@
         "preserveConstEnums": true,
         "strict": true,
         "outDir": "examples/LibXOR",
-        "outFile": "./examples/LibXOR.js",
-        "sourceMap": true
+        "outFile": "LibXOR.js",
+        "sourceMap": true,
+        "lib": [ "es2015", "dom" ]
     },
     "include": [
         "src/LibXOR.ts",

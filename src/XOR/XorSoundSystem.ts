@@ -1,18 +1,24 @@
+/// <reference path="../global.d.ts" />
 /// <reference path="LibXOR.ts" />
 /// <reference path="../Toadfish/TfSampler.ts" />
 /// <reference path="../Toadfish/TfJukebox.ts" />
+
+interface Window {
+    AudioContext: AudioContext;
+    webkitAudioContext: AudioContext;
+}
 
 namespace XOR {
     export class SoundSystem {
         sampler = new TF.Sampler(this);
         jukebox = new TF.Jukebox(this);
-        private context_: AudioContext;
-        private masterVolume: GainNode;
+        private context_!: AudioContext;
+        private masterVolume!: GainNode;
         private enabled_ = false;
 
         constructor(private xor: LibXOR) {
             try {
-                window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                window.AudioContext = <AudioContext>(window.AudioContext || window.webkitAudioContext);
                 this.context_ = new AudioContext();
                 this.masterVolume = this.context_.createGain();
                 this.enabled_ = true;

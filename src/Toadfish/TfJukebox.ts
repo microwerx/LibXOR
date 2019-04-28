@@ -1,4 +1,4 @@
-/// <reference path="../XorSoundSystem.ts" />
+/// <reference path="../XOR/XorSoundSystem.ts" />
 
 namespace TF {
     export class Jukebox {

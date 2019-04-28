@@ -145,6 +145,7 @@ namespace TF {
             xhr.open('GET', url);
             xhr.responseType = 'arraybuffer';
             xhr.onload = () => {
+                if (!ctx) return;
                 ctx.decodeAudioData(xhr.response, (buffer) => {
                     // on success
                     let s = new Sample(buffer, true, false);
