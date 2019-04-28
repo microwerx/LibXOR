@@ -1594,11 +1594,11 @@ var GTE;
         return p2.sub(p1).norm();
     }
     GTE.dirTo3 = dirTo3;
-    function vec3(x, y, z) {
+    function vec3(x = 0, y = 0, z = 0) {
         return new Vector3(x, y, z);
     }
     GTE.vec3 = vec3;
-    function vec4(x, y, z, w) {
+    function vec4(x = 0, y = 0, z = 0, w = 1) {
         return new Vector4(x, y, z, w);
     }
     GTE.vec4 = vec4;
@@ -2879,7 +2879,6 @@ var XOR;
             };
             this.canvas.onmousemove = (e) => {
                 self.mouse.copyMouseEvent(e);
-                hflog.info("mousemove: " + self.mouse.position.x + ", " + self.mouse.position.y);
             };
             this.canvas.onmouseenter = (e) => {
                 self.mouseOver = true;
@@ -2896,42 +2895,36 @@ var XOR;
             }
             let self = this;
             this.canvas.addEventListener('touchstart', (ev) => {
-                // if (ev.touches.item(0) === ev.targetTouches.item(0)) {
-                //     hflog.info('touchstart');
-                // }
-                // if (ev.touches.length == ev.targetTouches.length) {
-                //     hflog.info('All points are on same element');
-                // }
-                // if (ev.touches.length > 1) {
-                //     hflog.info('multiple touches');
-                // }
                 if (ev.targetTouches.length > 0) {
                     ev.preventDefault();
                 }
-                for (let i = 0; i < ev.targetTouches.length; i++) {
-                    if (i >= this.touches.length)
-                        break;
-                    this.touches[i].handleTouch(ev.targetTouches[i], true, true);
+                for (let i = 0; i < self.touches.length; i++) {
+                    if (i < ev.targetTouches.length)
+                        self.touches[i].handleTouch(ev.targetTouches[i], true, true);
+                    else
+                        self.touches[i].handleTouch(ev.targetTouches[i], false, true);
                 }
             });
             this.canvas.addEventListener('touchend', (ev) => {
-                // hflog.info('Removed: ' + ev.changedTouches.length);
-                // hflog.info('Remaining: ', ev.targetTouches.length);
-                // hflog.info('Document: ' + ev.touches.length);
                 if (ev.targetTouches.length > 0) {
                     ev.preventDefault();
                 }
-                for (let i = 0; i < ev.targetTouches.length; i++) {
-                    if (i >= this.touches.length)
-                        break;
-                    this.touches[i].handleTouch(ev.targetTouches[i], false, false);
+                for (let i = 0; i < self.touches.length; i++) {
+                    if (i < ev.targetTouches.length)
+                        self.touches[i].handleTouch(ev.targetTouches[i], true, false);
+                    else
+                        self.touches[i].handleTouch(ev.targetTouches[i], false, false);
                 }
             });
             this.canvas.addEventListener('touchmove', (ev) => {
-                for (let i = 0; i < ev.targetTouches.length; i++) {
-                    if (i >= this.touches.length)
-                        break;
-                    this.touches[i].handleTouch(ev.targetTouches[i], true, false);
+                if (ev.targetTouches.length > 0) {
+                    ev.preventDefault();
+                }
+                for (let i = 0; i < self.touches.length; i++) {
+                    if (i < ev.targetTouches.length)
+                        self.touches[i].handleTouch(ev.targetTouches[i], true, false);
+                    else
+                        self.touches[i].handleTouch(ev.targetTouches[i], false, false);
                 }
             });
         }

@@ -27,7 +27,7 @@ namespace XOR {
             new TouchState()
         ];
 
-        constructor(private xor: LibXOR) { }
+        constructor(public xor: LibXOR) { }
 
         init() {
             let self = this;
@@ -99,7 +99,6 @@ namespace XOR {
             }
             this.canvas.onmousemove = (e) => {
                 self.mouse.copyMouseEvent(e);
-                hflog.info("mousemove: " + self.mouse.position.x + ", " + self.mouse.position.y);
             }
             this.canvas.onmouseenter = (e) => {
                 self.mouseOver = true;
@@ -117,41 +116,39 @@ namespace XOR {
             }
             let self = this;
             this.canvas.addEventListener('touchstart', (ev) => {
-                // if (ev.touches.item(0) === ev.targetTouches.item(0)) {
-                //     hflog.info('touchstart');
-                // }
-                // if (ev.touches.length == ev.targetTouches.length) {
-                //     hflog.info('All points are on same element');
-                // }
-                // if (ev.touches.length > 1) {
-                //     hflog.info('multiple touches');
-                // }
                 if (ev.targetTouches.length > 0) {
                     ev.preventDefault();
                 }
 
-                for (let i = 0; i < ev.targetTouches.length; i++) {
-                    if (i >= this.touches.length) break;
-                    this.touches[i].handleTouch(ev.targetTouches[i], true, true);
+                for (let i = 0; i < self.touches.length; i++) {
+                    if (i < ev.targetTouches.length)
+                        self.touches[i].handleTouch(ev.targetTouches[i], true, true);
+                    else
+                        self.touches[i].handleTouch(ev.targetTouches[i], false, true);
                 }
             });
             this.canvas.addEventListener('touchend', (ev) => {
-                // hflog.info('Removed: ' + ev.changedTouches.length);
-                // hflog.info('Remaining: ', ev.targetTouches.length);
-                // hflog.info('Document: ' + ev.touches.length);
                 if (ev.targetTouches.length > 0) {
                     ev.preventDefault();
                 }
 
-                for (let i = 0; i < ev.targetTouches.length; i++) {
-                    if (i >= this.touches.length) break;
-                    this.touches[i].handleTouch(ev.targetTouches[i], false, false);
+                for (let i = 0; i < self.touches.length; i++) {
+                    if (i < ev.targetTouches.length)
+                        self.touches[i].handleTouch(ev.targetTouches[i], true, false);
+                    else
+                        self.touches[i].handleTouch(ev.targetTouches[i], false, false);
                 }
             });
             this.canvas.addEventListener('touchmove', (ev) => {
-                for (let i = 0; i < ev.targetTouches.length; i++) {
-                    if (i >= this.touches.length) break;
-                    this.touches[i].handleTouch(ev.targetTouches[i], true, false);
+                if (ev.targetTouches.length > 0) {
+                    ev.preventDefault();
+                }
+
+                for (let i = 0; i < self.touches.length; i++) {
+                    if (i < ev.targetTouches.length)
+                        self.touches[i].handleTouch(ev.targetTouches[i], true, false);
+                    else
+                        self.touches[i].handleTouch(ev.targetTouches[i], false, false);
                 }
             });
         }

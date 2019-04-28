@@ -145,11 +145,11 @@ namespace GTE {
         return p2.sub(p1).norm();
     }
 
-    export function vec3(x: number, y: number, z: number): Vector3 {
+    export function vec3(x: number = 0, y: number = 0, z: number = 0): Vector3 {
         return new Vector3(x, y, z);
     }
 
-    export function vec4(x: number, y: number, z: number, w: number): Vector4 {
+    export function vec4(x: number = 0, y: number = 0, z: number = 0, w: number = 1): Vector4 {
         return new Vector4(x, y, z, w);
     }
 }
