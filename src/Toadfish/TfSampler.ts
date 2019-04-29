@@ -36,7 +36,7 @@ namespace TF {
             public VCAhold = 1.0,
             public VCArelease = 1.0,
             public sampleLoop = true
-        ) {}
+        ) { }
     }
 
     export class Sample {
@@ -46,18 +46,52 @@ namespace TF {
         public VCOenvelope = new DAHDSREnvelope();
         public VCFenvelope = new DAHDSREnvelope();
         public VCFresonance = 1.0;
+        private source: AudioBufferSourceNode | null = null;
+        private stopped_ = false;
+        public loop = false;
 
         constructor(
+            public url: string,
             public buffer: AudioBuffer | null = null,
             public loaded = false,
             public haderror = false) {
-                this.VCFenvelope.attack = 1;
-                this.VCFenvelope.decay = 1;
-                this.VCFenvelope.release = 1;
-                this.VCFenvelope.sustainCV = 0.5;
-            }
+            this.VCFenvelope.attack = 1;
+            this.VCFenvelope.decay = 1;
+            this.VCFenvelope.release = 1;
+            this.VCFenvelope.sustainCV = 0.5;
+        }
 
         play(ss: XOR.SoundSystem, time: number = 0) {
+            if (!ss.enabled) return;
+            let ctx = ss.context;
+            if (!ctx) return;
+            let t = ctx.currentTime;
+            let source = ctx.createBufferSource();
+            source.buffer = this.buffer;
+            source.loop = this.loop;
+            source.connect(ss.gainNode);
+            source.start(time);
+            let self = this;
+            self.stopped_ = false;
+            source.onended = (ev) => {
+                self.stopped_ = true;
+            }
+            this.source = source;
+            hflog.info("playing " + this.url);
+        }
+
+        get stopped(): boolean { return this.stopped_; }
+        get playing(): boolean { return !this.stopped_; }
+
+        stop() {
+            if (this.source) {
+                this.source.stop();
+                this.source.disconnect();
+                this.source = null;
+            }
+        }
+
+        playOld(ss: XOR.SoundSystem, time: number = 0) {
             if (!ss.enabled) return;
             let ctx = ss.context;
             if (!ctx) return;
@@ -79,7 +113,7 @@ namespace TF {
             let detune2 = 1;
             let detuneTime = 2;
             source.playbackRate.setValueAtTime(detune1, t);
-            source.playbackRate.linearRampToValueAtTime(detune2, t+detuneTime);
+            source.playbackRate.linearRampToValueAtTime(detune2, t + detuneTime);
 
             let to = setTimeout(() => {
                 source.stop();
@@ -132,15 +166,46 @@ namespace TF {
 
     export class Sampler {
         samples = new Map<number, Sample>();
+        private samplesRequested = 0;
+        private samplesLoaded = 0;
 
         constructor(private ss: XOR.SoundSystem) {
 
+        }
+
+        get loaded(): boolean {
+            return this.samplesRequested == this.samplesLoaded;
+        }
+
+        isPlaying(id: number): boolean {
+            let s = this.samples.get(id);
+            if (s) {
+                return s.playing;
+            }
+            return false;
+        }
+
+        isStopped(id: number): boolean {
+            let s = this.samples.get(id);
+            if (s) {
+                return s.stopped;
+            }
+            return true;
+        }
+
+        stopSample(id: number) {
+            let s = this.samples.get(id);
+            if (s) {
+                s.stop();
+            }
         }
 
         loadSample(id: number, url: string, logErrors = true) {
             let ctx = this.ss.context;
             if (!ctx) return;
             let self = this;
+            let soundUrl = url;
+            this.samplesRequested++;
             let xhr = new XMLHttpRequest();
             xhr.open('GET', url);
             xhr.responseType = 'arraybuffer';
@@ -148,31 +213,36 @@ namespace TF {
                 if (!ctx) return;
                 ctx.decodeAudioData(xhr.response, (buffer) => {
                     // on success
-                    let s = new Sample(buffer, true, false);
+                    let s = new Sample(soundUrl, buffer, true, false);
                     self.samples.set(id, s);
-                    if (logErrors) hflog.info('loaded ', url);
+                    if (logErrors) hflog.info('loaded ', soundUrl);
+                    self.samplesLoaded++;
                 }, () => {
                     // on error
-                    let s = new Sample(null, false, true);
+                    let s = new Sample(soundUrl, null, false, true);
                     self.samples.set(id, s);
-                    if (logErrors) hflog.info('failed to load ', url);
+                    if (logErrors) hflog.info('failed to load ', soundUrl);
+                    self.samplesLoaded++;
                 })
             }
             xhr.onabort = () => {
-                if (logErrors) hflog.error('Could not load ', url);
-                self.samples.set(id, new Sample(null, false, true));
+                if (logErrors) hflog.error('Could not load ', soundUrl);
+                self.samples.set(id, new Sample(soundUrl, null, false, true));
+                this.samplesLoaded++;
             }
             xhr.onerror = () => {
-                if (logErrors) hflog.error('Could not load ', url);
-                self.samples.set(id, new Sample(null, false, true));
+                if (logErrors) hflog.error('Could not load ', soundUrl);
+                self.samples.set(id, new Sample(soundUrl, null, false, true));
+                this.samplesLoaded++;
             }
-            this.samples.set(id, new Sample());
+            this.samples.set(id, new Sample(url));
             xhr.send();
         }
 
-        playSample(id: number, time: number = 0) {            
+        playSample(id: number, loop: boolean = false, time: number = 0) {
             let s = this.samples.get(id);
             if (!s) return;
+            s.loop = loop;
             s.play(this.ss, time);
         }
     }

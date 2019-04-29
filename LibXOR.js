@@ -2467,7 +2467,8 @@ var TF;
     }
     TF.SimpleSamplerPlaySettings = SimpleSamplerPlaySettings;
     class Sample {
-        constructor(buffer = null, loaded = false, haderror = false) {
+        constructor(url, buffer = null, loaded = false, haderror = false) {
+            this.url = url;
             this.buffer = buffer;
             this.loaded = loaded;
             this.haderror = haderror;
@@ -2477,12 +2478,44 @@ var TF;
             this.VCOenvelope = new DAHDSREnvelope();
             this.VCFenvelope = new DAHDSREnvelope();
             this.VCFresonance = 1.0;
+            this.source = null;
+            this.stopped_ = false;
+            this.loop = false;
             this.VCFenvelope.attack = 1;
             this.VCFenvelope.decay = 1;
             this.VCFenvelope.release = 1;
             this.VCFenvelope.sustainCV = 0.5;
         }
         play(ss, time = 0) {
+            if (!ss.enabled)
+                return;
+            let ctx = ss.context;
+            if (!ctx)
+                return;
+            let t = ctx.currentTime;
+            let source = ctx.createBufferSource();
+            source.buffer = this.buffer;
+            source.loop = this.loop;
+            source.connect(ss.gainNode);
+            source.start(time);
+            let self = this;
+            self.stopped_ = false;
+            source.onended = (ev) => {
+                self.stopped_ = true;
+            };
+            this.source = source;
+            hflog.info("playing " + this.url);
+        }
+        get stopped() { return this.stopped_; }
+        get playing() { return !this.stopped_; }
+        stop() {
+            if (this.source) {
+                this.source.stop();
+                this.source.disconnect();
+                this.source = null;
+            }
+        }
+        playOld(ss, time = 0) {
             if (!ss.enabled)
                 return;
             let ctx = ss.context;
@@ -2551,12 +2584,39 @@ var TF;
         constructor(ss) {
             this.ss = ss;
             this.samples = new Map();
+            this.samplesRequested = 0;
+            this.samplesLoaded = 0;
+        }
+        get loaded() {
+            return this.samplesRequested == this.samplesLoaded;
+        }
+        isPlaying(id) {
+            let s = this.samples.get(id);
+            if (s) {
+                return s.playing;
+            }
+            return false;
+        }
+        isStopped(id) {
+            let s = this.samples.get(id);
+            if (s) {
+                return s.stopped;
+            }
+            return true;
+        }
+        stopSample(id) {
+            let s = this.samples.get(id);
+            if (s) {
+                s.stop();
+            }
         }
         loadSample(id, url, logErrors = true) {
             let ctx = this.ss.context;
             if (!ctx)
                 return;
             let self = this;
+            let soundUrl = url;
+            this.samplesRequested++;
             let xhr = new XMLHttpRequest();
             xhr.open('GET', url);
             xhr.responseType = 'arraybuffer';
@@ -2565,35 +2625,40 @@ var TF;
                     return;
                 ctx.decodeAudioData(xhr.response, (buffer) => {
                     // on success
-                    let s = new Sample(buffer, true, false);
+                    let s = new Sample(soundUrl, buffer, true, false);
                     self.samples.set(id, s);
                     if (logErrors)
-                        hflog.info('loaded ', url);
+                        hflog.info('loaded ', soundUrl);
+                    self.samplesLoaded++;
                 }, () => {
                     // on error
-                    let s = new Sample(null, false, true);
+                    let s = new Sample(soundUrl, null, false, true);
                     self.samples.set(id, s);
                     if (logErrors)
-                        hflog.info('failed to load ', url);
+                        hflog.info('failed to load ', soundUrl);
+                    self.samplesLoaded++;
                 });
             };
             xhr.onabort = () => {
                 if (logErrors)
-                    hflog.error('Could not load ', url);
-                self.samples.set(id, new Sample(null, false, true));
+                    hflog.error('Could not load ', soundUrl);
+                self.samples.set(id, new Sample(soundUrl, null, false, true));
+                this.samplesLoaded++;
             };
             xhr.onerror = () => {
                 if (logErrors)
-                    hflog.error('Could not load ', url);
-                self.samples.set(id, new Sample(null, false, true));
+                    hflog.error('Could not load ', soundUrl);
+                self.samples.set(id, new Sample(soundUrl, null, false, true));
+                this.samplesLoaded++;
             };
-            this.samples.set(id, new Sample());
+            this.samples.set(id, new Sample(url));
             xhr.send();
         }
-        playSample(id, time = 0) {
+        playSample(id, loop = false, time = 0) {
             let s = this.samples.get(id);
             if (!s)
                 return;
+            s.loop = loop;
             s.play(this.ss, time);
         }
     }
@@ -2640,6 +2705,7 @@ var XOR;
             this.masterVolume = this.context_.createGain();
             this.masterVolume.connect(this.context_.destination);
             this.masterVolume.gain.value = 0.5;
+            hflog.info("audio initted");
         }
         get volume() { if (!this.enabled)
             return 0; return this.masterVolume.gain.value; }

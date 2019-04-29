@@ -37,6 +37,7 @@ namespace XOR {
             this.masterVolume = this.context_.createGain();
             this.masterVolume.connect(this.context_.destination);
             this.masterVolume.gain.value = 0.5;
+            hflog.info("audio initted");
         }
 
         get volume(): number { if (!this.enabled) return 0; return this.masterVolume.gain.value; }
