@@ -118,6 +118,10 @@ namespace XOR {
             this.canvas.addEventListener('touchstart', (ev) => {
                 if (ev.targetTouches.length > 0) {
                     ev.preventDefault();
+                } else {
+                    for (let i = 0; i < self.touches.length; i++) {
+                        self.touches[i].pressed = false;
+                    }
                 }
 
                 for (let i = 0; i < self.touches.length; i++) {
@@ -130,6 +134,16 @@ namespace XOR {
             this.canvas.addEventListener('touchend', (ev) => {
                 if (ev.targetTouches.length > 0) {
                     ev.preventDefault();
+                } else {
+                    for (let i = 0; i < self.touches.length; i++) {
+                        self.touches[i].pressed = false;
+                    }
+                }
+
+                if (ev.touches.length == 0) {
+                    for (let i = 0; i < self.touches.length; i++) {
+                        self.touches[i].pressed = false;
+                    }
                 }
 
                 for (let i = 0; i < self.touches.length; i++) {
@@ -142,6 +156,10 @@ namespace XOR {
             this.canvas.addEventListener('touchmove', (ev) => {
                 if (ev.targetTouches.length > 0) {
                     ev.preventDefault();
+                } else {
+                    for (let i = 0; i < self.touches.length; i++) {
+                        self.touches[i].pressed = false;
+                    }
                 }
 
                 for (let i = 0; i < self.touches.length; i++) {

@@ -2967,6 +2967,11 @@ var XOR;
                 if (ev.targetTouches.length > 0) {
                     ev.preventDefault();
                 }
+                else {
+                    for (let i = 0; i < self.touches.length; i++) {
+                        self.touches[i].pressed = false;
+                    }
+                }
                 for (let i = 0; i < self.touches.length; i++) {
                     if (i < ev.targetTouches.length)
                         self.touches[i].handleTouch(ev.targetTouches[i], true, true);
@@ -2978,6 +2983,16 @@ var XOR;
                 if (ev.targetTouches.length > 0) {
                     ev.preventDefault();
                 }
+                else {
+                    for (let i = 0; i < self.touches.length; i++) {
+                        self.touches[i].pressed = false;
+                    }
+                }
+                if (ev.touches.length == 0) {
+                    for (let i = 0; i < self.touches.length; i++) {
+                        self.touches[i].pressed = false;
+                    }
+                }
                 for (let i = 0; i < self.touches.length; i++) {
                     if (i < ev.targetTouches.length)
                         self.touches[i].handleTouch(ev.targetTouches[i], true, false);
@@ -2988,6 +3003,11 @@ var XOR;
             this.canvas.addEventListener('touchmove', (ev) => {
                 if (ev.targetTouches.length > 0) {
                     ev.preventDefault();
+                }
+                else {
+                    for (let i = 0; i < self.touches.length; i++) {
+                        self.touches[i].pressed = false;
+                    }
                 }
                 for (let i = 0; i < self.touches.length; i++) {
                     if (i < ev.targetTouches.length)
