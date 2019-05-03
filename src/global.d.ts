@@ -1,4 +1,0 @@
-
-// interface Constructable {
-//     new(): any;
-// }

@@ -8,6 +8,7 @@
         "strict": true,
         "outDir": "examples/LibXOR",
         "outFile": "LibXOR.js",
+        "declaration": true,
         "sourceMap": true,
         "lib": [ "es2015", "dom" ]
     },

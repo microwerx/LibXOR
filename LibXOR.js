@@ -2674,7 +2674,6 @@ var TF;
     }
     TF.Jukebox = Jukebox;
 })(TF || (TF = {}));
-/// <reference path="../global.d.ts" />
 /// <reference path="LibXOR.ts" />
 /// <reference path="../Toadfish/TfSampler.ts" />
 /// <reference path="../Toadfish/TfJukebox.ts" />

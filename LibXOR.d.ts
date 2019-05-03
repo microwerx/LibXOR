@@ -1,4 +1,3 @@
-/// <reference path="src/global.d.ts" />
 declare class Hatchetfish {
     private _logElementId;
     private _logElement;
@@ -657,6 +656,7 @@ declare namespace TF {
         constructor(VCFfrequency1?: number, VCFfrequency2?: number, VCFsweepTime?: number, VCFresonance?: number, VCAattack?: number, VCAhold?: number, VCArelease?: number, sampleLoop?: boolean);
     }
     class Sample {
+        url: string;
         buffer: AudioBuffer | null;
         loaded: boolean;
         haderror: boolean;
@@ -666,15 +666,28 @@ declare namespace TF {
         VCOenvelope: DAHDSREnvelope;
         VCFenvelope: DAHDSREnvelope;
         VCFresonance: number;
-        constructor(buffer?: AudioBuffer | null, loaded?: boolean, haderror?: boolean);
+        private source;
+        private stopped_;
+        loop: boolean;
+        constructor(url: string, buffer?: AudioBuffer | null, loaded?: boolean, haderror?: boolean);
         play(ss: XOR.SoundSystem, time?: number): void;
+        readonly stopped: boolean;
+        readonly playing: boolean;
+        stop(): void;
+        playOld(ss: XOR.SoundSystem, time?: number): void;
     }
     class Sampler {
         private ss;
         samples: Map<number, Sample>;
+        private samplesRequested;
+        private samplesLoaded;
         constructor(ss: XOR.SoundSystem);
+        readonly loaded: boolean;
+        isPlaying(id: number): boolean;
+        isStopped(id: number): boolean;
+        stopSample(id: number): void;
         loadSample(id: number, url: string, logErrors?: boolean): void;
-        playSample(id: number, time?: number): void;
+        playSample(id: number, loop?: boolean, time?: number): void;
     }
 }
 declare namespace TF {
@@ -682,6 +695,10 @@ declare namespace TF {
         ss: XOR.SoundSystem;
         constructor(ss: XOR.SoundSystem);
     }
+}
+interface Window {
+    AudioContext: AudioContext;
+    webkitAudioContext: AudioContext;
 }
 declare namespace XOR {
     class SoundSystem {
