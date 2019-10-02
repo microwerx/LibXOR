@@ -586,7 +586,7 @@ declare namespace XOR {
         readonly height: number;
         constructor(xor: LibXOR);
         init(): void;
-        setVideoMode(width: number, height: number): void;
+        setVideoMode(width: number, height: number, version?: number): void;
         clear(color1?: XOR.Color, color2?: XOR.Color, mix?: number, hue1?: XOR.HueShift, hue2?: XOR.HueShift, neg?: number): void;
         clear3(color: Vector3): void;
         clearrgba(r: number, g: number, b: number, a: number): void;

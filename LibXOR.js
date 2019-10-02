@@ -2075,7 +2075,7 @@ var XOR;
                 this.tileLayers.push(new XOR.GraphicsTileLayer());
             }
         }
-        setVideoMode(width, height) {
+        setVideoMode(width, height, version = 1) {
             let p = this.xor.parentElement;
             while (p.firstChild) {
                 p.removeChild(p.firstChild);
@@ -2085,7 +2085,20 @@ var XOR;
             canvas.width = width;
             canvas.height = height;
             canvas.style.borderRadius = "4px";
-            this.gl = canvas.getContext("webgl");
+            if (version == 1) {
+                this.gl = canvas.getContext("webgl");
+                if (this.gl)
+                    hflog.info("Using WebGL 1.0");
+                else
+                    hflog.error("WebGL 1.0 failed");
+            }
+            else if (version == 2) {
+                this.gl = canvas.getContext("webgl2");
+                if (this.gl)
+                    hflog.info("Using WebGL 2.0");
+                else
+                    hflog.error("WebGL 2.0 failed");
+            }
             this.canvas = canvas;
             p.appendChild(canvas);
             // If this.xor.graphics is null, then LibXOR is in the constructor
@@ -3979,18 +3992,18 @@ var Fluxions;
                     hflog.error("VERTEX SHADER COMPILE ERROR:");
                     hflog.error(infoLog ? infoLog : "");
                     hflog.error("--------------------------------------------");
-                    let errorElement = document.getElementById("errors");
-                    if (!errorElement && infoLog) {
-                        let newDiv = document.createElement("div");
-                        newDiv.appendChild(document.createTextNode("Vertex shader info log"));
-                        newDiv.appendChild(document.createElement("br"));
-                        newDiv.appendChild(document.createTextNode(infoLog));
-                        let pre = document.createElement("pre");
-                        pre.textContent = this._vertShaderSource;
-                        pre.style.width = "50%";
-                        newDiv.appendChild(pre);
-                        document.body.appendChild(newDiv);
-                    }
+                    // let errorElement: HTMLElement | null = document.getElementById("errors");
+                    // if (!errorElement && infoLog) {
+                    //     let newDiv: HTMLDivElement = document.createElement("div");
+                    //     newDiv.appendChild(document.createTextNode("Vertex shader info log"));
+                    //     newDiv.appendChild(document.createElement("br"));
+                    //     newDiv.appendChild(document.createTextNode(infoLog));
+                    //     let pre = document.createElement("pre");
+                    //     pre.textContent = this._vertShaderSource;
+                    //     pre.style.width = "50%";
+                    //     newDiv.appendChild(pre);
+                    //     document.body.appendChild(newDiv);
+                    // }
                 }
                 if (status)
                     this._vertShaderCompileStatus = true;
@@ -4012,18 +4025,18 @@ var Fluxions;
                     hflog.error("FRAGMENT SHADER COMPILE ERROR:");
                     hflog.error(infoLog ? infoLog : "");
                     hflog.error("--------------------------------------------");
-                    let errorElement = document.getElementById("errors");
-                    if (!errorElement && infoLog) {
-                        let newDiv = document.createElement("div");
-                        newDiv.appendChild(document.createTextNode("Fragment shader info log"));
-                        newDiv.appendChild(document.createElement("br"));
-                        newDiv.appendChild(document.createTextNode(infoLog));
-                        let pre = document.createElement("pre");
-                        pre.textContent = this._fragShaderSource;
-                        pre.style.width = "50%";
-                        newDiv.appendChild(pre);
-                        document.body.appendChild(newDiv);
-                    }
+                    // let errorElement: HTMLElement | null = document.getElementById("errors");
+                    // if (!errorElement && infoLog) {
+                    //     let newDiv: HTMLDivElement = document.createElement("div");
+                    //     newDiv.appendChild(document.createTextNode("Fragment shader info log"));
+                    //     newDiv.appendChild(document.createElement("br"));
+                    //     newDiv.appendChild(document.createTextNode(infoLog));
+                    //     let pre = document.createElement("pre");
+                    //     pre.textContent = this._fragShaderSource;
+                    //     pre.style.width = "50%";
+                    //     newDiv.appendChild(pre);
+                    //     document.body.appendChild(newDiv);
+                    // }
                 }
                 if (status)
                     this._fragShaderCompileStatus = true;
@@ -4049,19 +4062,19 @@ var Fluxions;
                         this._programLinkStatus = false;
                         let infoLog = gl.getProgramInfoLog(this._program);
                         console.error("PROGRAM LINK ERROR:");
-                        console.error(infoLog);
+                        console.error(infoLog ? infoLog : "");
                         console.error("--------------------------------------------");
-                        if (infoLog) {
-                            this._programInfoLog = infoLog;
-                            let errorElement = document.getElementById("errors");
-                            if (!errorElement && infoLog) {
-                                let newDiv = document.createElement("div");
-                                newDiv.appendChild(document.createTextNode("PROGRAM INFO LOG"));
-                                newDiv.appendChild(document.createElement("br"));
-                                newDiv.appendChild(document.createTextNode(infoLog));
-                                document.body.appendChild(newDiv);
-                            }
-                        }
+                        // if (infoLog) {
+                        //     this._programInfoLog = infoLog;
+                        //     let errorElement: HTMLElement | null = document.getElementById("errors");
+                        //     if (!errorElement && infoLog) {
+                        //         let newDiv: HTMLDivElement = document.createElement("div");
+                        //         newDiv.appendChild(document.createTextNode("PROGRAM INFO LOG"));
+                        //         newDiv.appendChild(document.createElement("br"));
+                        //         newDiv.appendChild(document.createTextNode(infoLog));
+                        //         document.body.appendChild(newDiv);
+                        //     }
+                        // }
                     }
                 }
             }
@@ -4181,8 +4194,10 @@ var Fluxions;
             this.enabledExtensions = new Map();
             this._visible = false;
             this._resized = true;
-            if (!xor.graphics.gl)
+            if (!xor.graphics.gl) {
+                hflog.error("Unable to start Fluxions without valid gl context");
                 throw "Unable to start Fluxions without valid gl context";
+            }
             /** @property {WebGLRenderingContext} gl */
             this.gl = xor.graphics.gl;
             this.textures = new Fluxions.FxTextureSystem(this);

@@ -5,7 +5,7 @@
 
 namespace Fluxions {
     export class FxRenderingContext {
-        gl: WebGLRenderingContext;
+        gl: WebGLRenderingContext | WebGL2RenderingContext;
         scenegraph: FxScenegraph;
         textures: FxTextureSystem;
         fbos: FxFboSystem;
@@ -16,7 +16,10 @@ namespace Fluxions {
         get aspectRatio(): number { return this.width / this.height; }
 
         constructor(public xor: LibXOR) {
-            if (!xor.graphics.gl) throw "Unable to start Fluxions without valid gl context";
+            if (!xor.graphics.gl) {
+                hflog.error("Unable to start Fluxions without valid gl context");
+                throw "Unable to start Fluxions without valid gl context";
+            }
             /** @property {WebGLRenderingContext} gl */
             this.gl = xor.graphics.gl;
             this.textures = new FxTextureSystem(this);

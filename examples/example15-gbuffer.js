@@ -10,6 +10,7 @@ class App {
         p.innerHTML = `Display G-Buffer.`;
 
         let controls = document.getElementById('controls');
+        createRangeRow(controls, "outputType", 0, 0, 10, 1);
 
         this.azimuth = -90;
         this.inclination = 0;
@@ -24,7 +25,7 @@ class App {
 
     init() {
         hflog.logElement = "log";
-        this.xor.graphics.setVideoMode(1.5 * 384, 384);
+        this.xor.graphics.setVideoMode(1.5 * 384, 384, 2);
         this.xor.input.init();
 
         this.xor.fluxions.textures.load("test2D", "models/textures/test_texture.png");

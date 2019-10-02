@@ -102,7 +102,7 @@ namespace Fluxions {
             gl.depthMask(this.depthMask);
 
             let unit = 0;
-            for (let texture of this.textures) {                
+            for (let texture of this.textures) {
                 this.bindTextureUniform(texture.uniformName, texture.textureName, unit);
                 unit++;
             }
@@ -117,15 +117,14 @@ namespace Fluxions {
          * @param texture name of the texture
          * @param unit >= 0 the unit, or if unit < 0 the last unit bound by this texture
          */
-        bindTextureUniform(uniform: string, texture: string, unit: number)
-        {
+        bindTextureUniform(uniform: string, texture: string, unit: number) {
             let u = this.uniforms.get(uniform);
             if (!u) return;
             if (unit >= 0) this.uniformUnits.set(uniform, unit);
             let t = this.fx.textures.get(texture);
             if (!t) return;
             if (unit < 0) {
-                let lastUnit = this.uniformUnits.get(uniform) || 0;                
+                let lastUnit = this.uniformUnits.get(uniform) || 0;
                 t.bindUnit(lastUnit);
                 this.fx.gl.uniform1i(u, lastUnit);
             } else {
@@ -243,18 +242,18 @@ namespace Fluxions {
                     hflog.error("VERTEX SHADER COMPILE ERROR:");
                     hflog.error(infoLog ? infoLog : "");
                     hflog.error("--------------------------------------------");
-                    let errorElement: HTMLElement | null = document.getElementById("errors");
-                    if (!errorElement && infoLog) {
-                        let newDiv: HTMLDivElement = document.createElement("div");
-                        newDiv.appendChild(document.createTextNode("Vertex shader info log"));
-                        newDiv.appendChild(document.createElement("br"));
-                        newDiv.appendChild(document.createTextNode(infoLog));
-                        let pre = document.createElement("pre");
-                        pre.textContent = this._vertShaderSource;
-                        pre.style.width = "50%";
-                        newDiv.appendChild(pre);
-                        document.body.appendChild(newDiv);
-                    }
+                    // let errorElement: HTMLElement | null = document.getElementById("errors");
+                    // if (!errorElement && infoLog) {
+                    //     let newDiv: HTMLDivElement = document.createElement("div");
+                    //     newDiv.appendChild(document.createTextNode("Vertex shader info log"));
+                    //     newDiv.appendChild(document.createElement("br"));
+                    //     newDiv.appendChild(document.createTextNode(infoLog));
+                    //     let pre = document.createElement("pre");
+                    //     pre.textContent = this._vertShaderSource;
+                    //     pre.style.width = "50%";
+                    //     newDiv.appendChild(pre);
+                    //     document.body.appendChild(newDiv);
+                    // }
                 }
                 if (status)
                     this._vertShaderCompileStatus = true;
@@ -277,18 +276,18 @@ namespace Fluxions {
                     hflog.error("FRAGMENT SHADER COMPILE ERROR:");
                     hflog.error(infoLog ? infoLog : "");
                     hflog.error("--------------------------------------------");
-                    let errorElement: HTMLElement | null = document.getElementById("errors");
-                    if (!errorElement && infoLog) {
-                        let newDiv: HTMLDivElement = document.createElement("div");
-                        newDiv.appendChild(document.createTextNode("Fragment shader info log"));
-                        newDiv.appendChild(document.createElement("br"));
-                        newDiv.appendChild(document.createTextNode(infoLog));
-                        let pre = document.createElement("pre");
-                        pre.textContent = this._fragShaderSource;
-                        pre.style.width = "50%";
-                        newDiv.appendChild(pre);
-                        document.body.appendChild(newDiv);
-                    }
+                    // let errorElement: HTMLElement | null = document.getElementById("errors");
+                    // if (!errorElement && infoLog) {
+                    //     let newDiv: HTMLDivElement = document.createElement("div");
+                    //     newDiv.appendChild(document.createTextNode("Fragment shader info log"));
+                    //     newDiv.appendChild(document.createElement("br"));
+                    //     newDiv.appendChild(document.createTextNode(infoLog));
+                    //     let pre = document.createElement("pre");
+                    //     pre.textContent = this._fragShaderSource;
+                    //     pre.style.width = "50%";
+                    //     newDiv.appendChild(pre);
+                    //     document.body.appendChild(newDiv);
+                    // }
                 }
                 if (status)
                     this._fragShaderCompileStatus = true;
@@ -315,19 +314,19 @@ namespace Fluxions {
                         this._programLinkStatus = false;
                         let infoLog = gl.getProgramInfoLog(this._program);
                         console.error("PROGRAM LINK ERROR:");
-                        console.error(infoLog);
+                        console.error(infoLog ? infoLog : "");
                         console.error("--------------------------------------------");
-                        if (infoLog) {
-                            this._programInfoLog = infoLog;
-                            let errorElement: HTMLElement | null = document.getElementById("errors");
-                            if (!errorElement && infoLog) {
-                                let newDiv: HTMLDivElement = document.createElement("div");
-                                newDiv.appendChild(document.createTextNode("PROGRAM INFO LOG"));
-                                newDiv.appendChild(document.createElement("br"));
-                                newDiv.appendChild(document.createTextNode(infoLog));
-                                document.body.appendChild(newDiv);
-                            }
-                        }
+                        // if (infoLog) {
+                        //     this._programInfoLog = infoLog;
+                        //     let errorElement: HTMLElement | null = document.getElementById("errors");
+                        //     if (!errorElement && infoLog) {
+                        //         let newDiv: HTMLDivElement = document.createElement("div");
+                        //         newDiv.appendChild(document.createTextNode("PROGRAM INFO LOG"));
+                        //         newDiv.appendChild(document.createElement("br"));
+                        //         newDiv.appendChild(document.createTextNode(infoLog));
+                        //         document.body.appendChild(newDiv);
+                        //     }
+                        // }
                     }
                 }
             } else {

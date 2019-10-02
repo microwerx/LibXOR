@@ -5,7 +5,7 @@
 
 namespace XOR {
     export class GraphicsSystem {
-        gl: WebGLRenderingContext | null = null;
+        gl: WebGLRenderingContext | WebGL2RenderingContext | null = null;
         canvas: HTMLCanvasElement | null = null;
         private glcontextid = "GraphicsSystem" + GTE.randomUint8().toString();
         sprites: GraphicsSprite[] = [];
@@ -57,7 +57,7 @@ namespace XOR {
             }
         }
 
-        setVideoMode(width: number, height: number) {
+        setVideoMode(width: number, height: number, version: number = 1) {
             let p = this.xor.parentElement;
             while (p.firstChild) {
                 p.removeChild(p.firstChild);
@@ -68,7 +68,15 @@ namespace XOR {
             canvas.width = width;
             canvas.height = height;
             canvas.style.borderRadius = "4px";
-            this.gl = canvas.getContext("webgl");
+            if (version == 1) {
+                this.gl = canvas.getContext("webgl");
+                if (this.gl) hflog.info("Using WebGL 1.0");
+                else hflog.error("WebGL 1.0 failed");
+            } else if (version == 2) {
+                this.gl = canvas.getContext("webgl2");
+                if (this.gl) hflog.info("Using WebGL 2.0");
+                else hflog.error("WebGL 2.0 failed");
+            }
             this.canvas = canvas;
             p.appendChild(canvas);
 

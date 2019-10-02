@@ -3891,18 +3891,18 @@ var Fluxions;
                     hflog.error("VERTEX SHADER COMPILE ERROR:");
                     hflog.error(infoLog ? infoLog : "");
                     hflog.error("--------------------------------------------");
-                    let errorElement = document.getElementById("errors");
-                    if (!errorElement && infoLog) {
-                        let newDiv = document.createElement("div");
-                        newDiv.appendChild(document.createTextNode("Vertex shader info log"));
-                        newDiv.appendChild(document.createElement("br"));
-                        newDiv.appendChild(document.createTextNode(infoLog));
-                        let pre = document.createElement("pre");
-                        pre.textContent = this._vertShaderSource;
-                        pre.style.width = "50%";
-                        newDiv.appendChild(pre);
-                        document.body.appendChild(newDiv);
-                    }
+                    // let errorElement = document.getElementById("errors");
+                    // if (!errorElement && infoLog) {
+                    //     let newDiv = document.createElement("div");
+                    //     newDiv.appendChild(document.createTextNode("Vertex shader info log"));
+                    //     newDiv.appendChild(document.createElement("br"));
+                    //     newDiv.appendChild(document.createTextNode(infoLog));
+                    //     let pre = document.createElement("pre");
+                    //     pre.textContent = this._vertShaderSource;
+                    //     pre.style.width = "50%";
+                    //     newDiv.appendChild(pre);
+                    //     document.body.appendChild(newDiv);
+                    // }
                 }
                 if (status)
                     this._vertShaderCompileStatus = true;
@@ -3924,18 +3924,18 @@ var Fluxions;
                     hflog.error("FRAGMENT SHADER COMPILE ERROR:");
                     hflog.error(infoLog ? infoLog : "");
                     hflog.error("--------------------------------------------");
-                    let errorElement = document.getElementById("errors");
-                    if (!errorElement && infoLog) {
-                        let newDiv = document.createElement("div");
-                        newDiv.appendChild(document.createTextNode("Fragment shader info log"));
-                        newDiv.appendChild(document.createElement("br"));
-                        newDiv.appendChild(document.createTextNode(infoLog));
-                        let pre = document.createElement("pre");
-                        pre.textContent = this._fragShaderSource;
-                        pre.style.width = "50%";
-                        newDiv.appendChild(pre);
-                        document.body.appendChild(newDiv);
-                    }
+                    // let errorElement = document.getElementById("errors");
+                    // if (!errorElement && infoLog) {
+                    //     let newDiv = document.createElement("div");
+                    //     newDiv.appendChild(document.createTextNode("Fragment shader info log"));
+                    //     newDiv.appendChild(document.createElement("br"));
+                    //     newDiv.appendChild(document.createTextNode(infoLog));
+                    //     let pre = document.createElement("pre");
+                    //     pre.textContent = this._fragShaderSource;
+                    //     pre.style.width = "50%";
+                    //     newDiv.appendChild(pre);
+                    //     document.body.appendChild(newDiv);
+                    // }
                 }
                 if (status)
                     this._fragShaderCompileStatus = true;
