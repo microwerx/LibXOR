@@ -15,6 +15,7 @@ class App {
         this.azimuth = -90;
         this.inclination = 0;
         this.distance = 2;
+        this.gbufferOutputType = 0;
     }
 
     reset() {
@@ -43,7 +44,7 @@ class App {
         let bbox = new GTE.BoundingBox();
         bbox.add(Vector3.make(-0.5, -0.5, -0.5));
         bbox.add(Vector3.make(0.5, 0.5, 0.5));
-        this.xor.meshes.load('teapot', 'models/cornellboxe.obj', bbox);
+        this.xor.meshes.load('scene', 'models/cornellboxe.obj', bbox);
 
         let screen = this.xor.meshes.create('fullscreenquad');
         let pal = this.xor.palette;
@@ -73,6 +74,8 @@ class App {
             this.distance += xor.input.mouse.delta.y * xor.dt;
             this.distance = GTE.clamp(this.distance, 2, 10);
         }
+
+        this.gbufferOutputType = getRangeValue('outputType');
     }
 
     render() {
@@ -90,8 +93,9 @@ class App {
             rc.uniform3f('kd', Vector3.make(1.0, 0.0, 0.0));
             rc.uniform3f('sunDirTo', Vector3.make(1.0, 1.0, 1.0));
 
+            rc.uniform1i('GBufferOutputType', this.gbufferOutputType);
             rc.uniformMatrix4f('WorldMatrix', Matrix4.makeTranslation(0, 0, 0));
-            xor.meshes.render('teapot', rc);
+            xor.meshes.render('scene', rc);
             rc.restore();
         }
 
