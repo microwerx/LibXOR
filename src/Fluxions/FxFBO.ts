@@ -189,8 +189,6 @@ class FxFBO {
             hflog.log("Framebuffer is okay! size is " + resolutionSizeText + " with " +
                 this._colorTypeDesc +
                 "/" + this._depthTypeDesc);
-            // hflog.log("Framebuffer is okay! size is " + this.width + "x" + this.height + " texture: " +
-            //     this._powerOfTwoDimensions.x + "x" + this._powerOfTwoDimensions.y);
         }
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -220,7 +218,7 @@ class FxFBO {
 
         if (this.color && this._colorTexture) {
             gl.bindTexture(gl.TEXTURE_2D, this._colorTexture);
-            gl.generateMipmap(gl.TEXTURE_2D);
+            // gl.generateMipmap(gl.TEXTURE_2D);
             gl.bindTexture(gl.TEXTURE_2D, null);
         }
 

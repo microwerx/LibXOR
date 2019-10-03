@@ -66,8 +66,8 @@ class App {
         let fx = this.xor.fluxions;
         let w = this.flame.width;
         let h = this.flame.height;
-        fx.fbos.add("lb1", false, true, w, h, 1);
-        fx.fbos.add("lb2", false, true, w, h, 1);
+        fx.fbos.add("lb1", true, false, w, h);
+        fx.fbos.add("lb2", true, false, w, h);
 
         // load some textures
         fx.textures.load("RadianceCLUT", "models/textures/flame_map.png");

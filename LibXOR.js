@@ -3843,7 +3843,11 @@ var Fluxions;
             this._texturesBound = 0;
             this._warnings = 10;
         }
-        get usable() { return this.isCompiledAndLinked(); }
+        get usable() {
+            if (this.writesToFBO && !this.fx.verifyFBO(this.writeToFBO))
+                return false;
+            return this.isCompiledAndLinked();
+        }
         isCompiledAndLinked() {
             if (this._isCompiled && this._isLinked)
                 return true;
@@ -4192,9 +4196,7 @@ var Fluxions;
             }
             else if (this.renderconfigs.has(name)) {
                 let rc = this.renderconfigs.get(name);
-                if (rc) {
-                    if (!this.fx.verifyFBO(rc.writeToFBO))
-                        return null;
+                if (rc && rc.usable) {
                     rc.use();
                     return rc;
                 }
@@ -4511,8 +4513,6 @@ class FxFBO {
             hflog.log("Framebuffer is okay! size is " + resolutionSizeText + " with " +
                 this._colorTypeDesc +
                 "/" + this._depthTypeDesc);
-            // hflog.log("Framebuffer is okay! size is " + this.width + "x" + this.height + " texture: " +
-            //     this._powerOfTwoDimensions.x + "x" + this._powerOfTwoDimensions.y);
         }
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
@@ -4542,7 +4542,7 @@ class FxFBO {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         if (this.color && this._colorTexture) {
             gl.bindTexture(gl.TEXTURE_2D, this._colorTexture);
-            gl.generateMipmap(gl.TEXTURE_2D);
+            // gl.generateMipmap(gl.TEXTURE_2D);
             gl.bindTexture(gl.TEXTURE_2D, null);
         }
         gl.colorMask(true, true, true, true);

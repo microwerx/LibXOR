@@ -30,7 +30,7 @@ class App {
         this.xor.input.init();
 
         this.xor.fluxions.textures.load("test2D", "models/textures/test_texture.png");
-        this.xor.fluxions.fbos.add("gbuffer", true, true, 512, 512, 0);
+        this.xor.fluxions.fbos.add("gbuffer", true, true, 512, 512);
 
         let rc = this.xor.renderconfigs.load('gbuffer', 'shaders/basic.vert', 'shaders/gbuffer.frag');
         rc.useDepthTest = true;
@@ -91,7 +91,7 @@ class App {
             rc.uniformMatrix4f('ProjectionMatrix', pmatrix);
             rc.uniformMatrix4f('CameraMatrix', cmatrix);
             rc.uniform3f('Kd', Vector3.make(1.0, 0.0, 0.0));
-            rc.uniform3f('sunDirTo', Vector3.make(1.0, 1.0, 1.0));
+            rc.uniform3f('SunDirTo', Vector3.make(1.0, 1.0, 1.0));
 
             rc.uniform1i('GBufferOutputType', this.gbufferOutputType);
             rc.uniformMatrix4f('WorldMatrix', Matrix4.makeTranslation(0, 0, 0));
@@ -113,6 +113,7 @@ class App {
             rc.uniform1i('iFrame', xor.frameCount);
             rc.uniform1i('iSkyMode', getRangeValue('iSkyMode'));
             xor.meshes.render('fullscreenquad', rc);
+            xor.meshes.render('scene', rc);
             rc.restore();
         }
         xor.renderconfigs.use(null);

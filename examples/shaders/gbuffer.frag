@@ -44,7 +44,7 @@ in vec3 vTexcoord;
 in vec3 vColor;
 in vec3 vCamera;
 
-out vec4 FragColor;
+out vec4 oFragColor;
 
 vec3 ReadColor3(float mixAmount, sampler2D tex, vec3 color) {
     if (mixAmount > 0.0) {
@@ -82,25 +82,25 @@ void main() {
 
     switch (GBufferOutputType) {
     case GBUFFER_NORMALS:
-        FragColor = vec4(0.5 * N + 0.5, 1.0);
+        oFragColor = vec4(0.5 * N + 0.5, 1.0);
         break;
     case GBUFFER_DEPTH:
-        FragColor = vec4(vec3(vPosition.z / 10.0), 1.0);
+        oFragColor = vec4(vec3(vPosition.z / 10.0), 1.0);
         break;
     case GBUFFER_DIFFUSE_COLOR:
-        FragColor = vec4(diffuseColor, 1.0);
+        oFragColor = vec4(diffuseColor, 1.0);
         break;
     case GBUFFER_DIFFUSE_ROUGHNESS:
-        FragColor = vec4(vec3(diffuseRoughness), 1.0);
+        oFragColor = vec4(vec3(diffuseRoughness), 1.0);
         break;
     case GBUFFER_SPECULAR_COLOR:
-        FragColor = vec4(specularColor, 1.0);
+        oFragColor = vec4(specularColor, 1.0);
         break;
     case GBUFFER_SPECULAR_ROUGHNESS:
-        FragColor = vec4(vec3(specularRoughness), 1.0);
+        oFragColor = vec4(vec3(specularRoughness), 1.0);
         break;
     default:
-        FragColor = vec4(1.0);
+        oFragColor = vec4(1.0);
         break;
     }
 }

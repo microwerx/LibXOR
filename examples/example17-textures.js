@@ -40,10 +40,10 @@ class App {
         let fx = this.xor.fluxions;
 
         fx.textures.load("test2D", "models/textures/test_texture.png");
-        fx.textures.load("godzilla", "models/textures/godzilla.png");
+        fx.textures.load("godzilla", "models/textures/godzilla-hdtv.png");
         fx.textures.load("parrot", "models/textures/parrot.png");
         fx.textures.load("checker", "models/textures/mar0kuu2.jpg");
-        fx.fbos.add("gbuffer", true, true, 512, 256, 0);
+        fx.fbos.add("gbuffer", true, true, 512, 512, 0);
 
         let rc = xor.renderconfigs.load('default', 'shaders/basic.vert', 'shaders/basic.frag');
         rc.useDepthTest = true;
@@ -103,6 +103,7 @@ class App {
         let xor = this.xor;
         let gl = this.xor.fluxions.gl;
         xor.graphics.clear(xor.palette.AZURE);
+        let GL = WebGL2RenderingContext;
 
         let rc = xor.renderconfigs.use('default');
         if (rc) {
@@ -157,13 +158,12 @@ class App {
                     default: gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
                         break;
                 }
+                let ext = xor.fluxions.getExtension('EXT_texture_filter_anisotropic');
+                if (ext && this.iAnisotropy > 0) {
+                    let max = Math.min(this.iAnisotropy, gl.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT));
+                    gl.texParameterf(gl.TEXTURE_2D, ext.TEXTURE_MAX_ANISOTROPY_EXT, max);
+                }
             } catch (e) { }
-
-            let ext = xor.fluxions.getExtension('EXT_texture_filter_anisotropic');
-            if (ext && this.iAnisotropy > 0) {
-                let max = Math.min(this.iAnisotropy, gl.getParameter(ext.TEXTURE_MAX_ANISOTROPY_EXT));
-                gl.texParameterf(gl.TEXTURE_2D, ext.TEXTURE_MAX_ANISOTROPY_EXT, max);
-            }
 
             rc.uniformMatrix4f('WorldMatrix', Matrix4.makeTranslation(0, 0, 0));
             switch (this.iModel) {
@@ -178,8 +178,8 @@ class App {
                 default: xor.meshes.render('rect', rc);
                     break;
             }
+            rc.restore();
         }
-        rc.restore();
         xor.renderconfigs.use(null);
     }
 

@@ -75,7 +75,10 @@ namespace Fluxions {
 
         constructor(public fx: FxRenderingContext) { }
 
-        get usable(): boolean { return this.isCompiledAndLinked(); }
+        get usable(): boolean {
+            if (this.writesToFBO && !this.fx.verifyFBO(this.writeToFBO)) return false;
+            return this.isCompiledAndLinked();
+        }
 
         isCompiledAndLinked(): boolean {
             if (this._isCompiled && this._isLinked)

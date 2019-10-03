@@ -42,4 +42,5 @@ void main() {
     
     // set to white
     oFragColor = vec4(gbufferEnabled > 0.0 ? gbuf : map, 1.0);
+    // oFragColor = vec4(1.0, 0.0, 0.0, 1.0);
 }
