@@ -11,6 +11,11 @@
 
 mtllib cornellboxe.mtl
 
+vt 0 0
+vt 1 0
+vt 1 1
+vt 0 1
+
 # Object floor
 v  -1.01  0.00   0.99
 v   1.00  0.00   0.99
@@ -19,7 +24,7 @@ v  -0.99  0.00  -1.04
 
 g floor
 usemtl floor
-f -4 -3 -2 -1
+f -4//0 -3//1 -2//2 -1//3
 
 # Object ceiling 
 v  -1.02  1.99   0.99  

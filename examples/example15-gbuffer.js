@@ -1,5 +1,5 @@
 /// <reference path="htmlutils.js" />
-/// <reference path="LibXOR.js" />
+/// <reference path="../src/LibXOR.ts" />
 /* global Vector3 XOR */
 
 class App {
@@ -109,6 +109,7 @@ class App {
             rc.uniform3f('iResolution', GTE.vec3(xor.graphics.width, xor.graphics.height, 0));
             // rc.uniform1f('iTime', xor.t1);
             // rc.uniform1f('iTimeDelta', xor.dt);
+            // rc.uniform1f('gbufferEnabled', 1.0);
             rc.uniform1i('iFrame', xor.frameCount);
             rc.uniform1i('iSkyMode', getRangeValue('iSkyMode'));
             xor.meshes.render('fullscreenquad', rc);

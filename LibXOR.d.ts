@@ -453,11 +453,11 @@ declare namespace GTE {
     function vec4(x?: number, y?: number, z?: number, w?: number): Vector4;
 }
 declare namespace XOR {
-    function GetURLResource(url: string): string;
-    function GetURLPath(url: string): string;
-    function IsExtension(sourceString: string, extensionWithDot: string): boolean;
-    function GetExtension(sourceString: string): string;
-    class ShaderLoader {
+    export function GetURLResource(url: string): string;
+    export function GetURLPath(url: string): string;
+    export function IsExtension(sourceString: string, extensionWithDot: string): boolean;
+    export function GetExtension(sourceString: string): string;
+    export class ShaderLoader {
         vertShaderUrl: string;
         fragShaderUrl: string;
         private callbackfn;
@@ -471,7 +471,7 @@ declare namespace XOR {
         readonly loaded: boolean;
         constructor(vertShaderUrl: string, fragShaderUrl: string, callbackfn: (vertShaderSource: string, fragShaderSource: string) => void);
     }
-    class TextFileLoader {
+    export class TextFileLoader {
         private callbackfn;
         private _loaded;
         private _failed;
@@ -481,7 +481,7 @@ declare namespace XOR {
         readonly failed: boolean;
         constructor(url: string, callbackfn: (data: string, name: string, parameter: number) => void, parameter?: number);
     }
-    class ImageFileLoader {
+    export class ImageFileLoader {
         private callbackfn;
         private _loaded;
         private _failed;
@@ -491,15 +491,15 @@ declare namespace XOR {
         readonly failed: boolean;
         constructor(url: string, callbackfn: (data: HTMLImageElement, name: string, parameter: number) => void, parameter?: number);
     }
-    function SeparateCubeMapImages(image: HTMLImageElement, images: null[] | ImageData[]): void;
-    function niceTimestamp(timestamp: number): string;
-    function niceFramesPerSecond(t0: number, t1: number): string;
-    function niceDuration(t0: number, t1: number): string;
-    function round3(x: number): number;
-    function round3str(x: number): string;
-    function niceVector(v: Vector3): string;
-    function niceNumber(x: number, digits: number): string;
-    function niceMatrix4(m: Matrix4): string;
+    export function SeparateCubeMapImages(image: HTMLImageElement, images: null[] | ImageData[]): void;
+    export function niceTimestamp(timestamp: number): string;
+    export function niceFramesPerSecond(t0: number, t1: number): string;
+    export function niceDuration(t0: number, t1: number): string;
+    export function round3(x: number): number;
+    export function round3str(x: number): string;
+    export function niceVector(v: Vector3): string;
+    export function niceNumber(x: number, digits: number): string;
+    export function niceMatrix4(m: Matrix4): string;
     class GLTypeInfo {
         type: number;
         baseType: number;
@@ -508,7 +508,8 @@ declare namespace XOR {
         constructor(type: number, baseType: number, components: number, sizeOfType: number);
         CreateArray(size: number): Float32Array | Int32Array | Int16Array | Uint32Array | Uint16Array | Uint8ClampedArray | null;
     }
-    var WebGLTypeInfo: Map<number, GLTypeInfo>;
+    export var WebGLTypeInfo: Map<number, GLTypeInfo>;
+    export {};
 }
 declare namespace XOR {
     class MemorySystem {
@@ -554,7 +555,7 @@ declare namespace XOR {
 declare namespace XOR {
     class GraphicsSystem {
         private xor;
-        gl: WebGLRenderingContext | null;
+        gl: WebGLRenderingContext | WebGL2RenderingContext | null;
         canvas: HTMLCanvasElement | null;
         private glcontextid;
         sprites: GraphicsSprite[];
@@ -1130,7 +1131,7 @@ declare namespace Fluxions {
 declare namespace Fluxions {
     class FxRenderingContext {
         xor: LibXOR;
-        gl: WebGLRenderingContext;
+        gl: WebGLRenderingContext | WebGL2RenderingContext;
         scenegraph: FxScenegraph;
         textures: FxTextureSystem;
         fbos: FxFboSystem;
@@ -1394,7 +1395,7 @@ declare namespace Fluxions {
         normalPoint: Vector3;
         N: Vector3;
     }
-    class FxEdgeMesh {
+    export class FxEdgeMesh {
         vertices: Vector3[];
         edges: Map<number, FxEdge>;
         faces: FxEdgeMeshFace[];
@@ -1410,6 +1411,7 @@ declare namespace Fluxions {
         eboCount: number;
         buildBuffers(gl: WebGLRenderingContext, isStatic?: boolean): WebGLBuffer | null;
     }
+    export {};
 }
 declare namespace Fluxions {
     class FxIndexedGeometryMesh {
@@ -1460,7 +1462,7 @@ declare namespace Fluxions {
 declare namespace XOR {
     type FxIndexedGeometryMesh = Fluxions.FxIndexedGeometryMesh;
     type FxRenderConfig = Fluxions.FxRenderConfig;
-    class MeshSystem {
+    export class MeshSystem {
         xor: LibXOR;
         meshes: Map<string, Fluxions.FxIndexedGeometryMesh>;
         constructor(xor: LibXOR);
@@ -1474,10 +1476,11 @@ declare namespace XOR {
         load(name: string, url: string, rescaleBBox: GTE.BoundingBox | null | undefined, rescaleCenter: Vector3 | null): FxIndexedGeometryMesh;
         render(name: string | null, rc: FxRenderConfig): FxIndexedGeometryMesh | null;
     }
+    export {};
 }
 declare namespace XOR {
     type TextFileLoaderCallback = (data: string, name: string, parameter: number) => void;
-    class TextFileLoaderSystem {
+    export class TextFileLoaderSystem {
         private textfiles;
         constructor();
         readonly failed: boolean;
@@ -1486,6 +1489,7 @@ declare namespace XOR {
         wasRequested(name: string): boolean;
         load(name: string, url: string, callbackfn: TextFileLoaderCallback, data: number): void;
     }
+    export {};
 }
 declare type FxIndexedGeometryMesh = Fluxions.FxIndexedGeometryMesh;
 declare type FxRenderConfig = Fluxions.FxRenderConfig;

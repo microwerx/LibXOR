@@ -1,5 +1,5 @@
 /// <reference path="htmlutils.js" />
-/// <reference path="LibXOR.js" />
+/// <reference path="../src/LibXOR.ts" />
 
 class App {
     constructor() {
@@ -42,6 +42,7 @@ class App {
         fx.textures.load("test2D", "models/textures/test_texture.png");
         fx.textures.load("godzilla", "models/textures/godzilla.png");
         fx.textures.load("parrot", "models/textures/parrot.png");
+        fx.textures.load("checker", "models/textures/mar0kuu2.jpg");
         fx.fbos.add("gbuffer", true, true, 512, 256, 0);
 
         let rc = xor.renderconfigs.load('default', 'shaders/basic.vert', 'shaders/basic.frag');
@@ -55,6 +56,7 @@ class App {
         this.xor.meshes.load('mitsuba', 'models/mitsuba.obj', bbox);
         this.xor.meshes.load('teapot', 'models/teapot.obj', bbox);
         this.xor.meshes.load('rect', 'models/rect.obj', bbox);
+        this.xor.meshes.load('other', 'models/geosphere.obj', bbox);
     }
 
     start() {
@@ -85,6 +87,8 @@ class App {
                 case 1: this.rc.addTexture("parrot", "map_kd");
                     break;
                 case 2: this.rc.addTexture("test2D", "map_kd");
+                    break;
+                case 3: this.rc.addTexture("checker", "map_kd");
                     break;
                 default: this.rc.addTexture("godzilla", "map_kd");
                     break;
@@ -168,6 +172,8 @@ class App {
                 case 1: xor.meshes.render('teapot', rc);
                     break;
                 case 2: xor.meshes.render('mitsuba', rc);
+                    break;
+                case 3: xor.meshes.render('other', rc);
                     break;
                 default: xor.meshes.render('rect', rc);
                     break;

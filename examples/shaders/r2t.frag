@@ -31,8 +31,11 @@ void main() {
     vec3 V = normalize(vCamera);
     float NdotV = 0.5 * dot(N, V) + 0.5;
 
-    vec3 gbuf = texture2D(gbufferColor, vTexcoord.st).rgb;
-    vec3 map = texture2D(map_kd, vTexcoord.st).rgb;
+    vec2 st = vec2(vTexcoord.s, 1.0 - vTexcoord.t);
+
+    vec3 gbuf = texture2D(gbufferColor, st).rgb;
+    vec3 map = texture2D(map_kd, st).rgb;
+    
     // set to white
     gl_FragColor = vec4(gbufferEnabled > 0.0 ? gbuf : map, 1.0);
 }
