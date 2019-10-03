@@ -207,7 +207,12 @@ namespace Fluxions {
                     "PBKdm",
                     "PBKsm",
                     "PBn2",
-                    "PBk2"
+                    "PBk2",
+                    "SpecularRoughness",
+                    "DiffuseRoughness",
+                    "Ns",
+                    "Ni",
+                    "Dissolve"
                 ];
                 let v1fvalues = [
                     m.MapKdMix,
@@ -216,7 +221,12 @@ namespace Fluxions {
                     m.DiffuseRoughness,
                     m.SpecularRoughness,
                     m.PBn2,
-                    m.PBk2
+                    m.PBk2,
+                    m.SpecularRoughness,
+                    m.DiffuseRoughness,
+                    m.Ns,
+                    m.Ni,
+                    m.Dissolve
                 ];
                 for (let i = 0; i < v1fnames.length; i++) {
                     let uloc = rc.getUniformLocation(v1fnames[i]);
@@ -225,8 +235,8 @@ namespace Fluxions {
                     }
                 }
 
-                let v3fnames = ["Kd", "Ks", "Ka"];
-                let v3fvalues = [m.Kd, m.Ks, m.Ka];
+                let v3fnames = ["Kd", "Ks", "Ka", "Tf"];
+                let v3fvalues = [m.Kd, m.Ks, m.Ka, m.Tf];
                 for (let i = 0; i < v3fnames.length; i++) {
                     let uloc = rc.getUniformLocation(v3fnames[i]);
                     if (uloc) {

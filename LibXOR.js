@@ -4673,6 +4673,8 @@ var Fluxions;
             this.MapNormal = "";
             this.SpecularRoughness = 0;
             this.DiffuseRoughness = 0;
+            this.Ni = 1.333;
+            this.Ns = 0;
             this.PBn2 = 1.333;
             this.PBk2 = 0;
             this.Dissolve = 1;
@@ -5051,7 +5053,7 @@ var Fluxions;
             let rc = this.currentrc;
             let m = this.getMaterial(mtllib, mtl);
             if (m) {
-                let tnames = ["map_Kd", "map_Ks", "map_normal"];
+                let tnames = ["MapKd", "MapKs", "MapNormal"];
                 let textures = [m.MapKd, m.MapKs, m.MapNormal];
                 for (let i = 0; i < textures.length; i++) {
                     if (textures[i].length == 0)
@@ -5062,16 +5064,42 @@ var Fluxions;
                         rc.uniform1i(tnames[i], i);
                     }
                 }
-                let v1fnames = ["map_Kd_mix", "map_Ks_mix", "map_normal_mix", "PBKdm", "PBKsm", "PBn2", "PBk2"];
-                let v1fvalues = [m.MapKdMix, m.MapKsMix, m.MapNormalMix, m.DiffuseRoughness, m.SpecularRoughness, m.PBn2, m.PBk2];
+                let v1fnames = [
+                    "MapKdMix",
+                    "MapKsix",
+                    "MapNormalMix",
+                    "PBKdm",
+                    "PBKsm",
+                    "PBn2",
+                    "PBk2",
+                    "SpecularRoughness",
+                    "DiffuseRoughness",
+                    "Ns",
+                    "Ni",
+                    "Dissolve"
+                ];
+                let v1fvalues = [
+                    m.MapKdMix,
+                    m.MapKsMix,
+                    m.MapNormalMix,
+                    m.DiffuseRoughness,
+                    m.SpecularRoughness,
+                    m.PBn2,
+                    m.PBk2,
+                    m.SpecularRoughness,
+                    m.DiffuseRoughness,
+                    m.Ns,
+                    m.Ni,
+                    m.Dissolve
+                ];
                 for (let i = 0; i < v1fnames.length; i++) {
                     let uloc = rc.getUniformLocation(v1fnames[i]);
                     if (uloc) {
                         rc.uniform1f(v1fnames[i], v1fvalues[i]);
                     }
                 }
-                let v3fnames = ["Kd", "Ks", "Ka"];
-                let v3fvalues = [m.Kd, m.Ks, m.Ka];
+                let v3fnames = ["Kd", "Ks", "Ka", "Tf"];
+                let v3fvalues = [m.Kd, m.Ks, m.Ka, m.Tf];
                 for (let i = 0; i < v3fnames.length; i++) {
                     let uloc = rc.getUniformLocation(v3fnames[i]);
                     if (uloc) {

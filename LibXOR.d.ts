@@ -1248,6 +1248,8 @@ declare namespace Fluxions {
         MapNormal: string;
         SpecularRoughness: number;
         DiffuseRoughness: number;
+        Ni: number;
+        Ns: number;
         PBn2: number;
         PBk2: number;
         Dissolve: number;
