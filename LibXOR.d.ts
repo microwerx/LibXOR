@@ -1239,6 +1239,7 @@ declare namespace Fluxions {
         Kd: Vector3;
         Ka: Vector3;
         Ks: Vector3;
+        Tf: Vector3;
         MapKdMix: number;
         MapKd: string;
         MapKsMix: number;
@@ -1249,6 +1250,7 @@ declare namespace Fluxions {
         DiffuseRoughness: number;
         PBn2: number;
         PBk2: number;
+        Dissolve: number;
         minFilter: number;
         magFilter: number;
         constructor(name: string);

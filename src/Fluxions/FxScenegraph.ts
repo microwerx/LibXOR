@@ -188,7 +188,7 @@ namespace Fluxions {
             let rc = this.currentrc;
             let m = this.getMaterial(mtllib, mtl);
             if (m) {
-                let tnames = ["map_Kd", "map_Ks", "map_normal"];
+                let tnames = ["MapKd", "MapKs", "MapNormal"];
                 let textures = [m.MapKd, m.MapKs, m.MapNormal];
                 for (let i = 0; i < textures.length; i++) {
                     if (textures[i].length == 0)
@@ -200,8 +200,24 @@ namespace Fluxions {
                     }
                 }
 
-                let v1fnames = ["map_Kd_mix", "map_Ks_mix", "map_normal_mix", "PBKdm", "PBKsm", "PBn2", "PBk2"];
-                let v1fvalues = [m.MapKdMix, m.MapKsMix, m.MapNormalMix, m.DiffuseRoughness, m.SpecularRoughness, m.PBn2, m.PBk2];
+                let v1fnames = [
+                    "MapKdMix",
+                    "MapKsix",
+                    "MapNormalMix",
+                    "PBKdm",
+                    "PBKsm",
+                    "PBn2",
+                    "PBk2"
+                ];
+                let v1fvalues = [
+                    m.MapKdMix,
+                    m.MapKsMix,
+                    m.MapNormalMix,
+                    m.DiffuseRoughness,
+                    m.SpecularRoughness,
+                    m.PBn2,
+                    m.PBk2
+                ];
                 for (let i = 0; i < v1fnames.length; i++) {
                     let uloc = rc.getUniformLocation(v1fnames[i]);
                     if (uloc) {
@@ -547,13 +563,11 @@ namespace Fluxions {
                         curmtl.MapKd = XOR.GetURLResource(tokens[1]);
                         curmtl.MapKdMix = 1.0;
                         this.load(path + tokens[1]);
-                    }
-                    else if (tokens[0] == "map_Ks") {
+                    } else if (tokens[0] == "map_Ks") {
                         curmtl.MapKs = XOR.GetURLResource(tokens[1]);
                         curmtl.MapKsMix = 1.0;
                         this.load(path + tokens[1]);
-                    }
-                    else if (tokens[0] == "map_normal") {
+                    } else if (tokens[0] == "map_normal") {
                         curmtl.MapNormal = XOR.GetURLResource(tokens[1]);
                         curmtl.MapNormalMix = 1.0;
                         this.load(path + tokens[1]);
@@ -563,9 +577,9 @@ namespace Fluxions {
                         curmtl.Ks = FxTextParser.ParseVector(tokens);
                     } else if (tokens[0] == "Ka") {
                         curmtl.Ka = FxTextParser.ParseVector(tokens);
-                    } else if (tokens[0] == "PBKdm") {
+                    } else if (tokens[0] == "PBKdm" || tokens[0] == "DiffuseRoughness") {
                         curmtl.DiffuseRoughness = parseFloat(tokens[1]);
-                    } else if (tokens[0] == "PBKsm") {
+                    } else if (tokens[0] == "PBKsm" || tokens[0] == "SpecularRoughness") {
                         curmtl.SpecularRoughness = parseFloat(tokens[1]);
                     } else if (tokens[0] == "Ns") {
                         curmtl.SpecularRoughness = Math.sqrt(2.0 / (2.0 + parseFloat(tokens[1])));
@@ -573,15 +587,16 @@ namespace Fluxions {
                         curmtl.PBn2 = parseFloat(tokens[1]);
                     } else if (tokens[0] == "PBk2" || tokens[0] == "Nk") {
                         curmtl.PBk2 = parseFloat(tokens[1]);
-                    }
-                    else if (tokens[0] == "MapKdMix") {
+                    } else if (tokens[0] == "MapKdMix") {
                         curmtl.MapKdMix = parseFloat(tokens[1]);
-                    }
-                    else if (tokens[0] == "MapKsMix") {
+                    } else if (tokens[0] == "MapKsMix") {
                         curmtl.MapKsMix = parseFloat(tokens[1]);
-                    }
-                    else if (tokens[0] == "MapNormalMix") {
+                    } else if (tokens[0] == "MapNormalMix") {
                         curmtl.MapNormalMix = parseFloat(tokens[1]);
+                    } else if (tokens[0] == "d") {
+                        curmtl.Dissolve = parseFloat(tokens[1]);
+                    } else if (tokens[0] == "Tf") {
+                        curmtl.Tf = FxTextParser.ParseVector(tokens);
                     }
                 }
             }
