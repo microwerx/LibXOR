@@ -37,10 +37,18 @@ namespace Fluxions {
             if (xor.graphics.hasWebGL2) {
                 this.enableExtensions([
                     "EXT_texture_filter_anisotropic",
+                    "EXT_color_buffer_float",
+                    "WEBGL_depth_texture",
+                    "WEBGL_debug_renderer_info",
+                    "OES_element_index_uint",
+                    "OES_standard_derivatives",
+                    "OES_texture_float_linear",
+                    "OES_texture_float",
                 ]);
             } else {
                 this.enableExtensions([
                     "EXT_texture_filter_anisotropic",
+                    "EXT_color_buffer_float",
                     "WEBGL_depth_texture",
                     "WEBGL_debug_renderer_info",
                     "OES_element_index_uint",
@@ -122,6 +130,14 @@ namespace Fluxions {
             //     this.width = w;
             //     this.height = h;
             // }
+        }
+
+        verifyFBO(name: string) : boolean {
+            let fbo = this.fbos.get(name);
+            if (fbo) {
+                if (fbo.complete) return true;
+            }
+            return false;
         }
     }
 }

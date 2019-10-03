@@ -34,9 +34,10 @@ function createRow(leftContent = "", rightContent = "") {
  */
 function createRangeRow(parent, id, curValue, minValue, maxValue, stepValue = 1, isvector = false) {
     let lContent = "<div class='column left'><label for='" + id + "'>" + id + "<label></div>";
-    let rContent = "<div class='column right'>";
+    let rContent = "<div class='column'>";
     if (!isvector) {
         rContent += "<input type='range' id='" + id + "' value='" + curValue + "' min='" + minValue + "' max='" + maxValue + "' step='" + stepValue + "' />";
+        rContent += "</div><div class='column left'>";
         rContent += "<label id='" + id + "_value'></label>";
     } else {
         rContent += "<input type='range' id='" + id + "1' value='" + curValue + "' min='" + minValue + "' max='" + maxValue + "' step='" + stepValue + "' />";
@@ -152,6 +153,19 @@ function getRangeVector3(id) {
         getRangeValue(id + "2"),
         getRangeValue(id + "3")
     );
+}
+
+
+/**
+ * setIdToHtml
+ * @param {string} id 
+ * @param {string} html
+ */
+function setIdToHtml(id, html) {
+    let el = document.getElementById(id);
+    if (el) {
+        el.innerHTML = html;
+    }
 }
 
 // END HELPFUL HTML5 CODE

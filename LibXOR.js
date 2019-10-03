@@ -2030,6 +2030,10 @@ var XOR;
             this.layer3height = 0;
             this.layer4width = 0;
             this.layer4height = 0;
+            this.offsetX = 0;
+            this.offsetY = 0;
+            this.zoomX = 1;
+            this.zoomY = 1;
             this.worldMatrix = Matrix4.makeIdentity();
             this.cameraMatrix = Matrix4.makeIdentity(); //Matrix4.makeTranslation(0, 0, Math.sin(this.xor.t1) - 10);
             this.projectionMatrix = Matrix4.makeOrtho(0, 256, 0, 256, -100.0, 100.0);
@@ -2176,6 +2180,8 @@ var XOR;
             // sprites ...
             for (let i = 0; i < this.MaxSprites; i++) {
                 let spr = this.sprites[i];
+                if (!spr)
+                    continue;
                 let r = 1;
                 let g = 1;
                 let b = 1;
@@ -2379,9 +2385,9 @@ var XOR;
             let gl = this.gl;
             let xor = this.xor;
             this.createBuffers();
-            let s = Math.sin(xor.t1);
-            gl.clearColor(0.3 * s, 0.1 * s, 0.2 * s, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            // let s = Math.sin(xor.t1);
+            // gl.clearColor(0.3 * s, 0.1 * s, 0.2 * s, 1.0);
+            // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             this.projectionMatrix = Matrix4.makeOrtho2D(0, this.canvas.width, this.canvas.height, 0);
             gl.viewport(0, 0, this.canvas.width, this.canvas.height);
             // General Order of Drawing
@@ -2430,9 +2436,17 @@ var XOR;
             this.disableVertexAttrib(gl, this.aGeneric);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
         }
-    }
+        setOffset(x, y) {
+            this.offsetX = x;
+            this.offsetY = y;
+        }
+        setZoom(x, y) {
+            this.zoomX = x;
+            this.zoomY = y;
+        }
+    } // class XorGraphicSystem
     XOR.GraphicsSystem = GraphicsSystem;
-})(XOR || (XOR = {}));
+})(XOR || (XOR = {})); // namespace XOR
 /// <reference path="../XOR/XorSoundSystem.ts" />
 var TF;
 (function (TF) {
@@ -3489,8 +3503,8 @@ var Fluxions;
          * @param height The height of the FBO (should be power of two)
          * @param colorType 0 for gl.UNSIGNED_BYTE or 1 for gl.FLOAT
          */
-        add(name, hasDepth, hasColor, width, height, colorType) {
-            this._fbo.set(name, new FxFBO(this.fx, hasDepth, hasColor, width, height, colorType));
+        add(name, hasColor, hasDepth, width, height, colorType, depthType) {
+            this._fbo.set(name, new FxFBO(this.fx, hasColor, hasDepth, width, height, colorType, depthType));
             return this.get(name);
         }
         /**
@@ -4177,6 +4191,8 @@ var Fluxions;
             else if (this.renderconfigs.has(name)) {
                 let rc = this.renderconfigs.get(name);
                 if (rc) {
+                    if (!this.fx.verifyFBO(rc.writeToFBO))
+                        return null;
                     rc.use();
                     return rc;
                 }
@@ -4216,11 +4232,19 @@ var Fluxions;
             if (xor.graphics.hasWebGL2) {
                 this.enableExtensions([
                     "EXT_texture_filter_anisotropic",
+                    "EXT_color_buffer_float",
+                    "WEBGL_depth_texture",
+                    "WEBGL_debug_renderer_info",
+                    "OES_element_index_uint",
+                    "OES_standard_derivatives",
+                    "OES_texture_float_linear",
+                    "OES_texture_float",
                 ]);
             }
             else {
                 this.enableExtensions([
                     "EXT_texture_filter_anisotropic",
+                    "EXT_color_buffer_float",
                     "WEBGL_depth_texture",
                     "WEBGL_debug_renderer_info",
                     "OES_element_index_uint",
@@ -4295,28 +4319,38 @@ var Fluxions;
             //     this.height = h;
             // }
         }
+        verifyFBO(name) {
+            let fbo = this.fbos.get(name);
+            if (fbo) {
+                if (fbo.complete)
+                    return true;
+            }
+            return false;
+        }
     }
     Fluxions.FxRenderingContext = FxRenderingContext;
 })(Fluxions || (Fluxions = {}));
 /// <reference path="../GTE/GTE.ts" />
 /// <reference path="FxRenderingContext.ts" />
 class FxFBO {
-    constructor(_renderingContext, depth, color, width = 512, height = 512, colorType = 0, colorUnit = 11, depthUnit = 12, shouldAutoResize = false) {
+    constructor(_renderingContext, color, depth, width = 512, height = 512, _colorType = 0, _depthType = 0, colorUnit = 11, depthUnit = 12, shouldAutoResize = false) {
         this._renderingContext = _renderingContext;
-        this.depth = depth;
         this.color = color;
+        this.depth = depth;
         this.width = width;
         this.height = height;
-        this.colorType = colorType;
+        this._colorType = _colorType;
+        this._depthType = _depthType;
         this.colorUnit = colorUnit;
         this.depthUnit = depthUnit;
         this.shouldAutoResize = shouldAutoResize;
         this._colorTexture = null;
         this._depthTexture = null;
-        this._colorType = 0;
         this._complete = false;
         this._colorUnit = -1;
         this._depthUnit = -1;
+        this._depthTypeDesc = "NODEPTH";
+        this._colorTypeDesc = "NOCOLOR";
         this.clearColor = Vector3.make(0.2, 0.2, 0.2);
         let gl = _renderingContext.gl;
         let fbo = gl.createFramebuffer();
@@ -4331,7 +4365,7 @@ class FxFBO {
         // this._powerOfTwoDimensions = Vector2.make(
         //     width, height
         // );
-        if (colorType == 0)
+        if (_colorType == 0)
             this._colorType = gl.UNSIGNED_BYTE;
         else
             this._colorType = gl.FLOAT;
@@ -4340,6 +4374,19 @@ class FxFBO {
     // private _powerOfTwoDimensions: Vector2;
     get complete() { return this._complete; }
     get dimensions() { return Vector2.make(this.width, this.height); }
+    fboStatusString(fboStatus) {
+        switch (fboStatus) {
+            case WebGL2RenderingContext.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+                return "Incomplete Multisample";
+            case WebGL2RenderingContext.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+                return "Incomplete Dimensions";
+            case WebGL2RenderingContext.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+                return "Incomplete Missing Attachment";
+            case WebGL2RenderingContext.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+                return "Incomplete Attachment";
+        }
+        return "Complete";
+    }
     autoResize(width, height) {
         if (!this.shouldAutoResize)
             return;
@@ -4357,15 +4404,42 @@ class FxFBO {
         this.make();
     }
     make() {
+        let GL = WebGL2RenderingContext;
         let gl = this._renderingContext.gl;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
         gl.activeTexture(gl.TEXTURE0);
         if (this.color && !this._colorTexture) {
             this._colorTexture = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, this._colorTexture);
-            // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
-            //     this._powerOfTwoDimensions.x, this._powerOfTwoDimensions.y, 0, gl.RGBA, this._colorType, null);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, this._colorType, null);
+            let internalformat = GL.RGBA32F;
+            let format = GL.RGBA;
+            let type = GL.FLOAT;
+            this._colorTypeDesc = "RGBA32F";
+            switch (this._colorType) {
+                case GL.RGBA32F:
+                case GL.FLOAT:
+                    internalformat = GL.RGBA32F;
+                    format = GL.RGBA;
+                    type = GL.FLOAT;
+                    this._colorTypeDesc = "RGBA32F";
+                    break;
+                case GL.RGBA16F:
+                case GL.HALF_FLOAT:
+                    internalformat = GL.RGBA16F;
+                    format = GL.RGBA;
+                    type = GL.HALF_FLOAT;
+                    this._colorTypeDesc = "RGBA16F";
+                    break;
+                case GL.UNSIGNED_BYTE:
+                case GL.RGBA8UI:
+                case GL.RGBA8:
+                    internalformat = GL.RGBA8;
+                    format = GL.RGBA;
+                    type = GL.UNSIGNED_BYTE;
+                    this._colorTypeDesc = "RGBA8";
+                    break;
+            }
+            gl.texImage2D(gl.TEXTURE_2D, 0, internalformat, this.width, this.height, 0, format, type, null);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -4376,9 +4450,48 @@ class FxFBO {
         if (this.depth && !this._depthTexture) {
             this._depthTexture = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, this._depthTexture);
-            // gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT,
-            //     this._powerOfTwoDimensions.x, this._powerOfTwoDimensions.y, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, this.width, this.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
+            let format = GL.DEPTH_STENCIL;
+            let internalformat = GL.DEPTH24_STENCIL8;
+            let type = GL.UNSIGNED_INT_24_8;
+            this._depthTypeDesc = "DEPTH24_STENCIL8";
+            switch (this._depthType) {
+                case GL.DEPTH_COMPONENT16:
+                case GL.UNSIGNED_SHORT:
+                    format = GL.DEPTH_COMPONENT;
+                    internalformat = GL.DEPTH_COMPONENT16;
+                    type = GL.UNSIGNED_SHORT;
+                    this._depthTypeDesc = "DEPTH_COMPONENT16";
+                    break;
+                case GL.DEPTH_COMPONENT24:
+                case GL.UNSIGNED_INT:
+                    format = GL.DEPTH_COMPONENT;
+                    internalformat = GL.DEPTH_COMPONENT24;
+                    type = GL.UNSIGNED_INT;
+                    this._depthTypeDesc = "DEPTH_COMPONENT24";
+                    break;
+                case GL.DEPTH_COMPONENT32F:
+                case GL.FLOAT:
+                    format = GL.DEPTH_COMPONENT;
+                    internalformat = GL.DEPTH_COMPONENT32F;
+                    type = GL.FLOAT;
+                    this._depthTypeDesc = "DEPTH_COMPONENT32F";
+                    break;
+                case GL.DEPTH24_STENCIL8:
+                case GL.UNSIGNED_INT_24_8:
+                    format = GL.DEPTH_STENCIL;
+                    internalformat = GL.DEPTH24_STENCIL8;
+                    type = GL.UNSIGNED_INT_24_8;
+                    this._depthTypeDesc = "DEPTH24_STENCIL8";
+                    break;
+                case GL.DEPTH32F_STENCIL8:
+                case GL.FLOAT_32_UNSIGNED_INT_24_8_REV:
+                    format = GL.DEPTH_STENCIL;
+                    internalformat = GL.DEPTH32F_STENCIL8;
+                    type = GL.FLOAT_32_UNSIGNED_INT_24_8_REV;
+                    this._depthTypeDesc = "DEPTH32F_STENCIL8";
+                    break;
+            }
+            gl.texImage2D(gl.TEXTURE_2D, 0, internalformat, this.width, this.height, 0, format, type, null);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -4391,19 +4504,20 @@ class FxFBO {
         if (fboStatus != gl.FRAMEBUFFER_COMPLETE) {
             if (this._colorType == gl.FLOAT) {
                 this._colorType = gl.UNSIGNED_BYTE;
-                this.colorType = 0;
                 gl.deleteTexture(this._colorTexture);
                 this._colorTexture = null;
+                hflog.warn("FBO::make() --> " + FxFBO.statusToText(fboStatus) + " --> Can't create FLOAT texture, trying UNSIGNED_BYTE");
                 this.make();
-                hflog.warn("FBO::make() --> Can't create FLOAT texture, trying UNSIGNED_BYTE");
                 return;
             }
             this._complete = false;
-            hflog.error("Unable to create a complete framebuffer " + resolutionSizeText, "| status: " + FxFBO.statusToText(fboStatus));
+            hflog.error("Unable to create a complete framebuffer " + resolutionSizeText + " | status: " + FxFBO.statusToText(fboStatus));
         }
         else {
             this._complete = true;
-            hflog.log("Framebuffer is okay! size is " + resolutionSizeText);
+            hflog.log("Framebuffer is okay! size is " + resolutionSizeText + " with " +
+                this._colorTypeDesc +
+                "/" + this._depthTypeDesc);
             // hflog.log("Framebuffer is okay! size is " + this.width + "x" + this.height + " texture: " +
             //     this._powerOfTwoDimensions.x + "x" + this._powerOfTwoDimensions.y);
         }
@@ -4469,7 +4583,7 @@ class FxFBO {
         gl.activeTexture(gl.TEXTURE0);
     }
     static statusToText(status) {
-        let gl = WebGLRenderingContext;
+        let gl = WebGL2RenderingContext;
         switch (status) {
             case gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
                 return "Incomplete attachment";
@@ -4482,6 +4596,9 @@ class FxFBO {
                 break;
             case gl.FRAMEBUFFER_UNSUPPORTED:
                 return "Unsupported";
+                break;
+            case gl.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+                return "Incomplete multisample";
                 break;
         }
         return "Unknown error: " + status;

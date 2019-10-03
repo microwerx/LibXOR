@@ -24,6 +24,11 @@ namespace XOR {
         layer4width = 0;
         layer4height = 0;
 
+        offsetX = 0;
+        offsetY = 0;
+        zoomX = 1;
+        zoomY = 1;
+
         worldMatrix = Matrix4.makeIdentity();
         cameraMatrix = Matrix4.makeIdentity(); //Matrix4.makeTranslation(0, 0, Math.sin(this.xor.t1) - 10);
         projectionMatrix = Matrix4.makeOrtho(0, 256, 0, 256, -100.0, 100.0);
@@ -189,6 +194,7 @@ namespace XOR {
             // sprites ...
             for (let i = 0; i < this.MaxSprites; i++) {
                 let spr = this.sprites[i];
+                if (!spr) continue;
                 let r = 1;
                 let g = 1;
                 let b = 1;
@@ -408,9 +414,9 @@ namespace XOR {
 
             this.createBuffers();
 
-            let s = Math.sin(xor.t1);
-            gl.clearColor(0.3 * s, 0.1 * s, 0.2 * s, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            // let s = Math.sin(xor.t1);
+            // gl.clearColor(0.3 * s, 0.1 * s, 0.2 * s, 1.0);
+            // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
             this.projectionMatrix = Matrix4.makeOrtho2D(0, this.canvas.width, this.canvas.height, 0);
             gl.viewport(0, 0, this.canvas.width, this.canvas.height);
@@ -465,5 +471,15 @@ namespace XOR {
             this.disableVertexAttrib(gl, this.aGeneric);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
         }
-    }
-}
+
+        setOffset(x: number, y: number) {
+            this.offsetX = x;
+            this.offsetY = y;
+        }
+
+        setZoom(x: number, y: number) {
+            this.zoomX = x;
+            this.zoomY = y;
+        }
+    } // class XorGraphicSystem
+} // namespace XOR

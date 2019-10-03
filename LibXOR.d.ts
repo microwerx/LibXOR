@@ -570,6 +570,10 @@ declare namespace XOR {
         layer3height: number;
         layer4width: number;
         layer4height: number;
+        offsetX: number;
+        offsetY: number;
+        zoomX: number;
+        zoomY: number;
         worldMatrix: Matrix4;
         cameraMatrix: Matrix4;
         projectionMatrix: Matrix4;
@@ -614,6 +618,8 @@ declare namespace XOR {
         enableVertexAttrib(gl: WebGLRenderingContext, location: number, size: number, type: number, stride: number, offset: number): void;
         disableVertexAttrib(gl: WebGLRenderingContext, location: number): void;
         render(): void;
+        setOffset(x: number, y: number): void;
+        setZoom(x: number, y: number): void;
     }
 }
 declare namespace TF {
@@ -983,7 +989,7 @@ declare namespace Fluxions {
          * @param height The height of the FBO (should be power of two)
          * @param colorType 0 for gl.UNSIGNED_BYTE or 1 for gl.FLOAT
          */
-        add(name: string, hasDepth: boolean, hasColor: boolean, width: number, height: number, colorType: number): FxFBO | null;
+        add(name: string, hasColor: boolean, hasDepth: boolean, width: number, height: number, colorType: number, depthType: number): FxFBO | null;
         /**
          * autoresize
          */
@@ -1147,30 +1153,34 @@ declare namespace Fluxions {
         enableExtensions(names: string[]): boolean;
         getExtension(name: string): any;
         update(): void;
+        verifyFBO(name: string): boolean;
     }
 }
 declare class FxFBO {
     private _renderingContext;
-    readonly depth: boolean;
     readonly color: boolean;
+    readonly depth: boolean;
     width: number;
     height: number;
-    private colorType;
+    private _colorType;
+    private _depthType;
     colorUnit: number;
     depthUnit: number;
     readonly shouldAutoResize: boolean;
     private _fbo;
     private _colorTexture;
     private _depthTexture;
-    private _colorType;
     private _complete;
     private _colorUnit;
     private _depthUnit;
     private _savedViewport;
+    private _depthTypeDesc;
+    private _colorTypeDesc;
     clearColor: Vector3;
     readonly complete: boolean;
     readonly dimensions: Vector2;
-    constructor(_renderingContext: FxRenderingContext, depth: boolean, color: boolean, width?: number, height?: number, colorType?: number, colorUnit?: number, depthUnit?: number, shouldAutoResize?: boolean);
+    fboStatusString(fboStatus: number): string;
+    constructor(_renderingContext: FxRenderingContext, color: boolean, depth: boolean, width?: number, height?: number, _colorType?: number, _depthType?: number, colorUnit?: number, depthUnit?: number, shouldAutoResize?: boolean);
     autoResize(width: number, height: number): void;
     make(): void;
     use(clearScreen?: boolean, disableColorWrites?: boolean): void;

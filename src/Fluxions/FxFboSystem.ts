@@ -27,8 +27,14 @@ namespace Fluxions {
          * @param height The height of the FBO (should be power of two)
          * @param colorType 0 for gl.UNSIGNED_BYTE or 1 for gl.FLOAT
          */
-        add(name: string, hasDepth: boolean, hasColor: boolean, width: number, height: number, colorType: number): FxFBO | null {
-            this._fbo.set(name, new FxFBO(this.fx, hasDepth, hasColor, width, height, colorType));
+        add(name: string,
+            hasColor: boolean,
+            hasDepth: boolean,
+            width: number,
+            height: number,
+            colorType: number,
+            depthType: number): FxFBO | null {
+            this._fbo.set(name, new FxFBO(this.fx, hasColor, hasDepth, width, height, colorType, depthType));
             return this.get(name);
         }
 

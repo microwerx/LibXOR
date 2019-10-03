@@ -64,6 +64,7 @@ namespace Fluxions {
             else if (this.renderconfigs.has(name)) {
                 let rc = this.renderconfigs.get(name);
                 if (rc) {
+                    if (!this.fx.verifyFBO(rc.writeToFBO)) return null;
                     rc.use();
                     return rc;
                 }
