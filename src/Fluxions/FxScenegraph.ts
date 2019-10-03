@@ -189,7 +189,7 @@ namespace Fluxions {
             let m = this.getMaterial(mtllib, mtl);
             if (m) {
                 let tnames = ["map_Kd", "map_Ks", "map_normal"];
-                let textures = [m.map_Kd, m.map_Ks, m.map_normal];
+                let textures = [m.MapKd, m.MapKs, m.MapNormal];
                 for (let i = 0; i < textures.length; i++) {
                     if (textures[i].length == 0)
                         continue;
@@ -201,7 +201,7 @@ namespace Fluxions {
                 }
 
                 let v1fnames = ["map_Kd_mix", "map_Ks_mix", "map_normal_mix", "PBKdm", "PBKsm", "PBn2", "PBk2"];
-                let v1fvalues = [m.map_Kd_mix, m.map_Ks_mix, m.map_normal_mix, m.PBKdm, m.PBKsm, m.PBn2, m.PBk2];
+                let v1fvalues = [m.MapKdMix, m.MapKsMix, m.MapNormalMix, m.DiffuseRoughness, m.SpecularRoughness, m.PBn2, m.PBk2];
                 for (let i = 0; i < v1fnames.length; i++) {
                     let uloc = rc.getUniformLocation(v1fnames[i]);
                     if (uloc) {
@@ -540,61 +540,48 @@ namespace Fluxions {
                         curmtl = new FxMaterial(mtl);
                         this._materials.set(mtllib + mtl, curmtl);
                     }
-                    else if (tokens[0] == "map_Kd") {
-                        if (curmtl) {
-                            curmtl.map_Kd = XOR.GetURLResource(tokens[1]);
-                            curmtl.map_Kd_mix = 1.0;
-                        }
+
+                    if (!curmtl) continue;
+
+                    if (tokens[0] == "map_Kd") {
+                        curmtl.MapKd = XOR.GetURLResource(tokens[1]);
+                        curmtl.MapKdMix = 1.0;
                         this.load(path + tokens[1]);
                     }
                     else if (tokens[0] == "map_Ks") {
-                        if (curmtl) {
-                            curmtl.map_Ks = XOR.GetURLResource(tokens[1]);
-                            curmtl.map_Ks_mix = 1.0;
-                        }
+                        curmtl.MapKs = XOR.GetURLResource(tokens[1]);
+                        curmtl.MapKsMix = 1.0;
                         this.load(path + tokens[1]);
                     }
                     else if (tokens[0] == "map_normal") {
-                        if (curmtl) {
-                            curmtl.map_normal = XOR.GetURLResource(tokens[1]);
-                            curmtl.map_normal_mix = 1.0;
-                        }
+                        curmtl.MapNormal = XOR.GetURLResource(tokens[1]);
+                        curmtl.MapNormalMix = 1.0;
                         this.load(path + tokens[1]);
                     } else if (tokens[0] == "Kd") {
-                        if (curmtl) {
-                            curmtl.Kd = FxTextParser.ParseVector(tokens);
-                        }
+                        curmtl.Kd = FxTextParser.ParseVector(tokens);
                     } else if (tokens[0] == "Ks") {
-                        if (curmtl) {
-                            curmtl.Ks = FxTextParser.ParseVector(tokens);
-                        }
+                        curmtl.Ks = FxTextParser.ParseVector(tokens);
                     } else if (tokens[0] == "Ka") {
-                        if (curmtl) {
-                            curmtl.Ka = FxTextParser.ParseVector(tokens);
-                        }
-                    } else if (tokens[0] == "PBn2") {
-                        if (curmtl) {
-                            curmtl.PBn2 = parseFloat(tokens[1]);
-                        }
-                    } else if (tokens[0] == "PBk2") {
-                        if (curmtl) {
-                            curmtl.PBk2 = parseFloat(tokens[1]);
-                        }
+                        curmtl.Ka = FxTextParser.ParseVector(tokens);
+                    } else if (tokens[0] == "PBKdm") {
+                        curmtl.DiffuseRoughness = parseFloat(tokens[1]);
+                    } else if (tokens[0] == "PBKsm") {
+                        curmtl.SpecularRoughness = parseFloat(tokens[1]);
+                    } else if (tokens[0] == "Ns") {
+                        curmtl.SpecularRoughness = Math.sqrt(2.0 / (2.0 + parseFloat(tokens[1])));
+                    } else if (tokens[0] == "PBn2" || tokens[0] == "Ni") {
+                        curmtl.PBn2 = parseFloat(tokens[1]);
+                    } else if (tokens[0] == "PBk2" || tokens[0] == "Nk") {
+                        curmtl.PBk2 = parseFloat(tokens[1]);
                     }
-                    else if (tokens[0] == "map_Kd_mix") {
-                        if (curmtl) {
-                            curmtl.map_Kd_mix = parseFloat(tokens[1]);
-                        }
+                    else if (tokens[0] == "MapKdMix") {
+                        curmtl.MapKdMix = parseFloat(tokens[1]);
                     }
-                    else if (tokens[0] == "map_Ks_mix") {
-                        if (curmtl) {
-                            curmtl.map_Ks_mix = parseFloat(tokens[1]);
-                        }
+                    else if (tokens[0] == "MapKsMix") {
+                        curmtl.MapKsMix = parseFloat(tokens[1]);
                     }
-                    else if (tokens[0] == "map_normal_mix") {
-                        if (curmtl) {
-                            curmtl.map_normal_mix = parseFloat(tokens[1]);
-                        }
+                    else if (tokens[0] == "MapNormalMix") {
+                        curmtl.MapNormalMix = parseFloat(tokens[1]);
                     }
                 }
             }
