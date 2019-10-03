@@ -2015,6 +2015,7 @@ var XOR;
         constructor(xor) {
             this.xor = xor;
             this.gl = null;
+            this.hasWebGL2 = false;
             this.canvas = null;
             this.glcontextid = "GraphicsSystem" + GTE.randomUint8().toString();
             this.sprites = [];
@@ -2091,11 +2092,14 @@ var XOR;
                     hflog.info("Using WebGL 1.0");
                 else
                     hflog.error("WebGL 1.0 failed");
+                this.hasWebGL2 = false;
             }
             else if (version == 2) {
                 this.gl = canvas.getContext("webgl2");
-                if (this.gl)
+                if (this.gl) {
                     hflog.info("Using WebGL 2.0");
+                    this.hasWebGL2 = true;
+                }
                 else
                     hflog.error("WebGL 2.0 failed");
             }

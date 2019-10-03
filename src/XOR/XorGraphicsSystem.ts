@@ -6,6 +6,7 @@
 namespace XOR {
     export class GraphicsSystem {
         gl: WebGLRenderingContext | WebGL2RenderingContext | null = null;
+        hasWebGL2 = false;
         canvas: HTMLCanvasElement | null = null;
         private glcontextid = "GraphicsSystem" + GTE.randomUint8().toString();
         sprites: GraphicsSprite[] = [];
@@ -72,9 +73,13 @@ namespace XOR {
                 this.gl = canvas.getContext("webgl");
                 if (this.gl) hflog.info("Using WebGL 1.0");
                 else hflog.error("WebGL 1.0 failed");
+                this.hasWebGL2 = false;
             } else if (version == 2) {
                 this.gl = canvas.getContext("webgl2");
-                if (this.gl) hflog.info("Using WebGL 2.0");
+                if (this.gl) {
+                    hflog.info("Using WebGL 2.0");
+                    this.hasWebGL2 = true;
+                }
                 else hflog.error("WebGL 2.0 failed");
             }
             this.canvas = canvas;

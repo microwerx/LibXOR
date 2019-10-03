@@ -556,6 +556,7 @@ declare namespace XOR {
     class GraphicsSystem {
         private xor;
         gl: WebGLRenderingContext | WebGL2RenderingContext | null;
+        hasWebGL2: boolean;
         canvas: HTMLCanvasElement | null;
         private glcontextid;
         sprites: GraphicsSprite[];
