@@ -12,6 +12,8 @@ namespace Fluxions {
         public MapKs: string = "";
         public MapNormalMix: number = 0.0;
         public MapNormal: string = "";
+        public MapTfMix: number = 0.0;
+        public MapTf: string = "";
         public SpecularRoughness: number = 0;
         public DiffuseRoughness: number = 0;
         public Ni: number = 1.333;

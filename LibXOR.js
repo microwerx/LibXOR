@@ -4671,6 +4671,8 @@ var Fluxions;
             this.MapKs = "";
             this.MapNormalMix = 0.0;
             this.MapNormal = "";
+            this.MapTfMix = 0.0;
+            this.MapTf = "";
             this.SpecularRoughness = 0;
             this.DiffuseRoughness = 0;
             this.Ni = 1.333;

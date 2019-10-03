@@ -1246,6 +1246,8 @@ declare namespace Fluxions {
         MapKs: string;
         MapNormalMix: number;
         MapNormal: string;
+        MapTfMix: number;
+        MapTf: string;
         SpecularRoughness: number;
         DiffuseRoughness: number;
         Ni: number;
