@@ -567,7 +567,7 @@ class App {
                 rc.uniformMatrix4f('WorldMatrix', m);
                 //let color = Vector3.make(sv.density / 1000.0, 0.0, 1.0);
                 let color = Vector3.make((sv.p - p1) / total, 0.0, 1.0);//i/ototal);
-                rc.uniform3f('kd', color);
+                rc.uniform3f('Kd', color);
                 xor.meshes.render('circle', rc);
                 i++;
             }

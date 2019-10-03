@@ -850,7 +850,7 @@ class App {
             //     m.multMatrix(Matrix4.makeScale(sv.radius + sr, sv.radius + sr, sv.radius + sr));
             //     rc.uniformMatrix4f('WorldMatrix', m);
             //     let color = Vector3.make(0.0, 0.0, 0.0);
-            //     rc.uniform3f('kd', color);
+            //     rc.uniform3f('Kd', color);
             //     xor.meshes.render('circle', rc);
             // }
 
@@ -863,7 +863,7 @@ class App {
                 m.multMatrix(Matrix4.makeScale(sv.radius, sv.radius, sv.radius));
                 rc.uniformMatrix4f('WorldMatrix', m);
                 let color = Vector3.make(r, g, 1.0);
-                rc.uniform3f('kd', color);
+                rc.uniform3f('Kd', color);
                 xor.meshes.render('circle', rc);
             }
         }

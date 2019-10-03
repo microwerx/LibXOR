@@ -34,19 +34,30 @@ namespace Fluxions {
                 hflog.log(renderer);
             }
 
-            this.enableExtensions([
-                "EXT_texture_filter_anisotropic",
-                "WEBGL_depth_texture",
-                "WEBGL_debug_renderer_info",
-                "OES_element_index_uint",
-                "OES_standard_derivatives",
-                "OES_texture_float_linear",
-                "OES_texture_float",
-            ]);
+            if (xor.graphics.hasWebGL2) {
+                this.enableExtensions([
+                    "EXT_texture_filter_anisotropic",
+                ]);
+            } else {
+                this.enableExtensions([
+                    "EXT_texture_filter_anisotropic",
+                    "WEBGL_depth_texture",
+                    "WEBGL_debug_renderer_info",
+                    "OES_element_index_uint",
+                    "OES_standard_derivatives",
+                    "OES_texture_float_linear",
+                    "OES_texture_float",
+                ]);
+            }
 
-            let standardDerivatives = this.gl.getExtension('OES_standard_derivatives');
-            if (standardDerivatives) {
-                this.gl.hint(standardDerivatives.FRAGMENT_SHADER_DERIVATIVE_HINT_OES, this.gl.NICEST);
+            if (xor.graphics.hasWebGL2) {
+                let GL = WebGL2RenderingContext;
+                this.gl.hint(WebGL2RenderingContext.FRAGMENT_SHADER_DERIVATIVE_HINT, GL.NICEST);
+            } else {
+                let standardDerivatives = this.gl.getExtension('OES_standard_derivatives');
+                if (standardDerivatives) {
+                    this.gl.hint(standardDerivatives.FRAGMENT_SHADER_DERIVATIVE_HINT_OES, this.gl.NICEST);
+                }
             }
 
             this.scenegraph = new FxScenegraph(this);

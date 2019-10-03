@@ -34,11 +34,11 @@ class App {
 
         let rc = this.xor.renderconfigs.load('gbuffer', 'shaders/basic.vert', 'shaders/gbuffer.frag');
         rc.useDepthTest = true;
-        rc.addTexture("test2D", "map_kd");
+        rc.addTexture("test2D", "MapKd");
         rc.writeToFBO = "gbuffer";
 
         rc = this.xor.renderconfigs.load('r2t', 'shaders/r2t.vert', 'shaders/r2t.frag');
-        rc.addTexture("test2D", "map_kd");
+        rc.addTexture("test2D", "MapKd");
         rc.readFromFBOs = ["gbuffer"];
 
         let bbox = new GTE.BoundingBox();
@@ -90,7 +90,7 @@ class App {
         if (rc) {
             rc.uniformMatrix4f('ProjectionMatrix', pmatrix);
             rc.uniformMatrix4f('CameraMatrix', cmatrix);
-            rc.uniform3f('kd', Vector3.make(1.0, 0.0, 0.0));
+            rc.uniform3f('Kd', Vector3.make(1.0, 0.0, 0.0));
             rc.uniform3f('sunDirTo', Vector3.make(1.0, 1.0, 1.0));
 
             rc.uniform1i('GBufferOutputType', this.gbufferOutputType);

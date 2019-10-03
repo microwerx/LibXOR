@@ -58,7 +58,7 @@ namespace XOR {
             }
         }
 
-        setVideoMode(width: number, height: number, version: number = 1) {
+        setVideoMode(width: number, height: number, version: number = 2) {
             let p = this.xor.parentElement;
             while (p.firstChild) {
                 p.removeChild(p.firstChild);

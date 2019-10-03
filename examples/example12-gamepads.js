@@ -111,7 +111,7 @@ class App {
         fx.textures.load("godzilla", "models/textures/godzilla.png");
         fx.textures.load("parrot", "models/textures/parrot.png");
         let rc = this.xor.renderconfigs.load('default', 'shaders/basic.vert', 'shaders/basic.frag');
-        rc.addTexture("godzilla", "map_kd");
+        rc.addTexture("godzilla", "MapKd");
         rc.useDepthTest = false;
 
         let pal = this.xor.palette;
@@ -214,13 +214,13 @@ class App {
         let cmatrix = Matrix4.makeOrbit(-90, 0, 2.0);
         let rc = xor.renderconfigs.use('default');
         if (rc) {
-            rc.uniform1f("map_kd_mix", 0.0);
+            rc.uniform1f("MapKdMix", 0.0);
             rc.uniformMatrix4f('ProjectionMatrix', pmatrix);
             rc.uniformMatrix4f('CameraMatrix', cmatrix);
             rc.uniformMatrix4f('WorldMatrix', Matrix4.makeIdentity());
             xor.meshes.render('bg', rc);
 
-            rc.uniform1f("map_kd_mix", 1.0);
+            rc.uniform1f("MapKdMix", 1.0);
 
             // render player
             let tex = fx.textures.get("godzilla");

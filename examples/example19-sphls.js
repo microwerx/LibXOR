@@ -58,7 +58,7 @@ class App {
             rc.uniformMatrix4f('ProjectionMatrix', pmatrix);
             rc.uniformMatrix4f('CameraMatrix', cmatrix);
             rc.uniformMatrix4f('WorldMatrix', Matrix4.makeIdentity());
-            rc.uniform3f('kd', Vector3.make(1.0, 0.0, 0.0));
+            rc.uniform3f('Kd', Vector3.make(1.0, 0.0, 0.0));
             xor.meshes.render('cornellbox', rc);
             rc.restore();
         }

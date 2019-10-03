@@ -47,7 +47,7 @@ class App {
 
         let rc = xor.renderconfigs.load('default', 'shaders/basic.vert', 'shaders/basic.frag');
         rc.useDepthTest = true;
-        rc.addTexture("godzilla", "map_kd");
+        rc.addTexture("godzilla", "MapKd");
         this.rc = rc;
 
         let bbox = new GTE.BoundingBox();
@@ -82,15 +82,15 @@ class App {
         if (this.rc) {
             this.rc.clearTextures();
             switch (this.iTexture) {
-                case 0: this.rc.addTexture("godzilla", "map_kd");
+                case 0: this.rc.addTexture("godzilla", "MapKd");
                     break;
-                case 1: this.rc.addTexture("parrot", "map_kd");
+                case 1: this.rc.addTexture("parrot", "MapKd");
                     break;
-                case 2: this.rc.addTexture("test2D", "map_kd");
+                case 2: this.rc.addTexture("test2D", "MapKd");
                     break;
-                case 3: this.rc.addTexture("checker", "map_kd");
+                case 3: this.rc.addTexture("checker", "MapKd");
                     break;
-                default: this.rc.addTexture("godzilla", "map_kd");
+                default: this.rc.addTexture("godzilla", "MapKd");
                     break;
             }
 
@@ -110,8 +110,8 @@ class App {
             let cmatrix = Matrix4.makeOrbit(this.orbit + this.azimuth, this.inclination, this.distance);
             rc.uniformMatrix4f('ProjectionMatrix', pmatrix);
             rc.uniformMatrix4f('CameraMatrix', cmatrix);
-            rc.uniform3f('kd', Vector3.make(1.0, 0.0, 0.0));
-            rc.uniform1f('map_kd_mix', 1.0);
+            rc.uniform3f('Kd', Vector3.make(1.0, 0.0, 0.0));
+            rc.uniform1f('MapKdMix', 1.0);
 
             gl.activeTexture(gl.TEXTURE0);
 
