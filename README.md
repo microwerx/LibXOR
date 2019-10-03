@@ -28,7 +28,7 @@ LibXOR is inspired by 6502 8-bit computers. The main idea is that we have a 64Ki
 <body>
 <h1>A Simple LibXOR Game</h1>
 <div id="game"></div>
-<script src="LibXOR.js"></script>
+<script src="../LibXOR.js"></script>
 <script>
     let xor = new LibXOR("game");
     

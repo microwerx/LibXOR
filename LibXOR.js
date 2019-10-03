@@ -5055,8 +5055,8 @@ var Fluxions;
             let rc = this.currentrc;
             let m = this.getMaterial(mtllib, mtl);
             if (m) {
-                let tnames = ["MapKd", "MapKs", "MapNormal"];
-                let textures = [m.MapKd, m.MapKs, m.MapNormal];
+                let tnames = ["MapKd", "MapKs", "MapNormal", "MapTf"];
+                let textures = [m.MapKd, m.MapKs, m.MapNormal, m.MapTf];
                 for (let i = 0; i < textures.length; i++) {
                     if (textures[i].length == 0)
                         continue;
@@ -5070,6 +5070,7 @@ var Fluxions;
                     "MapKdMix",
                     "MapKsix",
                     "MapNormalMix",
+                    "MapTfMix",
                     "PBKdm",
                     "PBKsm",
                     "PBn2",
@@ -5084,6 +5085,7 @@ var Fluxions;
                     m.MapKdMix,
                     m.MapKsMix,
                     m.MapNormalMix,
+                    m.MapTfMix,
                     m.DiffuseRoughness,
                     m.SpecularRoughness,
                     m.PBn2,
