@@ -1,5 +1,5 @@
 /* global Vector3 createButtonRow createRangeRow */
-/// <reference path="LibXOR.js" />
+/// <reference path="../src/LibXOR.ts" />
 /// <reference path="htmlutils.js" />
 
 function accum(a, b, bscale) {

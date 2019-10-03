@@ -1,5 +1,5 @@
 /// <reference path="htmlutils.js" />
-/// <reference path="LibXOR.js" />
+/// <reference path="../src/LibXOR.ts" />
 
 class App {
     constructor() {

@@ -1,4 +1,4 @@
-/// <reference path="LibXOR.js" />
+/// <reference path="../src/LibXOR.ts" />
 
 let div = document.getElementById('project');
 let canvas = document.createElement("canvas");

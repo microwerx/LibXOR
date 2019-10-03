@@ -1,5 +1,5 @@
 /* global XOR Vector3 createButtonRow createRangeRow createCheckRow createDivRow setDivRowContents getCheckValue */
-/// <reference path="LibXOR.js" />
+/// <reference path="../src/LibXOR.ts" />
 /// <reference path="htmlutils.js" />
 
 function accum(a, b, bscale) {

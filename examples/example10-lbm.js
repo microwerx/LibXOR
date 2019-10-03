@@ -1,4 +1,4 @@
-/// <reference path="LibXOR.js" />
+/// <reference path="../src/LibXOR.ts" />
 /// <reference path="../src/LibXOR.ts" />
 /* global Vector3 */
 
