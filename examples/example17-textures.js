@@ -40,7 +40,7 @@ class App {
         let fx = this.xor.fluxions;
 
         fx.textures.load("test2D", "models/textures/test_texture.png");
-        fx.textures.load("godzilla", "models/textures/godzilla-hdtv.png");
+        fx.textures.load("godzilla", "models/textures/godzilla.png");
         fx.textures.load("parrot", "models/textures/parrot.png");
         fx.textures.load("checker", "models/textures/mar0kuu2.jpg");
         fx.fbos.add("gbuffer", true, true, 512, 512, 0);

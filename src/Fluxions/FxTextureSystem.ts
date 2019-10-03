@@ -136,7 +136,7 @@ namespace Fluxions {
             let maxAnisotropy = 1.0;
             let ext = this.fx.getExtension("EXT_texture_filter_anisotropic")
             if (ext) {
-                let maxAnisotropy = gl.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+                maxAnisotropy = gl.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
             } else {
                 hflog.debug("cannot use anisotropic filtering");
             }
@@ -153,7 +153,7 @@ namespace Fluxions {
                         } else {
                             hflog.debug("image " + i + " w:" + images[i].width + "/h:" + images[i].height);
                         }
-                        gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL.SRGB8_ALPHA8, gl.RGBA, gl.UNSIGNED_BYTE, images[i]);
+                        gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL.SRGB8_ALPHA8, GL.RGBA, gl.UNSIGNED_BYTE, images[i]);
                     }
                     gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
                     let t = new FxTexture(this.fx, name, name, gl.TEXTURE_CUBE_MAP, texture);
@@ -164,6 +164,7 @@ namespace Fluxions {
                 if (texture) {
                     gl.bindTexture(gl.TEXTURE_2D, texture);
                     gl.texImage2D(gl.TEXTURE_2D, 0, GL.SRGB8_ALPHA8, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                    // gl.texImage2D(gl.TEXTURE_2D, 0, GL.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, image);
                     gl.generateMipmap(gl.TEXTURE_2D);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
