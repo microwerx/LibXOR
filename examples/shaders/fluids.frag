@@ -26,6 +26,8 @@ in vec3 vNormal;
 in vec3 vTexcoord;
 in vec3 vColor;
 
+out vec4 oFragColor;
+
 const int FLAMES = 0;
 const int LGA = 1;
 const vec3 BLUE = vec3(1.0, 0.2, 0.8);
@@ -35,21 +37,21 @@ void main() {
     vec3 color = vec3(0.0, 1.0, 0.0);
     if (iFluidType == FLAMES) {
 	    if (lb1Enabled > 0.0) {
-	    	color = texture2D(lb1Color, vTexcoord.st).rgb;
+	    	color = texture(lb1Color, vTexcoord.st).rgb;
 	    } else if (lb2Enabled > 0.0) {
-	    	color = texture2D(lb2Color, vTexcoord.st).rgb;
+	    	color = texture(lb2Color, vTexcoord.st).rgb;
 	    }
 	} else if (iFluidType == LGA) {
 	    // if (lb1Enabled > 0.0) {
-	    // 	color = texture2D(lb1Color, vTexcoord.st).rgb;
+	    // 	color = texture(lb1Color, vTexcoord.st).rgb;
 	    // } else if (lb2Enabled > 0.0) {
-	    // 	color = texture2D(lb2Color, vTexcoord.st).rgb;
+	    // 	color = texture(lb2Color, vTexcoord.st).rgb;
 	    // }
 
 	    if (lb1Enabled > 0.0) {	    	
-	    	color = BLUE * length(texture2D(lb1Color, vTexcoord.st));
+	    	color = BLUE * length(texture(lb1Color, vTexcoord.st));
 	    } else if (lb2Enabled > 0.0) {
-	    	color = BLUE * length(texture2D(lb2Color, vTexcoord.st));
+	    	color = BLUE * length(texture(lb2Color, vTexcoord.st));
 	    }
 	}
     oFragColor = vec4(color, 1.0);

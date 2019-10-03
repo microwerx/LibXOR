@@ -25,7 +25,7 @@ void main() {
     // set to white
     vec3 color = vec3(0.0);
     if (MapKdMix > 0.0) {
-        vec3 map = texture2D(MapKd, vTexcoord.st).rgb;
+        vec3 map = texture(MapKd, vTexcoord.st).rgb;
         color += map;    
     } else {
         color += vColor;

@@ -26,6 +26,8 @@ in vec3 vTexcoord;
 in vec3 vColor;
 in vec3 vCamera;
 
+out vec4 oFragColor;
+
 void main() {
     vec3 N = normalize(vNormal);
     vec3 L = normalize(SunDirTo);
@@ -35,8 +37,8 @@ void main() {
 
     vec2 st = vec2(vTexcoord.s, 1.0 - vTexcoord.t);
 
-    vec3 gbuf = texture2D(gbufferColor, st).rgb;
-    vec3 map = texture2D(MapKd, st).rgb;
+    vec3 gbuf = texture(gbufferColor, st).rgb;
+    vec3 map = texture(MapKd, st).rgb;
     
     // set to white
     oFragColor = vec4(gbufferEnabled > 0.0 ? gbuf : map, 1.0);

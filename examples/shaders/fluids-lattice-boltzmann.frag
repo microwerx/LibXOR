@@ -20,6 +20,7 @@ in vec3 vNormal;
 in vec3 vTexcoord;
 in vec3 vColor;
 
+out vec4 oFragColor;
 
 // #version 140
 uniform sampler2D lb1Color;
@@ -52,9 +53,9 @@ float rand(vec2 co) {
 vec4 getLattice(vec2 st) {
     st /= vec2(width, height);
     if (lb1Enabled > 0.0) {
-        return texture2D(lb1Color, st);
+        return texture(lb1Color, st);
     } else if (lb2Enabled > 0.0) {
-        return texture2D(lb2Color, st);
+        return texture(lb2Color, st);
     }
     return vec4(0.0);
 }
@@ -85,7 +86,7 @@ vec4 flickerEffect(vec2 uv) {
     }
     // data += y < 4.0 ? y * turb * 0.5 : 0.0;
     data = clamp(data * life, 0.0, 4.0);
-    vec3 color2 = texture2D(RadianceCLUT, vec2(data, 0.0)).rgb;
+    vec3 color2 = texture(RadianceCLUT, vec2(data, 0.0)).rgb;
     return vec4(color2, data);
 }
 

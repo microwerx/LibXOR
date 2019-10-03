@@ -20,6 +20,8 @@ in vec3 vNormal;
 in vec3 vTexcoord;
 in vec3 vColor;
 
+out vec4 oFragColor;
+
 void main() {
     // set to white
     oFragColor = vec4(Kd * vColor, 1.0);

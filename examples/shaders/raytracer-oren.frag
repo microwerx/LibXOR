@@ -659,6 +659,8 @@ in vec3 vNormal;
 in vec3 vTexcoord;
 in vec3 vColor;
 
+out vec4 oFragColor;
+
 void main() {
     sfCreateScene();
     vec2 uv = vTexcoord.xy;
