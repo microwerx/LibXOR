@@ -1,13 +1,15 @@
+#version 300 es
+
 precision highp float;
 
-uniform sampler2D map_kd;
-uniform sampler2D map_ks;
-uniform sampler2D map_normal;
-uniform float map_kd_mix;
-uniform float map_ks_mix;
-uniform float map_normal_mix;
-uniform vec3 kd;
-uniform vec3 ks;
+uniform sampler2D MapKd;
+uniform sampler2D MapKs;
+uniform sampler2D MapNormal;
+uniform float MapKdMix;
+uniform float MapKsMix;
+uniform float MapNormalMix;
+uniform vec3 Kd;
+uniform vec3 Ks;
 
 uniform sampler2D lb1Color;
 uniform float lb1Enabled;
@@ -15,14 +17,14 @@ uniform sampler2D lb2Color;
 uniform float lb2Enabled;
 uniform int iFluidType;
 
-uniform vec3 sunDirTo;
-uniform vec3 sunE0;
+uniform vec3 SunDirTo;
+uniform vec3 SunE0;
 
 // These MUST match the vertex shader
-varying vec3 vPosition;
-varying vec3 vNormal;
-varying vec3 vTexcoord;
-varying vec3 vColor;
+in vec3 vPosition;
+in vec3 vNormal;
+in vec3 vTexcoord;
+in vec3 vColor;
 
 const int FLAMES = 0;
 const int LGA = 1;
@@ -50,5 +52,5 @@ void main() {
 	    	color = BLUE * length(texture2D(lb2Color, vTexcoord.st));
 	    }
 	}
-    gl_FragColor = vec4(color, 1.0);
+    oFragColor = vec4(color, 1.0);
 }

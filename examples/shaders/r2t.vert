@@ -1,18 +1,20 @@
+#version 300 es
+
 uniform mat4 ProjectionMatrix;
 uniform mat4 CameraMatrix;
 uniform mat4 WorldMatrix;
 
-attribute vec3 aPosition;
-attribute vec3 aNormal;
-attribute vec3 aTexcoord;
-attribute vec3 aColor;
+in vec3 aPosition;
+in vec3 aNormal;
+in vec3 aTexcoord;
+in vec3 aColor;
 
 // These MUST match the fragment shader
-varying vec3 vPosition;
-varying vec3 vNormal;
-varying vec3 vTexcoord;
-varying vec3 vColor;
-varying vec3 vCamera;
+out vec3 vPosition;
+out vec3 vNormal;
+out vec3 vTexcoord;
+out vec3 vColor;
+out vec3 vCamera;
 
 void main() {
     vNormal = (WorldMatrix * vec4(aPosition, 0.0)).xyz;

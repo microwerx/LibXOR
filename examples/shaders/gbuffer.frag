@@ -34,8 +34,8 @@ const int GBUFFER_SPECULAR_COLOR = 5;
 const int GBUFFER_SPECULAR_ROUGHNESS = 6;
 const int GBUFFER_VIZ_NORMALS = 7;
 
-uniform vec3 sunDirTo;
-uniform vec3 sunE0;
+uniform vec3 SunDirTo;
+uniform vec3 SunE0;
 
 // These MUST match the vertex shader
 in vec3 vPosition;
@@ -69,7 +69,7 @@ vec4 ReadColor4(float rgbmix, float amix, sampler2D tex, vec3 rgb, vec3 a)
 
 void main() {
     vec3 N = normalize(vNormal);
-    vec3 L = normalize(sunDirTo);
+    vec3 L = normalize(SunDirTo);
     float NdotL = max(0.0, dot(N, L));
     vec3 V = normalize(vCamera);
     float NdotV = 0.5 * dot(N, V) + 0.5;

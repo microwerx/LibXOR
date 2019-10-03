@@ -1,3 +1,5 @@
+#version 300 es
+
 precision highp float;
 
 const float FX_DEGREES_TO_RADIANS = 0.01745329;
@@ -15,14 +17,14 @@ uniform vec4 iDate; // (year, month, day, time in seconds)
 
 // LibXOR Standard Uniforms
 
-uniform sampler2D map_kd;
-uniform sampler2D map_ks;
-uniform sampler2D map_normal;
-uniform float map_kd_mix;
-uniform float map_ks_mix;
-uniform float map_normal_mix;
-uniform vec3 kd;
-uniform vec3 ks;
+uniform sampler2D MapKd;
+uniform sampler2D MapKs;
+uniform sampler2D MapNormal;
+uniform float MapKdMix;
+uniform float MapKsMix;
+uniform float MapNormalMix;
+uniform vec3 Kd;
+uniform vec3 Ks;
 
 uniform vec3 uSunDirTo;
 uniform vec3 uSunE0;
@@ -619,14 +621,14 @@ vec3 Sunfish(in Ray r)
 // END SUNFISH RAY TRACER ////////////////////////////////////////////
 
 // These MUST match the vertex shader
-varying vec3 vPosition;
-varying vec3 vNormal;
-varying vec3 vTexcoord;
-varying vec3 vColor;
+in vec3 vPosition;
+in vec3 vNormal;
+in vec3 vTexcoord;
+in vec3 vColor;
 
 void main() {
     sfCreateScene();
     vec2 uv = vTexcoord.xy;
     Ray cameraRay = sfCreateCameraRay(uv);
-   	gl_FragColor = vec4(Sunfish(cameraRay), 1.0);
+   	oFragColor = vec4(Sunfish(cameraRay), 1.0);
 }

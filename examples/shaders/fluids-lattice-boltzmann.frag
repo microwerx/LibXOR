@@ -1,22 +1,24 @@
+#version 300 es
+
 precision highp float;
 
-uniform sampler2D map_kd;
-uniform sampler2D map_ks;
-uniform sampler2D map_normal;
-uniform float map_kd_mix;
-uniform float map_ks_mix;
-uniform float map_normal_mix;
-uniform vec3 kd;
-uniform vec3 ks;
+uniform sampler2D MapKd;
+uniform sampler2D MapKs;
+uniform sampler2D MapNormal;
+uniform float MapKdMix;
+uniform float MapKsMix;
+uniform float MapNormalMix;
+uniform vec3 Kd;
+uniform vec3 Ks;
 
-uniform vec3 sunDirTo;
-uniform vec3 sunE0;
+uniform vec3 SunDirTo;
+uniform vec3 SunE0;
 
 // These MUST match the vertex shader
-varying vec3 vPosition;
-varying vec3 vNormal;
-varying vec3 vTexcoord;
-varying vec3 vColor;
+in vec3 vPosition;
+in vec3 vNormal;
+in vec3 vTexcoord;
+in vec3 vColor;
 
 
 // #version 140
@@ -193,7 +195,7 @@ void main() {
     vec2 turb2 = turbulence * 0.5 * (vec2(rand(uv + vec2(iTime, 0.0)),
         rand(uv + vec2(iTime, 0.0))) - 0.5);
 
-    if (iFluidType == FLAMES) gl_FragColor = flickerEffect(uv + turb2);
-    else if (iFluidType == LGA) gl_FragColor = lgaEffect(uv + fLgaUVTurbulence * turb2, iSourceBuffer);
-    else gl_FragColor = vec4(uv / vec2(width, height), 0.0, 1.0);
+    if (iFluidType == FLAMES) oFragColor = flickerEffect(uv + turb2);
+    else if (iFluidType == LGA) oFragColor = lgaEffect(uv + fLgaUVTurbulence * turb2, iSourceBuffer);
+    else oFragColor = vec4(uv / vec2(width, height), 0.0, 1.0);
 }
