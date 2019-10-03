@@ -2172,6 +2172,7 @@ var XOR;
         createBuffers() {
             if (!this.gl)
                 return;
+            let GL = WebGL2RenderingContext;
             let gl = this.gl;
             let vertices = [];
             this.drawList = [];
@@ -2359,7 +2360,7 @@ var XOR;
                 }
                 if (this.spriteTexture) {
                     gl.bindTexture(gl.TEXTURE_2D, this.spriteTexture);
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 128, 128, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.spriteImage);
+                    gl.texImage2D(gl.TEXTURE_2D, 0, GL.SRGB8_ALPHA8, 128, 128, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.spriteImage);
                     gl.generateMipmap(gl.TEXTURE_2D);
                 }
                 if (!this.charTexture) {
@@ -3582,6 +3583,7 @@ var Fluxions;
             this.fx = fx;
             this._textures = new Map();
             this.imagefiles = [];
+            let GL = WebGL2RenderingContext;
             let gl = fx.gl;
             let tex2D = gl.createTexture();
             let texCube = gl.createTexture();
@@ -3590,8 +3592,7 @@ var Fluxions;
             }
             let pixels = new ImageData(new Uint8ClampedArray([0, 0, 0, 255, 255, 255, 255, 255, 0, 0, 0, 255, 255, 255, 255, 255]), 2, 2);
             gl.bindTexture(gl.TEXTURE_2D, tex2D);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, pixels);
-            //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 2, 2, 0, gl.RGB, gl.UNSIGNED_BYTE, pixels);
+            gl.texImage2D(gl.TEXTURE_2D, 0, GL.SRGB8_ALPHA8, GL.RGBA, gl.UNSIGNED_BYTE, pixels);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -3605,12 +3606,12 @@ var Fluxions;
             let zppixels = new ImageData(new Uint8ClampedArray([0, 0, 127, 255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 127, 255]), 2, 2);
             let znpixels = new ImageData(new Uint8ClampedArray([127, 127, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 127, 127, 0, 255]), 2, 2);
             gl.bindTexture(gl.TEXTURE_CUBE_MAP, texCube);
-            gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, xnpixels);
-            gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, ynpixels);
-            gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, znpixels);
-            gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, xppixels);
-            gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, yppixels);
-            gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, zppixels);
+            gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL.SRGB8_ALPHA8, gl.RGBA, gl.UNSIGNED_BYTE, xnpixels);
+            gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL.SRGB8_ALPHA8, gl.RGBA, gl.UNSIGNED_BYTE, ynpixels);
+            gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL.SRGB8_ALPHA8, gl.RGBA, gl.UNSIGNED_BYTE, znpixels);
+            gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL.SRGB8_ALPHA8, gl.RGBA, gl.UNSIGNED_BYTE, xppixels);
+            gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL.SRGB8_ALPHA8, gl.RGBA, gl.UNSIGNED_BYTE, yppixels);
+            gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL.SRGB8_ALPHA8, gl.RGBA, gl.UNSIGNED_BYTE, zppixels);
             gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -3688,6 +3689,7 @@ var Fluxions;
             return false;
         }
         processTextureMap(image, name) {
+            let GL = WebGL2RenderingContext;
             let gl = this.fx.gl;
             let minFilter = gl.NEAREST;
             let magFilter = gl.NEAREST;
@@ -3712,7 +3714,7 @@ var Fluxions;
                         else {
                             hflog.debug("image " + i + " w:" + images[i].width + "/h:" + images[i].height);
                         }
-                        gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[i]);
+                        gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL.SRGB8_ALPHA8, gl.RGBA, gl.UNSIGNED_BYTE, images[i]);
                     }
                     gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
                     let t = new Fluxions.FxTexture(this.fx, name, name, gl.TEXTURE_CUBE_MAP, texture);
@@ -3723,7 +3725,7 @@ var Fluxions;
                 let texture = gl.createTexture();
                 if (texture) {
                     gl.bindTexture(gl.TEXTURE_2D, texture);
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                    gl.texImage2D(gl.TEXTURE_2D, 0, GL.SRGB8_ALPHA8, gl.RGBA, gl.UNSIGNED_BYTE, image);
                     gl.generateMipmap(gl.TEXTURE_2D);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
@@ -4360,15 +4362,6 @@ class FxFBO {
         else {
             throw "Unable to create FBO";
         }
-        // width = 1 << ((0.5 + Math.log2(width)) | 0);
-        // height = 1 << ((0.5 + Math.log2(height)) | 0);
-        // this._powerOfTwoDimensions = Vector2.make(
-        //     width, height
-        // );
-        if (_colorType == 0)
-            this._colorType = gl.UNSIGNED_BYTE;
-        else
-            this._colorType = gl.FLOAT;
         this.make();
     }
     // private _powerOfTwoDimensions: Vector2;
@@ -4524,6 +4517,8 @@ class FxFBO {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
     use(clearScreen = true, disableColorWrites = false) {
+        if (!this.complete)
+            return;
         let gl = this._renderingContext.gl;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
         if (disableColorWrites)
@@ -4541,6 +4536,8 @@ class FxFBO {
         }
     }
     restore() {
+        if (!this.complete)
+            return;
         let gl = this._renderingContext.gl;
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         if (this.color && this._colorTexture) {

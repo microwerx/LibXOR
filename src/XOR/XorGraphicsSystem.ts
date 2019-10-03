@@ -183,6 +183,7 @@ namespace XOR {
 
         createBuffers() {
             if (!this.gl) return;
+            let GL = WebGL2RenderingContext;
             let gl = this.gl;
 
             let vertices: number[] = [];
@@ -382,7 +383,7 @@ namespace XOR {
                 }
                 if (this.spriteTexture) {
                     gl.bindTexture(gl.TEXTURE_2D, this.spriteTexture);
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 128, 128, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.spriteImage);
+                    gl.texImage2D(gl.TEXTURE_2D, 0, GL.SRGB8_ALPHA8, 128, 128, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.spriteImage);
                     gl.generateMipmap(gl.TEXTURE_2D);
                 }
 

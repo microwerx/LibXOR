@@ -50,13 +50,6 @@ class FxFBO {
         else {
             throw "Unable to create FBO"
         }
-        // width = 1 << ((0.5 + Math.log2(width)) | 0);
-        // height = 1 << ((0.5 + Math.log2(height)) | 0);
-        // this._powerOfTwoDimensions = Vector2.make(
-        //     width, height
-        // );
-        if (_colorType == 0) this._colorType = gl.UNSIGNED_BYTE;
-        else this._colorType = gl.FLOAT;
 
         this.make();
     }
@@ -204,6 +197,7 @@ class FxFBO {
     }
 
     use(clearScreen: boolean = true, disableColorWrites: boolean = false) {
+        if (!this.complete) return;
         let gl = this._renderingContext.gl;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
         if (disableColorWrites)
@@ -220,6 +214,7 @@ class FxFBO {
     }
 
     restore() {
+        if (!this.complete) return;
         let gl = this._renderingContext.gl;
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
