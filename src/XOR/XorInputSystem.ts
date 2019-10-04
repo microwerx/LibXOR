@@ -5,9 +5,7 @@
 
 namespace XOR {
     export class InputSystem {
-        /** @type {Map<string, number} */
         keys = new Map<string, number>();
-        /** @type {Map<string, number} */
         codes = new Map<string, number>();
         modifiers = 0;
         canvas: HTMLCanvasElement | null = null;
@@ -31,10 +29,10 @@ namespace XOR {
 
         init() {
             let self = this;
-            window.onkeydown = (e) => {
+            window.onkeydown = (e: KeyboardEvent) => {
                 self.onkeydown(e);
             };
-            window.onkeyup = (e) => {
+            window.onkeyup = (e: KeyboardEvent) => {
                 self.onkeyup(e);
             };
             for (let i = 0; i < 5; i++) {
@@ -53,7 +51,7 @@ namespace XOR {
                 gp.numAxes = e.gamepad.buttons.length;
                 gp.copyInfo(e.gamepad);
                 self.gamepads.set(e.gamepad.index, gp);
-                hflog.info("gamepad %d connected", e.gamepad.index);
+                hflog.info("Gamepad " + e.gamepad.index + " connected");
             });
             window.addEventListener("gamepaddisconnected", (ev: Event | GamepadEvent) => {
                 let e = <GamepadEvent>(ev);
@@ -61,7 +59,7 @@ namespace XOR {
                 if (gp) {
                     gp.enabled = false;
                 }
-                hflog.info("gamepad %d disconnected", e.gamepad.index);
+                hflog.info("Gamepad " + e.gamepad.index + " disconnected");
             });
             this.gamepadAPI = true;
             hflog.info("capturing gamepads");
