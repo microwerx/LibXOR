@@ -2745,7 +2745,7 @@ var XOR;
             this.jukebox = new TF.Jukebox(this);
             this.enabled_ = false;
             try {
-                window.AudioContext = (window.AudioContext || window.webkitAudioContext);
+                window.AudioContext = window.AudioContext || window.webkitAudioContext;
                 this.context_ = new AudioContext();
                 this.masterVolume = this.context_.createGain();
                 this.enabled_ = true;
@@ -2917,9 +2917,7 @@ var XOR;
     class InputSystem {
         constructor(xor) {
             this.xor = xor;
-            /** @type {Map<string, number} */
             this.keys = new Map();
-            /** @type {Map<string, number} */
             this.codes = new Map();
             this.modifiers = 0;
             this.canvas = null;
@@ -2962,7 +2960,7 @@ var XOR;
                 gp.numAxes = e.gamepad.buttons.length;
                 gp.copyInfo(e.gamepad);
                 self.gamepads.set(e.gamepad.index, gp);
-                hflog.info("gamepad %d connected", e.gamepad.index);
+                hflog.info("Gamepad " + e.gamepad.index + " connected");
             });
             window.addEventListener("gamepaddisconnected", (ev) => {
                 let e = (ev);
@@ -2970,7 +2968,7 @@ var XOR;
                 if (gp) {
                     gp.enabled = false;
                 }
-                hflog.info("gamepad %d disconnected", e.gamepad.index);
+                hflog.info("Gamepad " + e.gamepad.index + " disconnected");
             });
             this.gamepadAPI = true;
             hflog.info("capturing gamepads");

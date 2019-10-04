@@ -27,8 +27,8 @@ class App {
         this.zmoveKeys = [["KeyW", "KeyS"], ["KeyZ", "KeyS"]];
         this.zturnKeys = [["KeyQ", "KeyE"], ["KeyA", "KeyE"]];
         this.ymoveKeys = [["KeyC", "KeyZ"], ["KeyC", "KeyW"]];
-        this.yturnKeys = [["LeftArrow", "RightArrow"], ["LeftArrow", "RightArrow"]];
-        this.xturnKeys = [["DownArrow", "UpArrow"], ["DownArrow", "UpArrow"]];
+        this.yturnKeys = [["ArrowLeft", "ArrowRight"], ["ArrowLeft", "ArrowRight"]];
+        this.xturnKeys = [["ArrowDown", "ArrowUp"], ["ArrowDown", "ArrowUp"]];
         this.p1x = 0;
         this.p2x = 0;
         this.p1y = 0;
@@ -119,6 +119,18 @@ class App {
         xor.graphics.sprites[0].position.y += this.p1y * dt * 10;
         xor.graphics.sprites[1].position.x += this.p2x * dt * 10;
         xor.graphics.sprites[1].position.y += this.p2y * dt * 10;
+
+        for (let i = 0; i < 4; i++) {
+            let spr = xor.graphics.sprites[2 + i];
+            let gp = xor.input.gamepads.get(i);
+            if (gp.enabled) {
+                spr.enabled = true;
+                spr.position.x += gp.axe(0) * dt * 10;
+                spr.position.y += gp.axe(1) * dt * 10;
+            } else {
+                spr.enabled = false;
+            }
+        }
 
         if (xor.input.mouseOver) {
             let w = xor.graphics.width;

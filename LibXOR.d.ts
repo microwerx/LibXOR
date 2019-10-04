@@ -801,9 +801,7 @@ declare namespace XOR {
 declare namespace XOR {
     class InputSystem {
         xor: LibXOR;
-        /** @type {Map<string, number} */
         keys: Map<string, number>;
-        /** @type {Map<string, number} */
         codes: Map<string, number>;
         modifiers: number;
         canvas: HTMLCanvasElement | null;
