@@ -2,18 +2,19 @@
 /// <reference path="../src/LibXOR.ts" />
 /// <reference path="htmlutils.js" />
 
-
 class App {
     constructor() {
         this.xor = new LibXOR("project");
 
-        setIdToHtml("<p>This app demonstrates spherical harmonic lights.</p>");
+        setIdToHtml("<p>This is a test of the LibXOR retro console.</p>");
 
         let self = this;
         let controls = document.getElementById('controls');
         createButtonRow(controls, "bReset", "Reset", () => {
             self.reset();
         });
+        createButtonRow(controls, "bZSDF", "ZSDF/WASD", () => { self.euroKeys = 1 - self.euroKeys; });
+        createCheckRow(controls, "zasdKeys", false);
         createRangeRow(controls, "SOffsetX", 0, -8, 8);
         createRangeRow(controls, "SOffsetY", 0, -8, 8);
         createRangeRow(controls, "SZoomX", 1.0, 0.0, 4.0, 0.1);
@@ -21,8 +22,35 @@ class App {
 
         this.theta = 0;
 
-        this.xor.triggers.set("ESC", 60.0/120.0);
+        this.euroKeys = 0;
+        this.xmoveKeys = [["KeyA", "KeyD"], ["KeyQ", "KeyD"]];
+        this.zmoveKeys = [["KeyW", "KeyS"], ["KeyZ", "KeyS"]];
+        this.zturnKeys = [["KeyQ", "KeyE"], ["KeyA", "KeyE"]];
+        this.ymoveKeys = [["KeyC", "KeyZ"], ["KeyC", "KeyW"]];
+        this.yturnKeys = [["LeftArrow", "RightArrow"], ["LeftArrow", "RightArrow"]];
+        this.xturnKeys = [["DownArrow", "UpArrow"], ["DownArrow", "UpArrow"]];
+        this.p1x = 0;
+        this.p2x = 0;
+        this.p1y = 0;
+        this.p2y = 0;
+        this.ENTERbutton = 0;
+        this.BACKbutton = 0;
+        this.SPACEbutton = 0;
+        this.TABbutton = 0;
+
+        this.xor.triggers.set("ESC", 60.0 / 120.0);
         this.xor.triggers.set("SPC", 0.033);
+        this.xor.triggers.set("ENT", 0.033);
+    }
+
+    /**
+     * getAxis(keysToCheck)
+     * @param {string[]} keysToCheck a two element string array
+     */
+    getAxis(keysToCheck) {
+        let neg = this.xor.input.checkKeys([keysToCheck[this.euroKeys][0]]);
+        let pos = this.xor.input.checkKeys([keysToCheck[this.euroKeys][1]]);
+        return pos - neg;
     }
 
     init() {
@@ -46,6 +74,12 @@ class App {
         if (spr) {
             spr.enabled = true;
             spr.position.reset(50, 50, 0);
+        }
+
+        spr = this.xor.graphics.sprites[1];
+        if (spr) {
+            spr.enabled = true;
+            spr.position.reset(58, 50, 0);
         }
 
         this.pauseGame = false;
@@ -77,10 +111,14 @@ class App {
             }
         }
 
-        let dx = xor.input.checkKeys(["ArrowRight"]) - xor.input.checkKeys(["ArrowLeft"]);
-        let dy = xor.input.checkKeys(["ArrowDown"]) - xor.input.checkKeys(["ArrowUp"]);
-        xor.graphics.sprites[0].position.x += dx * dt * 10;
-        xor.graphics.sprites[0].position.y += dy * dt * 10;
+        this.p1x = this.getAxis(this.xmoveKeys);
+        this.p1y = this.getAxis(this.zmoveKeys);
+        this.p2x = this.getAxis(this.yturnKeys);
+        this.p2y = this.getAxis(this.xturnKeys);
+        xor.graphics.sprites[0].position.x += this.p1x * dt * 10;
+        xor.graphics.sprites[0].position.y += this.p1y * dt * 10;
+        xor.graphics.sprites[1].position.x += this.p2x * dt * 10;
+        xor.graphics.sprites[1].position.y += this.p2y * dt * 10;
 
         if (xor.input.mouseOver) {
             let w = xor.graphics.width;
