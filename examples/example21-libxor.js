@@ -28,7 +28,8 @@ class App {
         this.zturnKeys = [["KeyQ", "KeyE"], ["KeyA", "KeyE"]];
         this.ymoveKeys = [["KeyC", "KeyZ"], ["KeyC", "KeyW"]];
         this.yturnKeys = [["ArrowLeft", "ArrowRight"], ["ArrowLeft", "ArrowRight"]];
-        this.xturnKeys = [["ArrowDown", "ArrowUp"], ["ArrowDown", "ArrowUp"]];
+        this.xturnKeys = [["ArrowUp", "ArrowDown"], ["ArrowUp", "ArrowDown"]];
+        
         this.p1x = 0;
         this.p2x = 0;
         this.p1y = 0;
