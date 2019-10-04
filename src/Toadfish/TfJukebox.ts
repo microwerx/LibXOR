@@ -33,5 +33,8 @@ namespace TF {
             el.play();
             this.playTrack = index;
         }
+
+        update(timeInSeconds: number) { }
+
     }
 }

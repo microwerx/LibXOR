@@ -690,6 +690,7 @@ declare namespace TF {
         private stopped_;
         loop: boolean;
         constructor(url: string, buffer?: AudioBuffer | null, loaded?: boolean, haderror?: boolean);
+        update(timeInSeconds: number): void;
         play(ss: XOR.SoundSystem, time?: number): void;
         readonly stopped: boolean;
         readonly playing: boolean;
@@ -719,6 +720,7 @@ declare namespace TF {
         add(index: number, url: string, looping: boolean): boolean;
         stop(): void;
         play(index: number): void;
+        update(timeInSeconds: number): void;
     }
 }
 interface Window {
@@ -740,6 +742,7 @@ declare namespace XOR {
         init(): void;
         volume: number;
         readonly gainNode: GainNode;
+        update(): void;
     }
 }
 declare class XORMouseEvent {

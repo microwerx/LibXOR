@@ -62,10 +62,16 @@ class App {
         return pos - neg;
     }
 
-    playTrack(track) {
-        track = track | 0;
-        let sound = this.xor.sound;
-        sound.jukebox
+    /**
+     * playMusic(index)
+     * @param {number} index Which slot to start playing
+     */
+    playMusic(index) {
+        this.xor.sound.jukebox.play(index | 0);
+    }
+
+    playSfx(index) {
+        this.xor.sound.sampler.playSample(index & 0xF, false, 0);
     }
 
     /**
@@ -85,6 +91,14 @@ class App {
 
         this.xor.graphics.init();
         this.reset();
+
+        this.xor.sound.init();
+        this.xor.sound.jukebox.add(0, "music/noise.mp3");
+        this.xor.sound.jukebox.add(1, "music/maintheme.mp3");
+        this.xor.sound.jukebox.add(2, "music/adventuretheme.mp3");
+        this.xor.sound.jukebox.add(3, "music/arcadetheme.mp3");
+        this.xor.sound.sampler.loadSample(0, "sounds/BassDrum1.wav");
+        this.xor.sound.sampler.loadSample(1, "sounds/BassDrum2.wav");
     }
 
     reset() {
@@ -193,6 +207,8 @@ class App {
         let self = this;
         window.requestAnimationFrame((t) => {
             self.xor.startFrame(t);
+            self.xor.input.poll();
+            self.xor.sound.update();
             self.update(self.xor.dt);
             self.render();
             self.mainloop();

@@ -2553,6 +2553,7 @@ var TF;
             this.VCFenvelope.release = 1;
             this.VCFenvelope.sustainCV = 0.5;
         }
+        update(timeInSeconds) { }
         play(ss, time = 0) {
             if (!ss.enabled)
                 return;
@@ -2765,6 +2766,7 @@ var TF;
             el.play();
             this.playTrack = index;
         }
+        update(timeInSeconds) { }
     }
     TF.Jukebox = Jukebox;
 })(TF || (TF = {}));
@@ -2805,6 +2807,10 @@ var XOR;
         set volume(v) { if (!this.enabled)
             return; this.masterVolume.gain.value = GTE.clamp(v, 0.0, 1.0); }
         get gainNode() { return this.masterVolume; }
+        update() {
+            this.sampler.update(this.xor.t1);
+            this.jukebox.update(this.xor.t1);
+        }
     }
     XOR.SoundSystem = SoundSystem;
 })(XOR || (XOR = {}));

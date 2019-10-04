@@ -61,6 +61,8 @@ namespace TF {
             this.VCFenvelope.sustainCV = 0.5;
         }
 
+        update(timeInSeconds: number) { }
+
         play(ss: XOR.SoundSystem, time: number = 0) {
             if (!ss.enabled) return;
             let ctx = ss.context;

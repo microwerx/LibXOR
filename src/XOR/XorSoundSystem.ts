@@ -42,5 +42,10 @@ namespace XOR {
         get volume(): number { if (!this.enabled) return 0; return this.masterVolume.gain.value; }
         set volume(v: number) { if (!this.enabled) return; this.masterVolume.gain.value = GTE.clamp(v, 0.0, 1.0); }
         get gainNode(): GainNode { return this.masterVolume; }
+
+        update() {
+            this.sampler.update(this.xor.t1);
+            this.jukebox.update(this.xor.t1);
+        }
     }
 }
