@@ -690,7 +690,6 @@ declare namespace TF {
         private stopped_;
         loop: boolean;
         constructor(url: string, buffer?: AudioBuffer | null, loaded?: boolean, haderror?: boolean);
-        update(timeInSeconds: number): void;
         play(ss: XOR.SoundSystem, time?: number): void;
         readonly stopped: boolean;
         readonly playing: boolean;
@@ -706,6 +705,7 @@ declare namespace TF {
         readonly loaded: boolean;
         isPlaying(id: number): boolean;
         isStopped(id: number): boolean;
+        update(timeInSeconds: number): void;
         stopSample(id: number): void;
         loadSample(id: number, url: string, logErrors?: boolean): void;
         playSample(id: number, loop?: boolean, time?: number): void;

@@ -2553,7 +2553,6 @@ var TF;
             this.VCFenvelope.release = 1;
             this.VCFenvelope.sustainCV = 0.5;
         }
-        update(timeInSeconds) { }
         play(ss, time = 0) {
             if (!ss.enabled)
                 return;
@@ -2672,6 +2671,7 @@ var TF;
             }
             return true;
         }
+        update(timeInSeconds) { }
         stopSample(id) {
             let s = this.samples.get(id);
             if (s) {
