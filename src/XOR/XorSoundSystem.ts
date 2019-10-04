@@ -17,7 +17,7 @@ namespace XOR {
 
         constructor(private xor: LibXOR) {
             try {
-                window.AudioContext = <AudioContext>(window.AudioContext || window.webkitAudioContext);
+                window.AudioContext = window.AudioContext || (window as any).webkitAudioContext;
                 this.context_ = new AudioContext();
                 this.masterVolume = this.context_.createGain();
                 this.enabled_ = true;
