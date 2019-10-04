@@ -8,6 +8,7 @@
 /// <reference path="XorPaletteSystem.ts" />
 /// <reference path="XorMeshSystem.ts" />
 /// <reference path="XorTextFileLoaderSystem.ts" />
+/// <reference path="XorTriggerSystem.ts" />
 /// <reference path="../Fluxions/Fluxions.ts" />
 
 type FxIndexedGeometryMesh = Fluxions.FxIndexedGeometryMesh;
@@ -33,6 +34,7 @@ class LibXOR {
     public palette = new XOR.PaletteSystem(this);
     public meshes = new XOR.MeshSystem(this);
     public textfiles = new XOR.TextFileLoaderSystem();
+    public triggers = new XOR.TriggerSystem();
 
     public oninit = () => { };
     public onupdate = (dt: number) => { };

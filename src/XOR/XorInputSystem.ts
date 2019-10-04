@@ -187,14 +187,6 @@ namespace XOR {
             return 0.0;
         }
 
-        pollGamepads() {
-            for (let i = 0; i < 4; i++) {
-                let gp = this.gamepads.get(i);
-                if (!gp) continue;
-                Gamepad
-            }
-        }
-
         get mousecurpos(): Vector2 { return this.mouse.position; }
         get mouseclick(): Vector2 { let b = this.mouseButtons.get(0); if (!b) return Vector2.make(0, 0); return b.position; }
         get mouseshadertoy(): Vector4 { return Vector4.make(this.mousecurpos.x, this.mousecurpos.y, this.mouseclick.x, this.mouseclick.y); }

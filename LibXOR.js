@@ -3063,14 +3063,6 @@ var XOR;
             }
             return 0.0;
         }
-        pollGamepads() {
-            for (let i = 0; i < 4; i++) {
-                let gp = this.gamepads.get(i);
-                if (!gp)
-                    continue;
-                Gamepad;
-            }
-        }
         get mousecurpos() { return this.mouse.position; }
         get mouseclick() { let b = this.mouseButtons.get(0); if (!b)
             return Vector2.make(0, 0); return b.position; }
@@ -4238,12 +4230,8 @@ var Fluxions;
                 this.enableExtensions([
                     "EXT_texture_filter_anisotropic",
                     "EXT_color_buffer_float",
-                    "WEBGL_depth_texture",
                     "WEBGL_debug_renderer_info",
-                    "OES_element_index_uint",
-                    "OES_standard_derivatives",
                     "OES_texture_float_linear",
-                    "OES_texture_float",
                 ]);
             }
             else {
@@ -4301,7 +4289,6 @@ var Fluxions;
                 if (!found) {
                     hflog.log("Extension " + name + " not enabled");
                     allFound = false;
-                    break;
                 }
             }
             return allFound;
@@ -6349,6 +6336,76 @@ var XOR;
     }
     XOR.TextFileLoaderSystem = TextFileLoaderSystem;
 })(XOR || (XOR = {}));
+/// <reference path="LibXOR.ts" />
+var XOR;
+(function (XOR) {
+    class Trigger {
+        /**
+         * TriggerTool(resetTime)
+         * @param {number} resetTime How often the timer should be allowed to trigger
+         */
+        constructor(resetTime = 0) {
+            this.resetTime = resetTime;
+            this.triggerTime = 0;
+            this.triggered_ = false;
+            this.resetTime = resetTime || 0;
+            this.triggerTime = 0;
+            this.triggered_ = false;
+        }
+        /**
+         * triggered() returns 1 if trigger went off and resets it
+         */
+        get triggered() { let t = this.triggered_; this.triggered_ = false; return t; }
+        /**
+         * wait(t1) sets the new trigger time. It does not reset the trigger
+         * @param {number} t1 Sets the new trigger time
+         */
+        wait(t1) {
+            this.triggerTime = t1 + this.resetTime;
+        }
+        /**
+         * tick(t1) returns true if the trigger went off and resets the timer
+         * @param {number} t1 Time in seconds
+         */
+        tick(t1) {
+            this.update(t1);
+            let result = false;
+            if (this.triggered) {
+                result = true;
+                this.wait(t1);
+            }
+            return result;
+        }
+        /**
+         * update(t1)
+         * @param {number} t1 Time in seconds
+         */
+        update(t1) {
+            this.triggered_ = t1 > this.triggerTime;
+        }
+    }
+    XOR.Trigger = Trigger;
+})(XOR || (XOR = {}));
+/// <reference path="LibXOR.ts" />
+/// <reference path="XorTrigger.ts" />
+var XOR;
+(function (XOR) {
+    class TriggerSystem {
+        constructor() {
+            this.triggers = new Map();
+        }
+        set(name, time) {
+            this.triggers.set(name, new XOR.Trigger(time));
+        }
+        get(name) {
+            let t = this.triggers.get(name);
+            if (!t)
+                return new XOR.Trigger(0);
+            return t;
+        }
+    }
+    XOR.TriggerSystem = TriggerSystem;
+})(XOR || (XOR = {}));
 /// <reference path="../Hatchetfish.ts" />
 /// <reference path="../GTE/GTE.ts" />
 /// <reference path="XorUtils.ts" />
@@ -6359,6 +6416,7 @@ var XOR;
 /// <reference path="XorPaletteSystem.ts" />
 /// <reference path="XorMeshSystem.ts" />
 /// <reference path="XorTextFileLoaderSystem.ts" />
+/// <reference path="XorTriggerSystem.ts" />
 /// <reference path="../Fluxions/Fluxions.ts" />
 /**
  * @class LibXOR
@@ -6377,6 +6435,7 @@ class LibXOR {
         this.palette = new XOR.PaletteSystem(this);
         this.meshes = new XOR.MeshSystem(this);
         this.textfiles = new XOR.TextFileLoaderSystem();
+        this.triggers = new XOR.TriggerSystem();
         this.oninit = () => { };
         this.onupdate = (dt) => { };
         let n = document.getElementById(parentId);

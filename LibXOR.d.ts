@@ -811,7 +811,6 @@ declare namespace XOR {
         captureMouse(e: HTMLCanvasElement): void;
         captureTouches(): void;
         checkKeys(keys: string[]): number;
-        pollGamepads(): void;
         readonly mousecurpos: Vector2;
         readonly mouseclick: Vector2;
         readonly mouseshadertoy: Vector4;
@@ -1508,6 +1507,45 @@ declare namespace XOR {
     }
     export {};
 }
+declare namespace XOR {
+    class Trigger {
+        resetTime: number;
+        triggerTime: number;
+        triggered_: boolean;
+        /**
+         * TriggerTool(resetTime)
+         * @param {number} resetTime How often the timer should be allowed to trigger
+         */
+        constructor(resetTime?: number);
+        /**
+         * triggered() returns 1 if trigger went off and resets it
+         */
+        readonly triggered: boolean;
+        /**
+         * wait(t1) sets the new trigger time. It does not reset the trigger
+         * @param {number} t1 Sets the new trigger time
+         */
+        wait(t1: number): void;
+        /**
+         * tick(t1) returns true if the trigger went off and resets the timer
+         * @param {number} t1 Time in seconds
+         */
+        tick(t1: number): boolean;
+        /**
+         * update(t1)
+         * @param {number} t1 Time in seconds
+         */
+        update(t1: number): void;
+    }
+}
+declare namespace XOR {
+    class TriggerSystem {
+        triggers: Map<string, Trigger>;
+        constructor();
+        set(name: string, time: number): void;
+        get(name: string): Trigger;
+    }
+}
 declare type FxIndexedGeometryMesh = Fluxions.FxIndexedGeometryMesh;
 declare type FxRenderConfig = Fluxions.FxRenderConfig;
 declare type FxRenderingContext = Fluxions.FxRenderingContext;
@@ -1530,6 +1568,7 @@ declare class LibXOR {
     palette: XOR.PaletteSystem;
     meshes: XOR.MeshSystem;
     textfiles: XOR.TextFileLoaderSystem;
+    triggers: XOR.TriggerSystem;
     oninit: () => void;
     onupdate: (dt: number) => void;
     constructor(parentId: string);

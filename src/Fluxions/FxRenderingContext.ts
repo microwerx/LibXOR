@@ -38,12 +38,8 @@ namespace Fluxions {
                 this.enableExtensions([
                     "EXT_texture_filter_anisotropic",
                     "EXT_color_buffer_float",
-                    "WEBGL_depth_texture",
                     "WEBGL_debug_renderer_info",
-                    "OES_element_index_uint",
-                    "OES_standard_derivatives",
                     "OES_texture_float_linear",
-                    "OES_texture_float",
                 ]);
             } else {
                 this.enableExtensions([
@@ -106,7 +102,6 @@ namespace Fluxions {
                 if (!found) {
                     hflog.log("Extension " + name + " not enabled")
                     allFound = false;
-                    break;
                 }
             }
             return allFound;
@@ -132,7 +127,7 @@ namespace Fluxions {
             // }
         }
 
-        verifyFBO(name: string) : boolean {
+        verifyFBO(name: string): boolean {
             let fbo = this.fbos.get(name);
             if (fbo) {
                 if (fbo.complete) return true;
