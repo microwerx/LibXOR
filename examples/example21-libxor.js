@@ -19,6 +19,14 @@ class App {
         createRangeRow(controls, "SOffsetY", 0, -8, 8);
         createRangeRow(controls, "SZoomX", 1.0, 0.0, 4.0, 0.1);
         createRangeRow(controls, "SZoomY", 1.0, 0.0, 4.0, 0.1);
+        createRangeRow(controls, "playTrack", 0, 0, 7);
+        createRangeRow(controls, "sfxTrack", 0, 0, 15);
+        createButtonRow(controls, "bPlayTrack", "Play Track", () => {
+            self.playMusic(getRangeValue("playTrack"));
+        });
+        createButtonRow(controls, "bPlaySFX", "Play SFX", () => {
+            self.playSfx(getRangeValue("sfxTrack"));
+        });
 
         this.theta = 0;
 
@@ -29,7 +37,7 @@ class App {
         this.ymoveKeys = [["KeyC", "KeyZ"], ["KeyC", "KeyW"]];
         this.yturnKeys = [["ArrowLeft", "ArrowRight"], ["ArrowLeft", "ArrowRight"]];
         this.xturnKeys = [["ArrowUp", "ArrowDown"], ["ArrowUp", "ArrowDown"]];
-        
+
         this.p1x = 0;
         this.p2x = 0;
         this.p1y = 0;
@@ -54,6 +62,15 @@ class App {
         return pos - neg;
     }
 
+    playTrack(track) {
+        track = track | 0;
+        let sound = this.xor.sound;
+        sound.jukebox
+    }
+
+    /**
+     * init()
+     */
     init() {
         hflog.logElement = "log";
         this.xor.graphics.setVideoMode(1.5 * 384, 384);
@@ -145,7 +162,7 @@ class App {
 
     updateControls() {
         let xor = this.xor;
-        xor.graphics.setOffset(getRangeValue("SOffetX"), getRangeValue("SOffsetY"));
+        xor.graphics.setOffset(getRangeValue("SOffsetX"), getRangeValue("SOffsetY"));
         xor.graphics.setZoom(getRangeValue("SZoomX"), getRangeValue("SZoomY"));
     }
 

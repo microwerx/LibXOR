@@ -1984,6 +1984,7 @@ var XOR;
         constructor() {
             this.position = GTE.vec3(0, 0, 0);
             this.pivot = GTE.vec3(0, 0, 0);
+            this.bbox = new GTE.BoundingBox();
             this.palette = 0;
             this.index = 0;
             this.plane = 0;
@@ -1993,6 +1994,8 @@ var XOR;
             this.flipv = false;
             this.rotate90 = 0;
             this.matrix = Matrix4.makeIdentity();
+            this.bbox.add(Vector3.make(-4, -4, -4));
+            this.bbox.add(Vector3.make(4, 4, 4));
         }
         readFromMemory(mem, offset) {
             this.position.x = mem.PEEK(offset + 0);
@@ -2220,10 +2223,12 @@ var XOR;
                 let v2 = spr.flipv ? 0.0 : 1.0;
                 let w = 0.0;
                 let scale = 1.0; // / this.canvas.width;
-                let x1 = spr.position.x; // - spr.pivot.x;
-                let y1 = spr.position.y; // - spr.pivot.y;
-                let x2 = spr.position.x + 8; // - spr.pivot.x;
-                let y2 = spr.position.y + 8; // - spr.pivot.y;
+                let wOver2 = spr.bbox.width >> 1;
+                let hOver2 = spr.bbox.height >> 1;
+                let x1 = spr.position.x - wOver2;
+                let y1 = spr.position.y - hOver2;
+                let x2 = spr.position.x + wOver2;
+                let y2 = spr.position.y + hOver2;
                 let z = 0.0; //spr.plane + 4;
                 let nx = 0.0;
                 let ny = 0.0;
@@ -2436,13 +2441,16 @@ var XOR;
             this.enableVertexAttrib(gl, this.aColor, 4, gl.FLOAT, 64, 36);
             this.enableVertexAttrib(gl, this.aGeneric, 3, gl.FLOAT, 64, 52);
             gl.useProgram(this.shaderProgram);
+            let m = this.cameraMatrix.clone();
+            m.scale(this.zoomX, this.zoomY, 1.0);
+            m.translate(this.offsetX, this.offsetY, 0.0);
             // set uniforms
             if (this.uTexture0)
                 gl.uniform1i(this.uTexture0, 0);
             if (this.uWorldMatrix)
                 gl.uniformMatrix4fv(this.uWorldMatrix, false, this.worldMatrix.toColMajorArray());
             if (this.uCameraMatrix)
-                gl.uniformMatrix4fv(this.uCameraMatrix, false, this.cameraMatrix.toColMajorArray());
+                gl.uniformMatrix4fv(this.uCameraMatrix, false, m.toColMajorArray());
             if (this.uProjectionMatrix)
                 gl.uniformMatrix4fv(this.uProjectionMatrix, false, this.projectionMatrix.toColMajorArray());
             // draw sprites
@@ -2729,6 +2737,33 @@ var TF;
     class Jukebox {
         constructor(ss) {
             this.ss = ss;
+            this.tracks = new Map();
+            this.playTrack = -1;
+        }
+        add(index, url, looping) {
+            let el = new Audio();
+            el.preload = "auto";
+            el.src = url;
+            el.loop = looping;
+            this.tracks.set(index, el);
+            return true;
+        }
+        stop() {
+            if (this.playTrack < 0)
+                return;
+            let el = this.tracks.get(this.playTrack);
+            if (!el)
+                return;
+            el.pause();
+            this.playTrack = -1;
+        }
+        play(index) {
+            this.stop();
+            let el = this.tracks.get(index);
+            if (!el)
+                return;
+            el.play();
+            this.playTrack = index;
         }
     }
     TF.Jukebox = Jukebox;

@@ -542,6 +542,7 @@ declare namespace XOR {
     class GraphicsSprite {
         position: Vector3;
         pivot: Vector3;
+        bbox: GTE.BoundingBox;
         palette: number;
         index: number;
         plane: number;
@@ -712,7 +713,12 @@ declare namespace TF {
 declare namespace TF {
     class Jukebox {
         ss: XOR.SoundSystem;
+        tracks: Map<number, HTMLAudioElement>;
+        playTrack: number;
         constructor(ss: XOR.SoundSystem);
+        add(index: number, url: string, looping: boolean): boolean;
+        stop(): void;
+        play(index: number): void;
     }
 }
 interface Window {

@@ -94,7 +94,7 @@ class App {
 
     updateControls() {
         let xor = this.xor;
-        xor.graphics.setOffset(getRangeValue("SOffetX"), getRangeValue("SOffsetY"));
+        xor.graphics.setOffset(getRangeValue("SOffsetX"), getRangeValue("SOffsetY"));
         xor.graphics.setZoom(getRangeValue("SZoomX"), getRangeValue("SZoomY"));
     }
 

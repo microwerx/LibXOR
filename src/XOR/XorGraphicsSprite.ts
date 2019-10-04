@@ -6,6 +6,7 @@ namespace XOR {
     export class GraphicsSprite {
         position = GTE.vec3(0, 0, 0);
         pivot = GTE.vec3(0, 0, 0);
+        bbox = new GTE.BoundingBox();
         palette = 0;
         index = 0;
         plane = 0;
@@ -16,7 +17,10 @@ namespace XOR {
         rotate90 = 0;
         matrix: Matrix4 = Matrix4.makeIdentity();
 
-        constructor() { }
+        constructor() {
+            this.bbox.add(Vector3.make(-4, -4, -4));
+            this.bbox.add(Vector3.make(4, 4, 4));
+        }
 
         readFromMemory(mem: XOR.MemorySystem, offset: number) {
             this.position.x = mem.PEEK(offset + 0);

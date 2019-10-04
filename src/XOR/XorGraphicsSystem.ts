@@ -206,10 +206,12 @@ namespace XOR {
                 let v2 = spr.flipv ? 0.0 : 1.0;
                 let w = 0.0;
                 let scale = 1.0;// / this.canvas.width;
-                let x1 = spr.position.x;// - spr.pivot.x;
-                let y1 = spr.position.y;// - spr.pivot.y;
-                let x2 = spr.position.x + 8;// - spr.pivot.x;
-                let y2 = spr.position.y + 8;// - spr.pivot.y;
+                let wOver2 = spr.bbox.width >> 1;
+                let hOver2 = spr.bbox.height >> 1;
+                let x1 = spr.position.x - wOver2;
+                let y1 = spr.position.y - hOver2;
+                let x2 = spr.position.x + wOver2;
+                let y2 = spr.position.y + hOver2;
                 let z = 0.0;//spr.plane + 4;
                 let nx = 0.0;
                 let ny = 0.0;
@@ -445,10 +447,14 @@ namespace XOR {
 
             gl.useProgram(this.shaderProgram);
 
+            let m = this.cameraMatrix.clone();
+            m.scale(this.zoomX, this.zoomY, 1.0);
+            m.translate(this.offsetX, this.offsetY, 0.0);
+
             // set uniforms
             if (this.uTexture0) gl.uniform1i(this.uTexture0, 0);
             if (this.uWorldMatrix) gl.uniformMatrix4fv(this.uWorldMatrix, false, this.worldMatrix.toColMajorArray());
-            if (this.uCameraMatrix) gl.uniformMatrix4fv(this.uCameraMatrix, false, this.cameraMatrix.toColMajorArray());
+            if (this.uCameraMatrix) gl.uniformMatrix4fv(this.uCameraMatrix, false, m.toColMajorArray());
             if (this.uProjectionMatrix) gl.uniformMatrix4fv(this.uProjectionMatrix, false, this.projectionMatrix.toColMajorArray());
 
             // draw sprites
