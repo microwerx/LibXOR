@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-/* global Vector3 */
+/// <reference path="../LibXOR.d.ts" />
 
 // START HELPFUL HTML5 FUNCTIONS
 
@@ -120,7 +120,7 @@ function setDivRowContents(id, content) {
 
 /**
  * getRangeValue returns the number of a range control
- * @param {number} id 
+ * @param {string} id 
  * @returns the value of the range control or 0
  */
 function getRangeValue(id) {
