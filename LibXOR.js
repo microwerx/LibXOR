@@ -1915,7 +1915,10 @@ var XOR;
     class MemorySystem {
         constructor(xor) {
             this.xor = xor;
-            this.mem = new Int32Array(65536);
+            this.intmem = new Int32Array(65536);
+            this.fltmem = new Float32Array(65536);
+            this.vecmem = new Array(65536);
+            this.colmem = new Array(65536);
             // handy reminders
             // 0x1000 = 4096
             // 0x100 = 256
@@ -1930,20 +1933,44 @@ var XOR;
         }
         init() {
             for (let i = 0; i < 65536; i++) {
-                this.mem[i] = 0;
+                this.intmem[i] = 0;
             }
         }
         PEEK(location) {
             if (location < 0 || location > 65536) {
                 return 0;
             }
-            return this.mem[location];
+            return this.intmem[location];
         }
         POKE(location, value) {
             if (location < 0 || location > 65535) {
                 return;
             }
-            this.mem[location] = value | 0;
+            this.intmem[location] = value | 0;
+        }
+        IPEEK(location) {
+            return this.intmem[location & 0xFFFF];
+        }
+        FPEEK(location) {
+            return this.fltmem[location & 0xFFFF];
+        }
+        VPEEK(location) {
+            return this.vecmem[location & 0xFFFF];
+        }
+        CPEEK(location) {
+            return this.colmem[location & 0xFFFF];
+        }
+        IPOKE(location, value) {
+            this.intmem[location & 0xFFFF] = value & ~0;
+        }
+        FPOKE(location, value) {
+            this.fltmem[location & 0xFFFF] = value;
+        }
+        VPOKE(location, value) {
+            this.vecmem[location & 0xFFFF] = value;
+        }
+        CPOKE(location, value) {
+            this.colmem[location & 0xFFFF] = value.clamp(0, 255);
         }
     }
     XOR.MemorySystem = MemorySystem;

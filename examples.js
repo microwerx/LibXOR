@@ -20,7 +20,8 @@ class ExampleMetadata {
             "example17.html",
             "example18.html",
             "example19.html",
-            "example20.html"
+            "example20.html",
+            "example21.html"
         ];
         this.exampleDescs = [
             "WebGL Basic Code",
@@ -42,7 +43,8 @@ class ExampleMetadata {
             "Textures",
             "SPH",
             "SPHLs",
-            "Classic Graphics"
+            "Classic Graphics",
+            "LibXOR Test"
         ];
         this.numExamples = this.exampleDescs.length;
         this.courseNumber = "Graphics Rendering, Animation, and Simulation";
@@ -154,7 +156,10 @@ class ExampleMetadata {
                 ".html\">Example " + (this.exampleNum + 1) + "</a> >>");
         }
         this.writeln('<hr class="bluehr" />');
-        this.writeln('<p style="font-size: 0.5em;">UA is an AA/EO employer and educational institution and prohibits illegal discrimination against any individual: <a href="https://www.alaska.edu/nondiscrimination">www.alaska.edu/nondiscrimination</a>.</p>');
+        if (document.URL.search("uaf.edu") >= 0)
+            this.writeln('<p style="font-size: 0.5em;">UA is an AA/EO employer and educational institution and prohibits illegal discrimination against any individual: <a href="https://www.alaska.edu/nondiscrimination">www.alaska.edu/nondiscrimination</a>.</p>');
+        else
+            this.writeln('<p style="font-size: 0.5em;">Copyright (C) 2017-2019 Jonathan Metzgar (aka microwerx)</p>');
         this.writeln('</footer>');
     }
 

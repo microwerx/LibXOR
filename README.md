@@ -2,9 +2,21 @@
 
 LibXOR is a retro console. It is a game library written in TypeScript and useful for creating games in JavaScript or TypeScript. One of the key features is that it uses a memory mapped interface for using the graphics, sound, and input capabilities of the console. A second major key feature is that each memory location is actually a 4 component vector with a 32-bit floating point number. This means that rather than 64KiB of single bytes, we can store 65,536 4-Vectors.
 
+* `constexpr unsigned MEMORYSIZE = 65536;`
+* `int      intmem[MEMORYSIZE];`
+* `float    fltmem[MEMORYSIZE];`
+* `Vector4f vecmem[MEMORYSIZE];`
+* `Color4ub colmem[MEMORYSIZE];`
+* `Audio8st audmem[MEMORYSIZE];`
+
 What will happen to this is creation of a 256x256 4 component texture map that gets input into the graphics system and used as a source for a shader.
 
 LibXOR is inspired by 6502 8-bit computers. The main idea is that we have a 64KiB memory space that is used by a number of peripherals. The main CPU interacts with these devices by use of memory mapped registers. The Microsoft 6502 BASIC language was often used and provided PEEK and POKE commands to change arbitrary memory values. For example, if you want to start a sound, you might POKE the volume and pitch values into memory. If you wanted to check the input system, you would PEEK those values.
+
+* int IPEEK(unsigned short addr)
+* float FPEEK(unsigned short addr);
+* Vector4f VPEEK(unsigned short addr);
+* Color4ub CPEEK(unsigned short addr);
 
 ## Developer's quick guide
 
@@ -111,7 +123,7 @@ LibXOR is inspired by 6502 8-bit computers. The main idea is that we have a 64Ki
 
 ### PSG Programmable Sound Generator
 
-There are sixteen registers
+There are sixteen registers 
 
 * Register 0: Pitch for sound 1
 * Register 1: Pitch for sound 2

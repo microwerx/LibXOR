@@ -514,7 +514,10 @@ declare namespace XOR {
 declare namespace XOR {
     class MemorySystem {
         private xor;
-        private mem;
+        private intmem;
+        private fltmem;
+        private vecmem;
+        private colmem;
         readonly VICSTART = 4096;
         readonly VICCOUNT = 256;
         readonly PALETTESTART = 4352;
@@ -525,6 +528,14 @@ declare namespace XOR {
         init(): void;
         PEEK(location: number): number;
         POKE(location: number, value: number): void;
+        IPEEK(location: number): number;
+        FPEEK(location: number): number;
+        VPEEK(location: number): Vector4;
+        CPEEK(location: number): Vector4;
+        IPOKE(location: number, value: number): void;
+        FPOKE(location: number, value: number): void;
+        VPOKE(location: number, value: Vector4): void;
+        CPOKE(location: number, value: Vector4): void;
     }
 }
 declare namespace XOR {
