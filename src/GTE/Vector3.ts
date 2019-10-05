@@ -349,6 +349,14 @@ class Vector3 {
         );
     }
 
+    clamp3(a: Vector3, b: Vector3): Vector3 {
+        return new Vector3(
+            GTE.clamp(this.x, a.x, b.x),
+            GTE.clamp(this.x, a.x, b.x),
+            GTE.clamp(this.x, a.x, b.x)
+        );
+    }
+
     static dot(v1: Vector3, v2: Vector3): number {
         return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
     }

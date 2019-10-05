@@ -436,6 +436,9 @@ class Vector3 {
     clamp(a, b) {
         return new Vector3(GTE.clamp(this.x, a, b), GTE.clamp(this.y, a, b), GTE.clamp(this.z, a, b));
     }
+    clamp3(a, b) {
+        return new Vector3(GTE.clamp(this.x, a.x, b.x), GTE.clamp(this.x, a.x, b.x), GTE.clamp(this.x, a.x, b.x));
+    }
     static dot(v1, v2) {
         return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
     }
