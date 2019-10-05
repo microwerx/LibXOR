@@ -1095,6 +1095,8 @@ declare namespace Fluxions {
         useDepthTest: boolean;
         depthTest: number;
         depthMask: boolean;
+        useCullFace: boolean;
+        cullFaceMode: number;
         useBlending: boolean;
         blendSrcFactor: number;
         blendDstFactor: number;
@@ -1411,8 +1413,9 @@ declare class FxSurface {
     readonly offset: number;
     mtllib: string;
     mtl: string;
+    worldMatrix: Matrix4;
     count: number;
-    constructor(mode: number, offset: number, mtllib: string, mtl: string);
+    constructor(mode: number, offset: number, mtllib: string, mtl: string, worldMatrix: Matrix4);
     Add(): void;
 }
 declare namespace Fluxions {
@@ -1461,6 +1464,7 @@ declare namespace Fluxions {
         private _mtl;
         private _vertex;
         private _dirty;
+        private _worldMatrix;
         private _vbo;
         private _ibo;
         private _ebo;
@@ -1488,6 +1492,7 @@ declare namespace Fluxions {
         vertex3(v: Vector3): void;
         vertex(x: number, y: number, z: number): void;
         position(x: number, y: number, z: number): void;
+        transform(m: Matrix4): void;
         rescale(): void;
         build(): void;
         render(rc: FxRenderConfig, sg: FxScenegraph): void;

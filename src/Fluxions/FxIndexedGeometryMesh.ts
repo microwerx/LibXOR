@@ -25,6 +25,7 @@ namespace Fluxions {
         private _mtl: string = "";
         private _vertex: FxVertex = new FxVertex();
         private _dirty: boolean = true;
+        private _worldMatrix = Matrix4.makeIdentity();
 
         private _vbo: WebGLBuffer;
         private _ibo: WebGLBuffer;
@@ -124,17 +125,18 @@ namespace Fluxions {
         begin(mode: number) {
             if (this.surfaces.length == 0) {
                 // if no surfaces exist, add one
-                this.surfaces.push(new FxSurface(mode, this.indices.length, this._mtllib, this._mtl));
+                this.surfaces.push(new FxSurface(mode, this.indices.length, this._mtllib, this._mtl, this._worldMatrix));
             }
             else if (this.currentIndexCount != 0) {
                 // do not add a surface if the most recent one is empty
-                this.surfaces.push(new FxSurface(mode, this.indices.length, this._mtllib, this._mtl));
+                this.surfaces.push(new FxSurface(mode, this.indices.length, this._mtllib, this._mtl, this._worldMatrix));
             }
             if (this.surfaces.length > 0) {
                 // simply update the important details
                 let s = this.surfaces[this.surfaces.length - 1];
                 s.mtl = this._mtl;
                 s.mtllib = this._mtllib;
+                s.worldMatrix.copy(this._worldMatrix);
             }
         }
 
@@ -194,6 +196,10 @@ namespace Fluxions {
         position(x: number, y: number, z: number): void {
             let v = new Vector3(x, y, z);
             this.vertex3(v);
+        }
+
+        transform(m: Matrix4): void {
+            this._worldMatrix.copy(m);
         }
 
         // DrawTexturedRect(bottomLeft: Vector3, upperRight: Vector3,

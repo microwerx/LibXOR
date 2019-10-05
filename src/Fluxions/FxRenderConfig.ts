@@ -50,6 +50,8 @@ namespace Fluxions {
         public useDepthTest = true;
         public depthTest: number = WebGLRenderingContext.LESS;
         public depthMask = true;
+        public useCullFace = false;
+        public cullFaceMode = WebGL2RenderingContext.BACK;
         public useBlending = false;
         public blendSrcFactor: number = WebGLRenderingContext.ONE;
         public blendDstFactor: number = WebGLRenderingContext.ZERO;
@@ -97,6 +99,10 @@ namespace Fluxions {
             if (this.useBlending) {
                 gl.enable(gl.BLEND);
                 gl.blendFunc(this.blendSrcFactor, this.blendDstFactor);
+            }
+            if (this.useCullFace) {
+                gl.enable(gl.CULL_FACE);
+                gl.cullFace(this.cullFaceMode);
             }
             if (this.useStencilTest) {
                 gl.enable(gl.STENCIL_TEST);
@@ -146,6 +152,10 @@ namespace Fluxions {
             if (this.useBlending) {
                 gl.disable(gl.BLEND);
                 gl.blendFunc(gl.ONE, gl.ZERO);
+            }
+            if (this.useCullFace) {
+                gl.disable(gl.CULL_FACE);
+                gl.cullFace(gl.BACK);
             }
             if (this.useStencilTest) {
                 gl.disable(gl.STENCIL_TEST);

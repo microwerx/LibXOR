@@ -3910,6 +3910,8 @@ var Fluxions;
             this.useDepthTest = true;
             this.depthTest = WebGLRenderingContext.LESS;
             this.depthMask = true;
+            this.useCullFace = false;
+            this.cullFaceMode = WebGL2RenderingContext.BACK;
             this.useBlending = false;
             this.blendSrcFactor = WebGLRenderingContext.ONE;
             this.blendDstFactor = WebGLRenderingContext.ZERO;
@@ -3951,6 +3953,10 @@ var Fluxions;
             if (this.useBlending) {
                 gl.enable(gl.BLEND);
                 gl.blendFunc(this.blendSrcFactor, this.blendDstFactor);
+            }
+            if (this.useCullFace) {
+                gl.enable(gl.CULL_FACE);
+                gl.cullFace(this.cullFaceMode);
             }
             if (this.useStencilTest) {
                 gl.enable(gl.STENCIL_TEST);
@@ -4000,6 +4006,10 @@ var Fluxions;
             if (this.useBlending) {
                 gl.disable(gl.BLEND);
                 gl.blendFunc(gl.ONE, gl.ZERO);
+            }
+            if (this.useCullFace) {
+                gl.disable(gl.CULL_FACE);
+                gl.cullFace(gl.BACK);
             }
             if (this.useStencilTest) {
                 gl.disable(gl.STENCIL_TEST);
@@ -5709,11 +5719,12 @@ class FxVertex {
 }
 ;
 class FxSurface {
-    constructor(mode, offset, mtllib, mtl) {
+    constructor(mode, offset, mtllib, mtl, worldMatrix) {
         this.mode = mode;
         this.offset = offset;
         this.mtllib = mtllib;
         this.mtl = mtl;
+        this.worldMatrix = worldMatrix;
         this.count = 0;
     }
     Add() {
@@ -5921,6 +5932,7 @@ var Fluxions;
             this._mtl = "";
             this._vertex = new FxVertex();
             this._dirty = true;
+            this._worldMatrix = Matrix4.makeIdentity();
             this._vboData = new Float32Array(0);
             this._iboData = new Uint32Array(0);
             this.aabb = new GTE.BoundingBox();
@@ -6007,17 +6019,18 @@ var Fluxions;
         begin(mode) {
             if (this.surfaces.length == 0) {
                 // if no surfaces exist, add one
-                this.surfaces.push(new FxSurface(mode, this.indices.length, this._mtllib, this._mtl));
+                this.surfaces.push(new FxSurface(mode, this.indices.length, this._mtllib, this._mtl, this._worldMatrix));
             }
             else if (this.currentIndexCount != 0) {
                 // do not add a surface if the most recent one is empty
-                this.surfaces.push(new FxSurface(mode, this.indices.length, this._mtllib, this._mtl));
+                this.surfaces.push(new FxSurface(mode, this.indices.length, this._mtllib, this._mtl, this._worldMatrix));
             }
             if (this.surfaces.length > 0) {
                 // simply update the important details
                 let s = this.surfaces[this.surfaces.length - 1];
                 s.mtl = this._mtl;
                 s.mtllib = this._mtllib;
+                s.worldMatrix.copy(this._worldMatrix);
             }
         }
         addIndex(i) {
@@ -6068,6 +6081,9 @@ var Fluxions;
         position(x, y, z) {
             let v = new Vector3(x, y, z);
             this.vertex3(v);
+        }
+        transform(m) {
+            this._worldMatrix.copy(m);
         }
         // DrawTexturedRect(bottomLeft: Vector3, upperRight: Vector3,
         //     minTexCoord: Vector3, maxTexCoord: Vector3): void {
