@@ -56,6 +56,7 @@ namespace Fluxions {
             this._vertex = new FxVertex();
             this._mtllib = "";
             this._mtl = "";
+            this._worldMatrix.loadIdentity();
             this.aabb.reset();
         }
 
