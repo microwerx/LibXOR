@@ -6085,6 +6085,18 @@ var Fluxions;
         transform(m) {
             this._worldMatrix.copy(m);
         }
+        loadIdentity() {
+            this._worldMatrix.loadIdentity();
+        }
+        translate(x, y, z) {
+            this._worldMatrix.translate(x, y, z);
+        }
+        rotate(angleInDegrees, x, y, z) {
+            this._worldMatrix.rotate(angleInDegrees, x, y, z);
+        }
+        scale(x, y, z) {
+            this._worldMatrix.scale(x, y, z);
+        }
         // DrawTexturedRect(bottomLeft: Vector3, upperRight: Vector3,
         //     minTexCoord: Vector3, maxTexCoord: Vector3): void {
         // }

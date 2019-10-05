@@ -202,6 +202,22 @@ namespace Fluxions {
             this._worldMatrix.copy(m);
         }
 
+        loadIdentity(): void {
+            this._worldMatrix.loadIdentity();
+        }
+
+        translate(x: number, y: number, z: number): void {
+            this._worldMatrix.translate(x, y, z);
+        }
+
+        rotate(angleInDegrees: number, x: number, y: number, z: number): void {
+            this._worldMatrix.rotate(angleInDegrees, x, y, z);
+        }
+
+        scale(x: number, y: number, z: number): void {
+            this._worldMatrix.scale(x, y, z);
+        }
+
         // DrawTexturedRect(bottomLeft: Vector3, upperRight: Vector3,
         //     minTexCoord: Vector3, maxTexCoord: Vector3): void {
 

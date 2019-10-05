@@ -1493,6 +1493,10 @@ declare namespace Fluxions {
         vertex(x: number, y: number, z: number): void;
         position(x: number, y: number, z: number): void;
         transform(m: Matrix4): void;
+        loadIdentity(): void;
+        translate(x: number, y: number, z: number): void;
+        rotate(angleInDegrees: number, x: number, y: number, z: number): void;
+        scale(x: number, y: number, z: number): void;
         rescale(): void;
         build(): void;
         render(rc: FxRenderConfig, sg: FxScenegraph): void;
