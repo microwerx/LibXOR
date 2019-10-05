@@ -356,6 +356,14 @@ class Vector3 {
         return this;
     }
 
+    dirTo(v: Vector3): Vector3 {
+        return Vector3.makeUnit(
+            v.x - this.x,
+            v.y - this.y,
+            v.z - this.z
+        );
+    }
+
     static clamp3(v: Vector3, a: Vector3, b: Vector3): Vector3 {
         return new Vector3(
             GTE.clamp(v.x, a.x, b.x),

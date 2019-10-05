@@ -442,6 +442,9 @@ class Vector3 {
         this.z = GTE.clamp(this.z, a.z, b.z);
         return this;
     }
+    dirTo(v) {
+        return Vector3.makeUnit(v.x - this.x, v.y - this.y, v.z - this.z);
+    }
     static clamp3(v, a, b) {
         return new Vector3(GTE.clamp(v.x, a.x, b.x), GTE.clamp(v.y, a.y, b.y), GTE.clamp(v.z, a.z, b.z));
     }

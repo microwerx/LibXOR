@@ -108,6 +108,7 @@ declare class Vector3 {
     set(index: number, value: number): void;
     clamp(a: number, b: number): Vector3;
     clamp3(a: Vector3, b: Vector3): Vector3;
+    dirTo(v: Vector3): Vector3;
     static clamp3(v: Vector3, a: Vector3, b: Vector3): Vector3;
     static dot(v1: Vector3, v2: Vector3): number;
     static cross(a: Vector3, b: Vector3): Vector3;
