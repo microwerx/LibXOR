@@ -10,6 +10,7 @@ namespace TF {
         }
 
         add(index: number, url: string, looping: boolean): boolean {
+            if (index < 0) return false;
             let el = new Audio();
             el.preload = "auto";
             el.src = url;
@@ -28,6 +29,10 @@ namespace TF {
 
         play(index: number) {
             this.stop();
+            if (index < 0) {
+                this.playTrack = -1;
+                return;
+            }
             let el = this.tracks.get(index);
             if (!el) return;
             el.play();
