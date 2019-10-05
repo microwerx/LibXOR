@@ -350,10 +350,17 @@ class Vector3 {
     }
 
     clamp3(a: Vector3, b: Vector3): Vector3 {
+        this.x = GTE.clamp(this.x, a.x, b.x);
+        this.y = GTE.clamp(this.y, a.y, b.y);
+        this.z = GTE.clamp(this.z, a.z, b.z);
+        return this;
+    }
+
+    static clamp3(v: Vector3, a: Vector3, b: Vector3): Vector3 {
         return new Vector3(
-            GTE.clamp(this.x, a.x, b.x),
-            GTE.clamp(this.x, a.x, b.x),
-            GTE.clamp(this.x, a.x, b.x)
+            GTE.clamp(v.x, a.x, b.x),
+            GTE.clamp(v.y, a.y, b.y),
+            GTE.clamp(v.z, a.z, b.z)
         );
     }
 
