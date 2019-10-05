@@ -6,11 +6,14 @@
         "removeComments": false,
         "preserveConstEnums": true,
         "strict": true,
-        "outDir": "examples/LibXOR",
+        "outDir": ".",
         "outFile": "LibXOR.js",
         "declaration": true,
         "sourceMap": true,
-        "lib": [ "es2015", "dom" ]
+        "lib": [
+            "es2015",
+            "dom"
+        ]
     },
     "include": [
         "src/LibXOR.ts",
