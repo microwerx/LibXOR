@@ -2667,6 +2667,8 @@ var TF;
             return this.samplesRequested == this.samplesLoaded;
         }
         isPlaying(id) {
+            if (id < 0)
+                return false;
             let s = this.samples.get(id);
             if (s) {
                 return s.playing;
@@ -2674,11 +2676,18 @@ var TF;
             return false;
         }
         isStopped(id) {
+            if (id < 0)
+                return false;
             let s = this.samples.get(id);
             if (s) {
                 return s.stopped;
             }
             return true;
+        }
+        stopAll() {
+            for (let s of this.samples) {
+                s[1].stop();
+            }
         }
         update(timeInSeconds) { }
         stopSample(id) {
@@ -2688,6 +2697,8 @@ var TF;
             }
         }
         loadSample(id, url, logErrors = true) {
+            if (id < 0)
+                return false;
             let ctx = this.ss.context;
             if (!ctx)
                 return;
@@ -2732,6 +2743,8 @@ var TF;
             xhr.send();
         }
         playSample(id, loop = false, time = 0) {
+            if (id < 0)
+                return;
             let s = this.samples.get(id);
             if (!s)
                 return;
@@ -2751,6 +2764,8 @@ var TF;
             this.playTrack = -1;
         }
         add(index, url, looping) {
+            if (index < 0)
+                return false;
             let el = new Audio();
             el.preload = "auto";
             el.src = url;
@@ -2769,6 +2784,10 @@ var TF;
         }
         play(index) {
             this.stop();
+            if (index < 0) {
+                this.playTrack = -1;
+                return;
+            }
             let el = this.tracks.get(index);
             if (!el)
                 return;

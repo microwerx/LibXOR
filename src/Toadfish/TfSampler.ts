@@ -178,6 +178,7 @@ namespace TF {
         }
 
         isPlaying(id: number): boolean {
+            if (id < 0) return false;
             let s = this.samples.get(id);
             if (s) {
                 return s.playing;
@@ -186,11 +187,18 @@ namespace TF {
         }
 
         isStopped(id: number): boolean {
+            if (id < 0) return false;
             let s = this.samples.get(id);
             if (s) {
                 return s.stopped;
             }
             return true;
+        }
+
+        stopAll() {
+            for (let s of this.samples) {
+                s[1].stop();
+            }
         }
 
         update(timeInSeconds: number) { }
@@ -203,6 +211,7 @@ namespace TF {
         }
 
         loadSample(id: number, url: string, logErrors = true) {
+            if (id < 0) return false;
             let ctx = this.ss.context;
             if (!ctx) return;
             let self = this;
@@ -242,6 +251,7 @@ namespace TF {
         }
 
         playSample(id: number, loop: boolean = false, time: number = 0) {
+            if (id < 0) return;
             let s = this.samples.get(id);
             if (!s) return;
             s.loop = loop;

@@ -707,9 +707,10 @@ declare namespace TF {
         readonly loaded: boolean;
         isPlaying(id: number): boolean;
         isStopped(id: number): boolean;
+        stopAll(): void;
         update(timeInSeconds: number): void;
         stopSample(id: number): void;
-        loadSample(id: number, url: string, logErrors?: boolean): void;
+        loadSample(id: number, url: string, logErrors?: boolean): false | undefined;
         playSample(id: number, loop?: boolean, time?: number): void;
     }
 }
