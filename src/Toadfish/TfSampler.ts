@@ -77,7 +77,7 @@ namespace TF {
                 self.stopped_ = true;
             }
             this.source = source;
-            hflog.info("playing " + this.url);
+            // hflog.info("playing " + this.url);
         }
 
         get stopped(): boolean { return this.stopped_; }
