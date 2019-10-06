@@ -2772,6 +2772,7 @@ var TF;
             let el = new Audio();
             el.preload = "auto";
             el.src = url;
+            hflog.info("loading " + url);
             el.loop = looping;
             this.tracks.set(index, el);
             return true;
@@ -2794,6 +2795,7 @@ var TF;
             let el = this.tracks.get(index);
             if (!el)
                 return;
+            el.currentTime = 0;
             el.play();
             this.playTrack = index;
         }
