@@ -2699,7 +2699,7 @@ var TF;
                 s.stop();
             }
         }
-        loadSample(id, url, logErrors = true) {
+        loadSample(id, url, logErrors = false) {
             if (id < 0)
                 return false;
             let ctx = this.ss.context;
@@ -2766,13 +2766,15 @@ var TF;
             this.tracks = new Map();
             this.playTrack = -1;
         }
-        add(index, url, looping) {
+        add(index, url, looping, logErrors = false) {
             if (index < 0)
                 return false;
             let el = new Audio();
             el.preload = "auto";
             el.src = url;
-            hflog.info("loading " + url);
+            if (logErrors) {
+                hflog.info("loading " + url);
+            }
             el.loop = looping;
             this.tracks.set(index, el);
             return true;

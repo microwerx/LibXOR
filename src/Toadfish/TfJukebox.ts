@@ -9,12 +9,14 @@ namespace TF {
 
         }
 
-        add(index: number, url: string, looping: boolean): boolean {
+        add(index: number, url: string, looping: boolean, logErrors = false): boolean {
             if (index < 0) return false;
             let el = new Audio();
             el.preload = "auto";
             el.src = url;
-            hflog.info("loading " + url);
+            if (logErrors) {
+                hflog.info("loading " + url);
+            }
             el.loop = looping;
             this.tracks.set(index, el);
             return true;

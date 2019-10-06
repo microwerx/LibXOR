@@ -210,7 +210,7 @@ namespace TF {
             }
         }
 
-        loadSample(id: number, url: string, logErrors = true) {
+        loadSample(id: number, url: string, logErrors = false) {
             if (id < 0) return false;
             let ctx = this.ss.context;
             if (!ctx) return;

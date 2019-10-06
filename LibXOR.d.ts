@@ -721,7 +721,7 @@ declare namespace TF {
         tracks: Map<number, HTMLAudioElement>;
         playTrack: number;
         constructor(ss: XOR.SoundSystem);
-        add(index: number, url: string, looping: boolean): boolean;
+        add(index: number, url: string, looping: boolean, logErrors?: boolean): boolean;
         stop(): void;
         play(index: number): void;
         update(timeInSeconds: number): void;
