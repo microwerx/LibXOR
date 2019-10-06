@@ -2963,6 +2963,8 @@ var XOR;
             return new Vector3(this.x - this.ox, this.y - this.oy);
         }
         handleTouch(t, down, reset = false) {
+            if (!t)
+                return;
             if (reset) {
                 this.dx = 0;
                 this.dy = 0;
@@ -5986,6 +5988,25 @@ var Fluxions;
         }
         circle(ox, oy, radius = 0.5, segments = 32) {
             this.begin(WebGLRenderingContext.TRIANGLE_FAN);
+            this.normal(0, 0, 1);
+            let theta = 0;
+            let dtheta = GTE.radians(360.0 / segments);
+            // this.texcoord(0, 0, 0);
+            // this.position(ox, oy, 0);
+            // this.addIndex(-1);
+            for (let i = 0; i < segments; i++) {
+                let x = Math.cos(theta);
+                let y = Math.sin(theta);
+                let u = x * 0.5 + 0.5;
+                let v = y * 0.5 + 0.5;
+                this.texcoord(u, v, 0);
+                this.position(radius * x + ox, radius * y + oy, 0);
+                this.addIndex(-1);
+                theta += dtheta;
+            }
+        }
+        strokeCircle(ox, oy, radius = 0.5, segments = 32) {
+            this.begin(WebGLRenderingContext.LINE_LOOP);
             this.normal(0, 0, 1);
             let theta = 0;
             let dtheta = GTE.radians(360.0 / segments);

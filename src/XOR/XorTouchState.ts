@@ -1,5 +1,4 @@
-namespace XOR
-{
+namespace XOR {
     export class TouchState {
         private ox = 0;
         private oy = 0;
@@ -24,6 +23,7 @@ namespace XOR
         }
 
         handleTouch(t: Touch, down: boolean, reset = false) {
+            if (!t) return;
             if (reset) {
                 this.dx = 0;
                 this.dy = 0;

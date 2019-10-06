@@ -1480,6 +1480,7 @@ declare namespace Fluxions {
         usemtl(mtl: string): void;
         rect(x1: number, y1: number, x2: number, y2: number): void;
         circle(ox: number, oy: number, radius?: number, segments?: number): void;
+        strokeCircle(ox: number, oy: number, radius?: number, segments?: number): void;
         spiral(radius: number, spirality?: number, segments?: number): void;
         begin(mode: number): void;
         addIndex(i: number): void;
