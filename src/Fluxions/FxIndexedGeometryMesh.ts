@@ -466,19 +466,49 @@ namespace Fluxions {
                                 let sideb = positions[p3].sub(positions[p1]);
                                 N = Vector3.cross(sidea, sideb).normalize();
                             } catch (e) {
-                                hflog.error("something bad happen")
+                                hflog.error("IndexedGeometryMesh --> Normal calculation error")
                                 break;
                             }
                             for (let k = 0; k < 3; k++) {
                                 let i = (k == 0) ? 0 : j + k - 1;
+
                                 let n = indices[i * 3 + 2];
-                                if (n >= 0 && n < ncount) this.normal3(normals[n]);
-                                else this.normal3(N);
+                                if (n >= 0 && n < ncount) {
+                                    this.normal3(normals[n]);
+                                } else {
+                                    n = ncount - n;
+                                }
+                                if (n >= 0 && n < ncount) {
+                                    this.normal3(normals[n]);
+                                }
+                                else {
+                                    this.normal3(N);
+                                }
+
                                 let t = indices[i * 3 + 1];
-                                if (t >= 0 && t < tcount) this.texcoord3(texcoords[t]);
-                                else this.texcoord3(Vector3.makeZero());
+                                if (t >= 0 && t < tcount) {
+                                    this.texcoord3(texcoords[t]);
+                                } else {
+                                    t = tcount - t;
+                                }
+                                if (t >= 0 && t < tcount) {
+                                    this.texcoord3(texcoords[t]);
+                                } else {
+                                    this.texcoord3(Vector3.makeZero());
+                                }
+
                                 let p = indices[i * 3 + 0];
-                                if (p >= 0 && p < pcount) this.vertex3(positions[p]);
+                                if (p >= 0 && p < pcount) {
+                                    this.vertex3(positions[p]);
+                                } else {
+                                    p = pcount - p;
+                                }
+                                if (p >= 0 && p < pcount) {
+                                    this.vertex3(positions[p]);
+                                } else {
+                                    this.vertex3(Vector3.makeZero());
+                                }
+                                
                                 this.addIndex(-1);
                                 edgeIndices.push(indices[i * 3]);
                             }
