@@ -35,7 +35,7 @@ void main() {
     vec3 V = normalize(vCamera);
     float NdotV = 0.5 * dot(N, V) + 0.5;
 
-    vec2 st = vec2(vTexcoord.s, 1.0 - vTexcoord.t);
+    vec2 st = vec2(vTexcoord.s, vTexcoord.t);
 
     vec3 gbuf = texture(gbufferColor, st).rgb;
     vec3 map = texture(MapKd, st).rgb;

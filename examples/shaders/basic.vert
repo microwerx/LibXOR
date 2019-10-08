@@ -14,14 +14,14 @@ out vec3 vPosition;
 out vec3 vNormal;
 out vec3 vTexcoord;
 out vec3 vColor;
-out vec3 vCamera;
+out vec3 vViewDir;
 
 void main() {
-    vNormal = (WorldMatrix * vec4(aPosition, 0.0)).xyz;
+    vNormal = mat3(WorldMatrix) * aNormal;
     vColor = aColor;
     vTexcoord = vec3(aTexcoord.s, 1.0 - aTexcoord.t, aTexcoord.p);
     vec4 p = WorldMatrix * vec4(aPosition, 1.0);
     vPosition = p.xyz;
-    vCamera = CameraMatrix[3].xyz;
+    vViewDir = inverse(CameraMatrix)[3].xyz - vPosition;
     gl_Position = ProjectionMatrix * CameraMatrix * p;
 }
