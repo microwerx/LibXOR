@@ -1,6 +1,5 @@
-/// <reference path="htmlutils.js" />
-/// <reference path="../src/LibXOR.ts" />
-/* global Vector3 XOR */
+/// <reference path="./htmlutils.d.ts" />
+/// <reference path="../LibXOR.d.ts" />
 
 class App {
     constructor() {
@@ -10,12 +9,20 @@ class App {
         p.innerHTML = `Display G-Buffer.`;
 
         let controls = document.getElementById('controls');
-        createRangeRow(controls, "outputType", 0, 0, 10, 1);
+        createRangeRow(controls, "outputType", 0, 0, 20);
+        createRangeRow(controls, "objectType", 0, 0, 10);
+        createRangeRow(controls, "ZFar", 100.0, 1.0, 100.0, 1.0);
+        createRangeRow(controls, "sunEl", 0.0, 0.0, 90.0);
+        createRangeRow(controls, "sunAz", 0.0, -180.0, 180.0);
+        createLabelRow(controls, "SHADER", "");
 
         this.azimuth = -90;
         this.inclination = 0;
         this.distance = 2;
         this.gbufferOutputType = 0;
+        this.gbufferZFar = 100.0;
+        this.sunDirToEl = 45.0;
+        this.sunDirToAz = 0.0;
     }
 
     reset() {
@@ -44,7 +51,12 @@ class App {
         let bbox = new GTE.BoundingBox();
         bbox.add(Vector3.make(-0.5, -0.5, -0.5));
         bbox.add(Vector3.make(0.5, 0.5, 0.5));
-        this.xor.meshes.load('scene', 'models/cornellboxe.obj', bbox);
+        // this.xor.meshes.load('0', 'models/cornellboxe.obj', bbox);
+        // this.xor.meshes.load('1', 'models/teapot.obj', bbox);
+        // this.xor.meshes.load('2', 'models/dragon2.obj', bbox);
+        // this.xor.meshes.load('3', 'models/bunny.obj', bbox);
+        // this.xor.meshes.load('4', 'models/sphere.obj', bbox);
+        this.xor.meshes.load('scene', 'models/platonic.obj', bbox);
 
         let screen = this.xor.meshes.create('fullscreenquad');
         let pal = this.xor.palette;
@@ -76,6 +88,36 @@ class App {
         }
 
         this.gbufferOutputType = getRangeValue('outputType');
+        this.gbufferZFar = getRangeValue('ZFar');
+        this.sunDirToEl = getRangeValue('sunEl');
+        this.sunDirToAz = getRangeValue('sunAz');
+
+        const shaderTypes = [
+            "FACE_NORMALS",
+            "BUMP_NORMALS",
+            "TEXCOORD",
+            "VERTEX_COLOR",
+            "VIEWDIR",
+            "REFLDIR",
+            "HALFDIR",
+            "NDOTL",
+            "NDOTV",
+            "VDOTH",
+            "RDOTV",
+            "DEPTH",
+            "KD",
+            "KD m",
+            "KS",
+            "KS m",
+            "REFLECTION",
+            "LAMBERTIAN",
+            "PHONG",
+            "BLINN-PHONG",
+            "NOT IMPLEMENTED",
+            "NOT IMPLEMENTED"
+        ];
+
+        setDivLabelValue("SHADER", shaderTypes[this.gbufferOutputType]);
     }
 
     render() {
@@ -91,10 +133,12 @@ class App {
             rc.uniformMatrix4f('ProjectionMatrix', pmatrix);
             rc.uniformMatrix4f('CameraMatrix', cmatrix);
             rc.uniform3f('Kd', Vector3.make(1.0, 0.0, 0.0));
-            rc.uniform3f('SunDirTo', Vector3.make(1.0, 1.0, 1.0));
+            rc.uniform3f('SunDirTo', Vector3.makeOrbit(this.sunDirToAz, this.sunDirToEl, 1.0));
 
             rc.uniform1i('GBufferOutputType', this.gbufferOutputType);
-            rc.uniformMatrix4f('WorldMatrix', Matrix4.makeTranslation(0, 0, 0));
+            rc.uniform1f('GBufferZFar', this.gbufferZFar);
+            // rc.uniformMatrix4f('WorldMatrix', Matrix4.makeScale(0.01, 0.01, 0.01));
+            rc.uniformMatrix4f('WorldMatrix', Matrix4.makeIdentity());
             xor.meshes.render('scene', rc);
             rc.restore();
         }

@@ -288,6 +288,9 @@ class Vector3 {
     static makeRandom(a, b) {
         return new Vector3(Math.random() * (b - a) + a, Math.random() * (b - a) + a, Math.random() * (b - a) + a);
     }
+    static makeOrbit(azimuthInDegrees, pitchInDegrees, distance) {
+        return Vector3.makeFromSpherical(GTE.radians(azimuthInDegrees), GTE.radians(pitchInDegrees)).scale(distance);
+    }
     // theta represents angle from +x axis on xz plane going counterclockwise
     // phi represents angle from xz plane going towards +y axis
     setFromSpherical(theta, phi) {
@@ -6335,24 +6338,50 @@ var Fluxions;
                                 N = Vector3.cross(sidea, sideb).normalize();
                             }
                             catch (e) {
-                                hflog.error("something bad happen");
+                                hflog.error("IndexedGeometryMesh --> Normal calculation error");
                                 break;
                             }
                             for (let k = 0; k < 3; k++) {
                                 let i = (k == 0) ? 0 : j + k - 1;
                                 let n = indices[i * 3 + 2];
-                                if (n >= 0 && n < ncount)
+                                if (n >= 0 && n < ncount) {
                                     this.normal3(normals[n]);
-                                else
+                                }
+                                else {
+                                    n = ncount - n;
+                                }
+                                if (n >= 0 && n < ncount) {
+                                    this.normal3(normals[n]);
+                                }
+                                else {
                                     this.normal3(N);
+                                }
                                 let t = indices[i * 3 + 1];
-                                if (t >= 0 && t < tcount)
+                                if (t >= 0 && t < tcount) {
                                     this.texcoord3(texcoords[t]);
-                                else
+                                }
+                                else {
+                                    t = tcount - t;
+                                }
+                                if (t >= 0 && t < tcount) {
+                                    this.texcoord3(texcoords[t]);
+                                }
+                                else {
                                     this.texcoord3(Vector3.makeZero());
+                                }
                                 let p = indices[i * 3 + 0];
-                                if (p >= 0 && p < pcount)
+                                if (p >= 0 && p < pcount) {
                                     this.vertex3(positions[p]);
+                                }
+                                else {
+                                    p = pcount - p;
+                                }
+                                if (p >= 0 && p < pcount) {
+                                    this.vertex3(positions[p]);
+                                }
+                                else {
+                                    this.vertex3(Vector3.makeZero());
+                                }
                                 this.addIndex(-1);
                                 edgeIndices.push(indices[i * 3]);
                             }

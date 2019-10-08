@@ -75,6 +75,7 @@ declare class Vector3 {
     static makeZero(): Vector3;
     static makeOne(): Vector3;
     static makeRandom(a: number, b: number): Vector3;
+    static makeOrbit(azimuthInDegrees: number, pitchInDegrees: number, distance: number): Vector3;
     setFromSpherical(theta: number, phi: number): Vector3;
     readonly theta: number;
     readonly phi: number;

@@ -128,6 +128,10 @@ class Vector3 {
         );
     }
 
+    static makeOrbit(azimuthInDegrees: number, pitchInDegrees: number, distance: number) {
+        return Vector3.makeFromSpherical(GTE.radians(azimuthInDegrees), GTE.radians(pitchInDegrees)).scale(distance);
+    }
+
     // theta represents angle from +x axis on xz plane going counterclockwise
     // phi represents angle from xz plane going towards +y axis
     setFromSpherical(theta: number, phi: number): Vector3 {

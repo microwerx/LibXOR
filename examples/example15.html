@@ -36,19 +36,23 @@
         </script>
     </article>
     <article>
-        <div id="project" class="centered"></div>
+        <div class="centered">
+            <div class="cell-block-clear">
+                <div id="project" class="centered"></div>
+            </div>
+            <div class="cell-block-light" style="width: 384px">
+                <h5 onclick='toggle(" controls")'>Controls</h5>
+                <div id="controls"></div>
+            </div>
+        </div>
 
-        <h3 onclick='toggle("desc")'>Description &amp; Notes</h3>
-
-        <!-- Write your main description here -->
-        <p id="desc">This example shows basic usage of the LibXOR library.</p>
-
-        <h3 onclick='toggle("controls")'>Controls</h3>
-
-        <div id="controls"></div>
+        <div class="cell-block-clear">
+            <!-- Write your main description here -->
+            <h5 onclick='toggle("desc")'>Description &amp; Notes</h5>
+            <p id="desc">This example shows basic usage of the LibXOR library.</p>
+        </div>
 
         <h3 onclick='toggle("log")'>Log</h3>
-
         <div id='log' class='log'>Log items here...</div>
 
         <footer>
