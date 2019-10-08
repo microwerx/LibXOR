@@ -25,7 +25,7 @@ uniform float KsRoughness;
 
 uniform int GBufferOutputType;
 uniform float GBufferZFar;
-const int Unitize = 1;
+const int Unitize = 0;
 
 const int GBUFFER_FACE_NORMALS = 0;
 const int GBUFFER_BUMP_NORMALS = 1;
@@ -36,7 +36,7 @@ const int GBUFFER_REFLDIR = 5;
 const int GBUFFER_HALFDIR = 6;
 const int GBUFFER_NDOTL = 7;
 const int GBUFFER_NDOTV = 8;
-const int GBUFFER_VDOTH = 9;
+const int GBUFFER_NDOTH = 9;
 const int GBUFFER_RDOTV = 10;
 const int GBUFFER_DEPTH = 11;
 const int GBUFFER_DIFFUSE_COLOR = 12;
@@ -45,9 +45,9 @@ const int GBUFFER_SPECULAR_COLOR = 14;
 const int GBUFFER_SPECULAR_ROUGHNESS = 15;
 const int GBUFFER_REFLECTION_COLOR = 16;
 const int GBUFFER_LAMBERTIAN = 17;
-const int GBUFFER_PHONG = 18;
-const int GBUFFER_BLINN = 19;
-const int GBUFFER_BLINN_NORMALIZED = 20;
+const int GBUFFER_OREN_NAYER = 18;
+const int GBUFFER_PHONG = 19;
+const int GBUFFER_BLINN = 20;
 
 uniform vec3 SunDirTo;
 uniform vec3 SunE0;
@@ -109,7 +109,28 @@ vec3 unitv(vec3 v) {
 vec3 Li;
 
 vec3 Lambertian(float NdotL) {
-    return vec3(NdotL * Li;
+    return 1.0 / 3.14159265 * NdotL * Li;
+}
+
+vec3 Phong(float RdotV, float power) {
+    return (power + 1.0) / (2.0 * 3.14159) * Li * pow(RdotV, power / 4.0);
+}
+
+vec3 Blinn(float NdotH, float power) {
+    return (power + 1.0) / (2.0 * 3.14159) * Li * pow(NdotH, power);
+}
+
+vec3 BlinnNormalized(float NdotH, float power) {
+    return (power + 1.0) / (2.0 * 3.14159) * Li * pow(NdotH, power);
+}
+
+vec3 OrenNayer(float roughness, float LdotV, float NdotL, float NdotV) {
+    float sigma2 = roughness * roughness;
+    float A = 1.0 - 0.5 * sigma2 / (sigma2 + 0.33);
+    float B = 0.45 * sigma2 / (sigma2 + 0.09);
+    float s = LdotV - NdotL * NdotV;
+    float t = mix(1.0, max(NdotL, NdotV), step(0.0, s));
+    return 1.0 / 3.14159265 * Li * max(0.0, NdotL) * (A + B * s / t);
 }
 
 void main() {
@@ -123,11 +144,11 @@ void main() {
     vec3 L = normalize(SunDirTo);
     float NdotL = max(0.0, dot(N, L));
     vec3 V = normalize(vViewDir);
-    float NdotV = dot(N, V);
-    vec3 R = normalize(2.0 * dot(N, V) * N - V);
-    float RdotV = dot(R, V);
+    float NdotV = max(0.0, dot(N, V));
+    vec3 R = reflect(-L, N);
+    float RdotV = max(0.0, dot(R, V));
     vec3 H = normalize(V + L);
-    float VdotH = dot(V, H);
+    float NdotH = max(0.0, dot(N, H));
 
     Li = vec3(L.y);
 
@@ -138,6 +159,12 @@ void main() {
 
     float diffuseRoughness = ReadScalar(MapKdRoughnessMix, MapKd, KdRoughness);
     float specularRoughness = ReadScalar(MapKsRoughnessMix, MapKs, KsRoughness);
+
+    float power = max(0.0, 2.0 / max(specularRoughness * specularRoughness, 0.0001) - 2.0);
+
+    vec3 dcolor = diffuseColor * Lambertian(NdotL);
+    float LdotV = dot(L, V);
+    vec3 oncolor = diffuseColor * OrenNayer(KdRoughness, LdotV, NdotL, NdotV);
 
     vec3 color;
     switch (GBufferOutputType) {
@@ -168,8 +195,8 @@ void main() {
     case GBUFFER_NDOTV:
         color = unitf(NdotV);
         break;        
-    case GBUFFER_VDOTH:
-        color = unitf(VdotH);
+    case GBUFFER_NDOTH:
+        color = unitf(NdotH);
         break;
     case GBUFFER_RDOTV:
         color = unitf(RdotV);
@@ -193,11 +220,24 @@ void main() {
         color = CalcCubeColor(R);
         break;
     case GBUFFER_LAMBERTIAN:
-        color = Lambertian(NdotL, L);
+        color = dcolor;
+        break;
+    case GBUFFER_OREN_NAYER:
+        color = oncolor;
+        break;
+    case GBUFFER_PHONG:
+        color = oncolor + specularColor * NdotL * Phong(RdotV, power);
+        break;
+    case GBUFFER_BLINN:
+        color = oncolor + specularColor * NdotL * Blinn(NdotH, power);
         break;
     default:
         color = vec3(1.0);
         break;
+    }
+    if (GBufferOutputType >= GBUFFER_LAMBERTIAN) {
+        const float gamma = 2.2;
+        color = pow(color, vec3(1.0/gamma));
     }
     oFragColor = vec4(color, 1.0);
 }

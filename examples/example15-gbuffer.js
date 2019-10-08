@@ -10,11 +10,13 @@ class App {
 
         let controls = document.getElementById('controls');
         createRangeRow(controls, "outputType", 0, 0, 20);
+        createLabelRow(controls, "SHADER", "");
         createRangeRow(controls, "objectType", 0, 0, 10);
         createRangeRow(controls, "ZFar", 100.0, 1.0, 100.0, 1.0);
-        createRangeRow(controls, "sunEl", 0.0, 0.0, 90.0);
+        createRangeRow(controls, "sunEl", 70.0, 0.0, 90.0);
         createRangeRow(controls, "sunAz", 0.0, -180.0, 180.0);
-        createLabelRow(controls, "SHADER", "");
+        createRangeRow(controls, "Kdm", 0.05, 0.0, 1.0, 0.01);
+        createRangeRow(controls, "Ksm", 0.05, 0.0, 1.0, 0.01);
 
         this.azimuth = -90;
         this.inclination = 0;
@@ -23,6 +25,8 @@ class App {
         this.gbufferZFar = 100.0;
         this.sunDirToEl = 45.0;
         this.sunDirToAz = 0.0;
+        this.KdRoughness = 0.0;
+        this.KsRoughness = 0.0;
     }
 
     reset() {
@@ -91,6 +95,8 @@ class App {
         this.gbufferZFar = getRangeValue('ZFar');
         this.sunDirToEl = getRangeValue('sunEl');
         this.sunDirToAz = getRangeValue('sunAz');
+        this.KdRoughness = getRangeValue("Kdm");
+        this.KsRoughness = getRangeValue("Ksm");
 
         const shaderTypes = [
             "FACE_NORMALS",
@@ -111,9 +117,9 @@ class App {
             "KS m",
             "REFLECTION",
             "LAMBERTIAN",
+            "OREN-NAYER",
             "PHONG",
             "BLINN-PHONG",
-            "NOT IMPLEMENTED",
             "NOT IMPLEMENTED"
         ];
 
@@ -122,18 +128,25 @@ class App {
 
     render() {
         let xor = this.xor;
-        xor.graphics.clear(xor.palette.AZURE);
+
+        let sunDirTo = Vector3.makeOrbit(this.sunDirToAz, this.sunDirToEl, 1.0);
+
+        // xor.graphics.clear(xor.palette.AZURE);
+        let baseColor = xor.palette.calcColor(xor.palette.AZURE, XOR.Color.WHITE, 3).scale(sunDirTo.y);
 
         let pmatrix = Matrix4.makePerspectiveY(45.0, 1.5, 1.0, 100.0);
         // let cmatrix = Matrix4.makeOrbit(-xor.t1*5.0, 0, 3.0);
         let cmatrix = Matrix4.makeOrbit(this.azimuth, this.inclination, this.distance);
         let rc = xor.renderconfigs.use('gbuffer');
-        xor.graphics.clear(XOR.Color.AZURE, XOR.Color.WHITE, 3);
+        xor.graphics.clear3(baseColor);
         if (rc) {
             rc.uniformMatrix4f('ProjectionMatrix', pmatrix);
             rc.uniformMatrix4f('CameraMatrix', cmatrix);
-            rc.uniform3f('Kd', Vector3.make(1.0, 0.0, 0.0));
-            rc.uniform3f('SunDirTo', Vector3.makeOrbit(this.sunDirToAz, this.sunDirToEl, 1.0));
+            rc.uniform3f('Kd', Vector3.make(0.5, 0.0, 1.0));
+            rc.uniform3f('Ks', Vector3.make(1.0, 1.0, 1.0));
+            rc.uniform3f('SunDirTo', sunDirTo);
+            rc.uniform1f('KdRoughness', this.KdRoughness);
+            rc.uniform1f('KsRoughness', this.KsRoughness);
 
             rc.uniform1i('GBufferOutputType', this.gbufferOutputType);
             rc.uniform1f('GBufferZFar', this.gbufferZFar);
