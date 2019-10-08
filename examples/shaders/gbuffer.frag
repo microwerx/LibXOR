@@ -147,6 +147,7 @@ void main() {
     float NdotV = max(0.0, dot(N, V));
     vec3 R = reflect(-L, N);
     float RdotV = max(0.0, dot(R, V));
+    R = reflect(-V, N);
     vec3 H = normalize(V + L);
     float NdotH = max(0.0, dot(N, H));
 
