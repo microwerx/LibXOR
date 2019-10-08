@@ -132,7 +132,7 @@ class App {
         let sunDirTo = Vector3.makeOrbit(this.sunDirToAz, this.sunDirToEl, 1.0);
 
         // xor.graphics.clear(xor.palette.AZURE);
-        let baseColor = xor.palette.calcColor(xor.palette.AZURE, XOR.Color.WHITE, 3).scale(sunDirTo.y);
+        let baseColor = xor.palette.calcColor(xor.palette.AZURE, xor.Color.WHITE, 3).scale(sunDirTo.y);
 
         let pmatrix = Matrix4.makePerspectiveY(45.0, 1.5, 1.0, 100.0);
         // let cmatrix = Matrix4.makeOrbit(-xor.t1*5.0, 0, 3.0);
