@@ -52,14 +52,56 @@ const int GBUFFER_BLINN = 20;
 uniform vec3 SunDirTo;
 uniform vec3 SunE0;
 
-// These MUST match the vertex shader
+// INPUTS: These MUST match the vertex shader
 in vec3 vPosition;
 in vec3 vNormal;
 in vec3 vTexcoord;
 in vec3 vColor;
 in vec3 vViewDir;
 
+// OUTPUTS: This replaces gl_FragColor
 out vec4 oFragColor;
+
+//////////////////////////////////////////////////
+// D A T A   S T R U C T U R E S /////////////////
+//////////////////////////////////////////////////
+
+struct FragmentInfo {
+    vec3 FaceNormal;
+    vec3 N;
+    vec3 V;
+    vec3 R; // V reflected around N
+    float NdotV;
+    float NdotR;
+};
+
+struct MaterialInfo {
+    vec3 c_d;
+    vec3 c_s;
+    float s_m;
+    float s_e;
+    float d_m;
+    float n2;
+    float F0;
+    float GGX_gamma;
+};
+
+FragmentInfo Fragment;
+
+void PrepareForShading() {
+    vec3 N = normalize(vNormal);
+    vec3 dp1 = dFdx(vPosition);
+    vec3 dp2 = dFdy(vPosition);
+    Fragment.FaceNormal = normalize(cross(dp1, dp2));
+    if (length(N) < 0.01) {
+        N = Fragment.FaceNormal;
+    }
+    Fragment.N = N;
+    Fragment.V = normalize(vViewDir);
+    Fragment.R = normalize(reflect(Fragment.V, Fragment.N));
+    Fragment.NdotV = max(0.0, dot(Fragment.N, Fragment.V));
+    Fragment.NdotR = max(0.0, dot(Fragment.N, Fragment.R));
+}
 
 vec3 ReadColor3(float mixAmount, sampler2D tex, vec3 color) {
     if (mixAmount > 0.0) {
@@ -134,22 +176,14 @@ vec3 OrenNayer(float roughness, float LdotV, float NdotL, float NdotV) {
 }
 
 void main() {
-    vec3 N = normalize(vNormal);
-    vec3 dp1 = dFdx(vPosition);
-    vec3 dp2 = dFdy(vPosition);
-    vec3 FN = normalize(cross(dp1, dp2));
-    if (length(N) < 0.01) {
-        N = FN;
-    }
+    PrepareForShading();
+
     vec3 L = normalize(SunDirTo);
-    float NdotL = max(0.0, dot(N, L));
-    vec3 V = normalize(vViewDir);
-    float NdotV = max(0.0, dot(N, V));
-    vec3 R = reflect(-L, N);
-    float RdotV = max(0.0, dot(R, V));
-    R = reflect(V, N);
-    vec3 H = normalize(V + L);
-    float NdotH = max(0.0, dot(N, H));
+    float NdotL = max(0.0, dot(Fragment.N, L));
+    vec3 R = reflect(-L, Fragment.N);
+    float RdotV = max(0.0, dot(R, Fragment.V));
+    vec3 H = normalize(Fragment.V + L);
+    float NdotH = max(0.0, dot(Fragment.N, H));
 
     Li = vec3(L.y);
 
@@ -164,16 +198,16 @@ void main() {
     float power = max(0.0, 2.0 / max(specularRoughness * specularRoughness, 0.0001) - 2.0);
 
     vec3 dcolor = diffuseColor * Lambertian(NdotL);
-    float LdotV = dot(L, V);
-    vec3 oncolor = diffuseColor * OrenNayer(KdRoughness, LdotV, NdotL, NdotV);
+    float LdotV = dot(L, Fragment.V);
+    vec3 oncolor = diffuseColor * OrenNayer(KdRoughness, LdotV, NdotL, Fragment.NdotV);
 
     vec3 color;
     switch (GBufferOutputType) {
     case GBUFFER_FACE_NORMALS:
-        color = 0.5 * FN + 0.5;
+        color = 0.5 * Fragment.FaceNormal + 0.5;
         break;
     case GBUFFER_BUMP_NORMALS:
-        color = 0.5 * N + 0.5;
+        color = 0.5 * Fragment.N + 0.5;
         break;
     case GBUFFER_TEXCOORD:
         color = vTexcoord;
@@ -182,10 +216,10 @@ void main() {
         color = vColor;
         break;
     case GBUFFER_VIEWDIR:
-        color = 0.5 * V + 0.5;
+        color = 0.5 * Fragment.V + 0.5;
         break;
     case GBUFFER_REFLDIR:
-        color = 0.5 * R + 0.5;
+        color = 0.5 * Fragment.R + 0.5;
         break;
     case GBUFFER_HALFDIR:
         color = 0.5 * H + 0.5;
@@ -194,7 +228,7 @@ void main() {
         color = unitf(NdotL);
         break;
     case GBUFFER_NDOTV:
-        color = unitf(NdotV);
+        color = unitf(Fragment.NdotV);
         break;        
     case GBUFFER_NDOTH:
         color = unitf(NdotH);
@@ -218,7 +252,7 @@ void main() {
         color = vec3(specularRoughness);
         break;
     case GBUFFER_REFLECTION_COLOR:
-        color = CalcCubeColor(R);
+        color = CalcCubeColor(Fragment.R);
         break;
     case GBUFFER_LAMBERTIAN:
         color = dcolor;
