@@ -21,7 +21,8 @@ class ExampleMetadata {
             "example18.html",
             "example19.html",
             "example20.html",
-            "example21.html"
+            "example21.html",
+            "example22.html",
         ];
         this.exampleDescs = [
             "WebGL Basic Code",
@@ -42,7 +43,8 @@ class ExampleMetadata {
             "Broken SPH",
             "Textures",
             "SPH",
-            "SPHLs",
+            "PBR",
+            "NPR",
             "Classic Graphics",
             "LibXOR Test"
         ];
