@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 /// <reference path="./htmlutils.d.ts" />
-/// <reference path="../LibXOR.d.ts" />
+/// <reference path="../src/LibXOR.ts" />
 
 class App {
     constructor() {
@@ -24,21 +24,18 @@ class App {
             "KS",
             "KS m",
             "REFLECTION",
-            "OREN-NAYAR",
-            "DISNEY",
-            "DIFFUSE BIMODAL",
-            "BLINN-PHONG",
-            "GGX",
-            "SPECULAR BIMODAL",
+            "CEL SHADING",
+            "XTOON",
             "GOOCH",
-            "NOT IMPLEMENTED"
+            "CEL GOOCH",
+            "HATCH"
         ];
 
         let p = document.getElementById('desc');
         p.innerHTML = `Display G-Buffer.`;
 
         let controls = document.getElementById('controls');
-        createRangeRow(controls, "outputType", 0, 0, this.shaderTypes.length);
+        createRangeRow(controls, "outputType", 0, 0, this.shaderTypes.length - 1);
         createLabelRow(controls, "SHADER", "");
         createRangeRow(controls, "objectType", 0, 0, 10);
         createRangeRow(controls, "ZFar", 100.0, 1.0, 100.0, 1.0);
@@ -75,12 +72,25 @@ class App {
         this.xor.graphics.setVideoMode(1.5 * 384, 384, 2);
         this.xor.input.init();
 
-        this.xor.fluxions.textures.load("test2D", "models/textures/test_texture.png");
+        let textures = this.xor.fluxions.textures;
+        textures.load("test2D", "models/textures/test_texture.png");
+        textures.load("xtoon1", "textures/xtoon1.png");
+        textures.load("xtoon2", "textures/xtoon2.png");
+        textures.load("hatch1", "textures/hatch1.png");
+        textures.load("hatch2", "textures/hatch2.png");
+        textures.load("hatch3", "textures/hatch3.png");
+        textures.load("hatch4", "textures/hatch4.png");
         this.xor.fluxions.fbos.add("gbuffer", true, true, 512, 512);
 
-        let rc = this.xor.renderconfigs.load('ubershader', 'shaders/basic.vert', 'shaders/ubershader.frag');
+        let rc = this.xor.renderconfigs.load('ubershader', 'shaders/basic.vert', 'shaders/ubershader-npr.frag');
         rc.useDepthTest = true;
+        rc.addTexture("hatch1", "HatchMap[0]");
+        rc.addTexture("hatch2", "HatchMap[1]");
+        rc.addTexture("hatch3", "HatchMap[2]");
+        rc.addTexture("hatch4", "HatchMap[3]");
         rc.addTexture("test2D", "MapKd");
+        rc.addTexture("xtoon1", "XToonMap[0]");
+        rc.addTexture("xtoon2", "XToonMap[1]");
 
         let bbox = new GTE.BoundingBox();
         bbox.add(Vector3.make(-0.5, -0.5, -0.5));
@@ -150,6 +160,8 @@ class App {
         let cmatrix = Matrix4.makeOrbit(this.azimuth, this.inclination, this.distance);
         let rc = xor.renderconfigs.use('ubershader');
         if (rc) {
+            rc.uniform1f("ScreenWidth", xor.graphics.width);
+            rc.uniform1f("ScreenHeight", xor.graphics.height);
             rc.uniformMatrix4f('ProjectionMatrix', pmatrix);
             rc.uniformMatrix4f('CameraMatrix', cmatrix);
             rc.uniform3f('Kd', Vector3.make(0.5, 0.0, 1.0));
