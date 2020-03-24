@@ -3,7 +3,7 @@ declare class Hatchetfish {
     private _logElement;
     private _numLines;
     constructor(logElementId?: string);
-    logElement: string;
+    set logElement(id: string);
     clear(): void;
     private writeToLog;
     log(message: string, ...optionalParams: any[]): void;
@@ -48,9 +48,12 @@ declare class Vector3 {
     x: number;
     y: number;
     z: number;
-    r: number;
-    g: number;
-    b: number;
+    get r(): number;
+    get g(): number;
+    get b(): number;
+    set r(r: number);
+    set g(g: number);
+    set b(b: number);
     /**
      *
      * @param {number} x
@@ -77,8 +80,8 @@ declare class Vector3 {
     static makeRandom(a: number, b: number): Vector3;
     static makeOrbit(azimuthInDegrees: number, pitchInDegrees: number, distance: number): Vector3;
     setFromSpherical(theta: number, phi: number): Vector3;
-    readonly theta: number;
-    readonly phi: number;
+    get theta(): number;
+    get phi(): number;
     static make(x?: number, y?: number, z?: number): Vector3;
     static makeUnit(x: number, y: number, z: number): Vector3;
     add(v: Vector3): Vector3;
@@ -299,90 +302,90 @@ declare namespace GTE {
         /**
          * @returns {string}
          */
-        readonly whdString: string;
+        get whdString(): string;
         /**
          * @returns {string}
          */
-        readonly minString: string;
+        get minString(): string;
         /**
          * @returns {string}
          */
-        readonly maxString: string;
+        get maxString(): string;
         /**
          * @returns {number}
          */
-        readonly width: number;
+        get width(): number;
         /**
          * @returns {number}
          */
-        readonly height: number;
+        get height(): number;
         /**
          * @returns {number}
          */
-        readonly depth: number;
+        get depth(): number;
         /**
          * @returns {number}
          */
-        readonly maxSize: number;
+        get maxSize(): number;
         /**
          * @returns {number}
          */
-        readonly minSize: number;
+        get minSize(): number;
         /**
          * @returns {number}
          */
-        readonly x: number;
+        get x(): number;
         /**
          * @returns {number}
          */
-        readonly y: number;
+        get y(): number;
         /**
          * @returns {number}
          */
-        readonly z: number;
+        get z(): number;
         /**
          * @returns {number}
          */
-        readonly left: number;
+        get left(): number;
         /**
          * @returns {number}
          */
-        readonly right: number;
+        get right(): number;
         /**
          * @returns {number}
          */
-        readonly top: number;
+        get top(): number;
         /**
          * @returns {number}
          */
-        readonly bottom: number;
+        get bottom(): number;
         /**
          * @returns {number}
          */
-        readonly front: number;
+        get front(): number;
         /**
          * @returns {number}
          */
-        readonly back: number;
+        get back(): number;
         /**
          * Returns bounding sphere
          * @returns {Sphere}
          */
-        readonly outsideSphere: Sphere;
+        get outsideSphere(): Sphere;
         /**
          * Returns smallest sphere inside bounding box
          * @returns {Sphere}
          */
-        readonly insideSphere: Sphere;
+        get insideSphere(): Sphere;
         /**
          * @returns {Vector3} (width, height, length) of bounding box
          */
-        readonly size: Vector3;
+        get size(): Vector3;
         /**
          * Returns center of AABB
          * @returns {Vector3} (x, y, z) of center of AABB
          */
-        readonly center: Vector3;
+        get center(): Vector3;
         /**
          * Adds a point to the AABB
          * @param {Vector3} p point to add to AABB
@@ -471,8 +474,8 @@ declare namespace XOR {
         private fragFailed;
         vertShaderSource: string;
         fragShaderSource: string;
-        readonly failed: boolean;
-        readonly loaded: boolean;
+        get failed(): boolean;
+        get loaded(): boolean;
         constructor(vertShaderUrl: string, fragShaderUrl: string, callbackfn: (vertShaderSource: string, fragShaderSource: string) => void);
     }
     export class TextFileLoader {
@@ -481,8 +484,8 @@ declare namespace XOR {
         private _failed;
         data: string;
         name: string;
-        readonly loaded: boolean;
-        readonly failed: boolean;
+        get loaded(): boolean;
+        get failed(): boolean;
         constructor(url: string, callbackfn: (data: string, name: string, parameter: number) => void, parameter?: number);
     }
     export class ImageFileLoader {
@@ -491,8 +494,8 @@ declare namespace XOR {
         private _failed;
         image: HTMLImageElement;
         name: string;
-        readonly loaded: boolean;
-        readonly failed: boolean;
+        get loaded(): boolean;
+        get failed(): boolean;
         constructor(url: string, callbackfn: (data: HTMLImageElement, name: string, parameter: number) => void, parameter?: number);
     }
     export function SeparateCubeMapImages(image: HTMLImageElement, images: null[] | ImageData[]): void;
@@ -604,8 +607,8 @@ declare namespace XOR {
         readonly SpriteBitmapMemoryStart = 45056;
         readonly TileBitmapMemoryStart = 53248;
         readonly TileMatrixMemoryStart = 61440;
-        readonly width: number;
-        readonly height: number;
+        get width(): number;
+        get height(): number;
         constructor(xor: LibXOR);
         init(): void;
         setVideoMode(width: number, height: number, version?: number): void;
@@ -695,8 +698,8 @@ declare namespace TF {
         loop: boolean;
         constructor(url: string, buffer?: AudioBuffer | null, loaded?: boolean, haderror?: boolean);
         play(ss: XOR.SoundSystem, time?: number): void;
-        readonly stopped: boolean;
-        readonly playing: boolean;
+        get stopped(): boolean;
+        get playing(): boolean;
         stop(): void;
         playOld(ss: XOR.SoundSystem, time?: number): void;
     }
@@ -706,7 +709,7 @@ declare namespace TF {
         private samplesRequested;
         private samplesLoaded;
         constructor(ss: XOR.SoundSystem);
-        readonly loaded: boolean;
+        get loaded(): boolean;
         isPlaying(id: number): boolean;
         isStopped(id: number): boolean;
         stopAll(): void;
@@ -741,12 +744,13 @@ declare namespace XOR {
         private masterVolume;
         private enabled_;
         constructor(xor: LibXOR);
-        readonly enabled: boolean;
-        readonly disabled: boolean;
-        readonly context: AudioContext | null;
+        get enabled(): boolean;
+        get disabled(): boolean;
+        get context(): AudioContext | null;
         init(): void;
-        volume: number;
-        readonly gainNode: GainNode;
+        get volume(): number;
+        set volume(v: number);
+        get gainNode(): GainNode;
         update(): void;
     }
 }
@@ -784,16 +788,16 @@ declare namespace XOR {
         copyInfo(state: Gamepad): void;
         button(i: number): number;
         axe(i: number): number;
-        readonly left: boolean;
-        readonly right: boolean;
-        readonly up: boolean;
-        readonly down: boolean;
-        readonly b0: boolean;
-        readonly b1: boolean;
-        readonly b2: boolean;
-        readonly b3: boolean;
-        readonly leftright: number;
-        readonly updown: number;
+        get left(): boolean;
+        get right(): boolean;
+        get up(): boolean;
+        get down(): boolean;
+        get b0(): boolean;
+        get b1(): boolean;
+        get b2(): boolean;
+        get b3(): boolean;
+        get leftright(): number;
+        get updown(): number;
     }
 }
 declare namespace XOR {
@@ -806,9 +810,9 @@ declare namespace XOR {
         private oy;
         pressed: boolean;
         constructor(x?: number, y?: number, dx?: number, dy?: number);
-        readonly position: Vector3;
-        readonly reldelta: Vector3;
-        readonly touchDelta: Vector3;
+        get position(): Vector3;
+        get reldelta(): Vector3;
+        get touchDelta(): Vector3;
         handleTouch(t: Touch, down: boolean, reset?: boolean): void;
     }
 }
@@ -834,12 +838,12 @@ declare namespace XOR {
         captureMouse(e: HTMLCanvasElement): void;
         captureTouches(): void;
         checkKeys(keys: string[]): number;
-        readonly mousecurpos: Vector2;
-        readonly mouseclick: Vector2;
-        readonly mouseshadertoy: Vector4;
-        readonly mouseButton1: boolean;
-        readonly mouseButton2: boolean;
-        readonly mouseButton3: boolean;
+        get mousecurpos(): Vector2;
+        get mouseclick(): Vector2;
+        get mouseshadertoy(): Vector4;
+        get mouseButton1(): boolean;
+        get mouseButton2(): boolean;
+        get mouseButton3(): boolean;
         private changeModifier;
         private translateKeyToCode;
         onkeydown(e: KeyboardEvent): void;
@@ -1041,10 +1045,10 @@ declare namespace Fluxions {
          * @param {FxTexture} value
          */
         set(name: string, value: FxTexture): void;
-        readonly loaded: boolean;
-        readonly failed: boolean;
-        readonly length: number;
-        readonly percentLoaded: number;
+        get loaded(): boolean;
+        get failed(): boolean;
+        get length(): number;
+        get percentLoaded(): number;
         /**
          * @param {string} name the key to find this texture
          * @param {string} url  the url to load this texture
@@ -1119,7 +1123,7 @@ declare namespace Fluxions {
         private _texturesBound;
         private _warnings;
         constructor(fx: FxRenderingContext);
-        readonly usable: boolean;
+        get usable(): boolean;
         isCompiledAndLinked(): boolean;
         use(): void;
         /**
@@ -1150,10 +1154,10 @@ declare namespace Fluxions {
         renderconfigs: Map<string, FxRenderConfig>;
         private shaderLoaders;
         constructor(fx: FxRenderingContext);
-        readonly loaded: boolean;
-        readonly failed: boolean;
-        readonly length: number;
-        readonly percentLoaded: number;
+        get loaded(): boolean;
+        get failed(): boolean;
+        get length(): number;
+        get percentLoaded(): number;
         create(name: string): FxRenderConfig;
         load(name: string, vshaderUrl: string, fshaderUrl: string): FxRenderConfig;
         use(name: string | null): FxRenderConfig | null;
@@ -1167,9 +1171,9 @@ declare namespace Fluxions {
         textures: FxTextureSystem;
         fbos: FxFboSystem;
         renderconfigs: FxRenderConfigSystem;
-        readonly width: number;
-        readonly height: number;
-        readonly aspectRatio: number;
+        get width(): number;
+        get height(): number;
+        get aspectRatio(): number;
         constructor(xor: LibXOR);
         private enabledExtensions;
         private _visible;
@@ -1201,8 +1205,8 @@ declare class FxFBO {
     private _depthTypeDesc;
     private _colorTypeDesc;
     clearColor: Vector3;
-    readonly complete: boolean;
-    readonly dimensions: Vector2;
+    get complete(): boolean;
+    get dimensions(): Vector2;
     fboStatusString(fboStatus: number): string;
     constructor(_renderingContext: FxRenderingContext, color: boolean, depth: boolean, width?: number, height?: number, _colorType?: number, _depthType?: number, colorUnit?: number, depthUnit?: number, shouldAutoResize?: boolean);
     autoResize(width: number, height: number): void;
@@ -1226,21 +1230,22 @@ declare namespace Fluxions {
         pretransform: Matrix4;
         posttransform: Matrix4;
         constructor();
-        readonly transform: Matrix4;
-        readonly rotatetransform: Matrix4;
-        aspectRatio: number;
-        angleOfView: number;
-        zfar: number;
-        znear: number;
-        readonly position: Vector3;
-        readonly right: Vector3;
-        readonly left: Vector3;
-        readonly up: Vector3;
-        readonly down: Vector3;
-        readonly forward: Vector3;
-        readonly backward: Vector3;
-        eye: Vector3;
-        center: Vector3;
+        get transform(): Matrix4;
+        get rotatetransform(): Matrix4;
+        set aspectRatio(ar: number);
+        set angleOfView(angleInDegrees: number);
+        set zfar(z: number);
+        set znear(z: number);
+        get position(): Vector3;
+        get right(): Vector3;
+        get left(): Vector3;
+        get up(): Vector3;
+        get down(): Vector3;
+        get forward(): Vector3;
+        get backward(): Vector3;
+        get eye(): Vector3;
+        set eye(p: Vector3);
+        set center(p: Vector3);
         moveTo(position: Vector3): void;
         move(delta: Vector3): Vector3;
         turn(delta: Vector3): void;
@@ -1308,13 +1313,15 @@ declare namespace Fluxions {
         private _zoom;
         private _offset;
         constructor();
-        distance: number;
-        direction: Vector3;
-        center: Vector3;
-        E0: Vector3;
+        set distance(d: number);
+        set direction(v: Vector3);
+        get direction(): Vector3;
+        set center(location: Vector3);
+        set E0(color: Vector3);
+        get E0(): Vector3;
         setOrbit(azimuthInDegrees: number, pitchInDegrees: number, distance: number): Matrix4;
-        readonly lightMatrix: Matrix4;
-        readonly projectionMatrix: Matrix4;
+        get lightMatrix(): Matrix4;
+        get projectionMatrix(): Matrix4;
     }
 }
 declare class FxTextParser {
@@ -1337,10 +1344,11 @@ declare namespace Fluxions {
         private transform_;
         private pretransform_;
         private posttransform_;
-        worldMatrix: Matrix4;
-        readonly pretransform: Matrix4;
-        readonly posttransform: Matrix4;
-        readonly transform: Matrix4;
+        set worldMatrix(m: Matrix4);
+        get worldMatrix(): Matrix4;
+        get pretransform(): Matrix4;
+        get posttransform(): Matrix4;
+        get transform(): Matrix4;
         constructor(name?: string, sceneName?: string, parent?: string);
     }
 }
@@ -1371,13 +1379,13 @@ declare namespace Fluxions {
         currentobj: string | null;
         currentscn: string | null;
         private _defaultRenderConfig;
-        readonly width: number;
-        readonly height: number;
-        readonly aspectRatio: number;
+        get width(): number;
+        get height(): number;
+        get aspectRatio(): number;
         constructor(fx: FxRenderingContext);
-        readonly loaded: boolean;
-        readonly failed: boolean;
-        readonly percentLoaded: number;
+        get loaded(): boolean;
+        get failed(): boolean;
+        get percentLoaded(): number;
         load(url: string): void;
         isSceneGraph(name: string): boolean;
         wasRequested(name: string): boolean;
@@ -1442,7 +1450,7 @@ declare namespace Fluxions {
         edges: Map<number, FxEdge>;
         faces: FxEdgeMeshFace[];
         constructor();
-        readonly length: number;
+        get length(): number;
         addVertex(v: Vector3): void;
         private calcNormal;
         addFace(v: number[]): void;
@@ -1485,7 +1493,7 @@ declare namespace Fluxions {
         spiral(radius: number, spirality?: number, segments?: number): void;
         begin(mode: number): void;
         addIndex(i: number): void;
-        readonly currentIndexCount: number;
+        get currentIndexCount(): number;
         normal3(n: Vector3): void;
         normal(x: number, y: number, z: number): void;
         color3(c: Vector3): void;
@@ -1532,9 +1540,9 @@ declare namespace XOR {
     export class TextFileLoaderSystem {
         private textfiles;
         constructor();
-        readonly failed: boolean;
-        readonly loaded: boolean;
-        readonly percentLoaded: number;
+        get failed(): boolean;
+        get loaded(): boolean;
+        get percentLoaded(): number;
         wasRequested(name: string): boolean;
         load(name: string, url: string, callbackfn: TextFileLoaderCallback, data: number): void;
     }
@@ -1553,7 +1561,7 @@ declare namespace XOR {
         /**
          * triggered() returns 1 if trigger went off and resets it
          */
-        readonly triggered: boolean;
+        get triggered(): boolean;
         /**
          * wait(t1) sets the new trigger time. It does not reset the trigger
          * @param {number} t1 Sets the new trigger time
@@ -1605,8 +1613,8 @@ declare class LibXOR {
     oninit: () => void;
     onupdate: (dt: number) => void;
     constructor(parentId: string);
-    readonly renderconfigs: Fluxions.FxRenderConfigSystem;
-    readonly fx: FxRenderingContext;
+    get renderconfigs(): Fluxions.FxRenderConfigSystem;
+    get fx(): FxRenderingContext;
     start(): void;
     startFrame(t: number): void;
     mainloop(): void;

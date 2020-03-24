@@ -23,6 +23,7 @@ class ExampleMetadata {
             "example20.html",
             "example21.html",
             "example22.html",
+            "example23.html"
         ];
         this.exampleDescs = [
             "WebGL Basic Code",
@@ -45,7 +46,8 @@ class ExampleMetadata {
             "SPH",
             "PBR",
             "NPR",
-            "Classic Graphics",
+            "Specular Bumpiness",
+            "Noise",
             "LibXOR Test"
         ];
         this.numExamples = this.exampleDescs.length;

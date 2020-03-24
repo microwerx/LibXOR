@@ -35,7 +35,7 @@ class App {
         p.innerHTML = `Display G-Buffer.`;
 
         let controls = document.getElementById('controls');
-        createRangeRow(controls, "outputType", 0, 0, this.shaderTypes.length - 1);
+        createRangeRow(controls, "outputType", 20, 0, this.shaderTypes.length - 1);
         createLabelRow(controls, "SHADER", "");
         createRangeRow(controls, "objectType", 0, 0, 10);
         createRangeRow(controls, "ZFar", 100.0, 1.0, 100.0, 1.0);
