@@ -218,7 +218,9 @@ declare class Matrix4 {
     translate(x: number, y: number, z: number): Matrix4;
     translate3(v: Vector3): Matrix4;
     rotate(angleInDegrees: number, x: number, y: number, z: number): Matrix4;
+    rotate3(angleInDegrees: number, v: Vector3): Matrix4;
     scale(sx: number, sy: number, sz: number): Matrix4;
+    scale3(s: Vector3): Matrix4;
     lookAt(eye: Vector3, center: Vector3, up: Vector3): Matrix4;
     frustum(left: number, right: number, bottom: number, top: number, near: number, far: number): Matrix4;
     ortho(left: number, right: number, bottom: number, top: number, near: number, far: number): Matrix4;
@@ -282,7 +284,7 @@ declare namespace GTE {
         /**
          * @constructor
          */
-        constructor();
+        constructor(minBounds?: Vector3, maxBounds?: Vector3);
         /**
          * Copy b into this
          * @param {BoundingBox} b bounding box to copy from
@@ -724,6 +726,7 @@ declare namespace TF {
         ss: XOR.SoundSystem;
         tracks: Map<number, HTMLAudioElement>;
         playTrack: number;
+        volume: number;
         constructor(ss: XOR.SoundSystem);
         add(index: number, url: string, looping: boolean, logErrors?: boolean): boolean;
         stop(): void;
@@ -838,6 +841,7 @@ declare namespace XOR {
         captureMouse(e: HTMLCanvasElement): void;
         captureTouches(): void;
         checkKeys(keys: string[]): number;
+        resetKeys(keys: string[]): void;
         get mousecurpos(): Vector2;
         get mouseclick(): Vector2;
         get mouseshadertoy(): Vector4;
@@ -875,6 +879,7 @@ declare namespace XOR {
         Fifteen = 2,
         OneEighty = 3
     }
+    const Colors: Vector3[];
     class PaletteSystem {
         xor: LibXOR;
         readonly BLACK = 0;
@@ -894,6 +899,12 @@ declare namespace XOR {
         readonly GOLD = 14;
         readonly FORESTGREEN = 15;
         constructor(xor: LibXOR);
+        /**
+         *
+         * @param index (0 = BLACK, 1 = GRAY33, 2 = GRAY67, 3 = WHITE, 4 = RED, 5 = ORANGE, 6 = YELLOW, 7 = GREEN, 8 = CYAN, 9 = AZURE, 10 = BLUE, 11 = VIOLET, 12 = ROSE, 13 = BROWN, 14 = GOLD, 15 = FORESTGREEN)
+         * @returns Vector3 color with RGB values 0 to 1
+         */
+        static getColor(index: number): Vector3;
         /**
          *
          * @param index (0 = BLACK, 1 = GRAY33, 2 = GRAY67, 3 = WHITE, 4 = RED, 5 = ORANGE, 6 = YELLOW, 7 = GREEN, 8 = CYAN, 9 = AZURE, 10 = BLUE, 11 = VIOLET, 12 = ROSE, 13 = BROWN, 14 = GOLD, 15 = FORESTGREEN)
@@ -1032,6 +1043,10 @@ declare namespace Fluxions {
         private _default2D;
         private _defaultCube;
         private imagefiles;
+        defaultWrapS: number;
+        defaultWrapT: number;
+        defaultMinFilter: number;
+        defaultMagFilter: number;
         /**
          *
          * @param {FxRenderingContext} fx The rendering context

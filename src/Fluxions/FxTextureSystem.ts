@@ -9,6 +9,10 @@ namespace Fluxions {
         private _defaultCube: FxTexture;
         private imagefiles: XOR.ImageFileLoader[] = [];
 
+        defaultWrapS = WebGLRenderingContext.REPEAT;
+        defaultWrapT = WebGLRenderingContext.REPEAT;
+        defaultMinFilter = WebGLRenderingContext.NEAREST;
+        defaultMagFilter = WebGLRenderingContext.NEAREST;
 
         /**
          * 
@@ -130,8 +134,10 @@ namespace Fluxions {
             let GL = WebGL2RenderingContext;
             let gl = this.fx.gl;
 
-            let minFilter = gl.NEAREST;
-            let magFilter = gl.NEAREST;
+            let minFilter = this.defaultMinFilter;
+            let magFilter = this.defaultMagFilter;
+            let wrapS = this.defaultWrapS;
+            let wrapT = this.defaultWrapT;
 
             let maxAnisotropy = 1.0;
             let ext = this.fx.getExtension("EXT_texture_filter_anisotropic")
@@ -166,6 +172,8 @@ namespace Fluxions {
                     gl.texImage2D(gl.TEXTURE_2D, 0, GL.SRGB8_ALPHA8, gl.RGBA, gl.UNSIGNED_BYTE, image);
                     // gl.texImage2D(gl.TEXTURE_2D, 0, GL.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, image);
                     gl.generateMipmap(gl.TEXTURE_2D);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrapS);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrapT);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
                     if (ext) {

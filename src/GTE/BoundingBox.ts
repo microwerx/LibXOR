@@ -29,13 +29,10 @@ namespace GTE {
      * @class
      */
     export class BoundingBox {
-        minBounds = Vector3.make(1e6, 1e6, 1e6);
-        maxBounds = Vector3.make(-1e6, -1e6, -1e6);
-
         /**
          * @constructor
          */
-        constructor() { }
+        constructor(public minBounds = Vector3.make(0, 0, 0), public maxBounds = Vector3.make(0, 0, 0)) { }
 
         /**
          * Copy b into this

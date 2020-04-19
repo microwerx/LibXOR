@@ -6,15 +6,13 @@
  * @param {string} leftContent
  * @param {string} rightContent
  */
-function createRow(leftContent, rightContent) {
-    if (leftContent === void 0) { leftContent = ""; }
-    if (rightContent === void 0) { rightContent = ""; }
-    var row = document.createElement('div');
+function createRow(leftContent = "", rightContent = "") {
+    let row = document.createElement('div');
     row.className = 'row';
-    var left = document.createElement('div');
+    let left = document.createElement('div');
     left.className = 'column left';
     left.innerHTML = leftContent;
-    var right = document.createElement('div');
+    let right = document.createElement('div');
     right.className = 'column right';
     right.innerHTML = rightContent;
     row.appendChild(left);
@@ -31,11 +29,9 @@ function createRow(leftContent, rightContent) {
  * @param {number} stepValue The step of the range control (default 1)
  * @returns {HTMLElement} The created HTMLElement div
  */
-function createRangeRow(parent, id, curValue, minValue, maxValue, stepValue, isvector) {
-    if (stepValue === void 0) { stepValue = 1; }
-    if (isvector === void 0) { isvector = false; }
-    var lContent = "<div class='column left'><label for='" + id + "'>" + id + "<label></div>";
-    var rContent = "<div class='column'>";
+function createRangeRow(parent, id, curValue, minValue, maxValue, stepValue = 1, isvector = false) {
+    let lContent = "<div class='column left'><label for='" + id + "'>" + id + "<label></div>";
+    let rContent = "<div class='column'>";
     if (!isvector) {
         rContent += "<input type='range' id='" + id + "' value='" + curValue + "' min='" + minValue + "' max='" + maxValue + "' step='" + stepValue + "' />";
         rContent += "</div><div class='column left'>";
@@ -47,7 +43,7 @@ function createRangeRow(parent, id, curValue, minValue, maxValue, stepValue, isv
         rContent += "<input type='range' id='" + id + "3' value='" + curValue + "' min='" + minValue + "' max='" + maxValue + "' step='" + stepValue + "' />";
     }
     rContent += "</div>";
-    var row = createRow(lContent, rContent);
+    let row = createRow(lContent, rContent);
     row.id = "row" + id;
     row.className = "row";
     parent.appendChild(row);
@@ -60,17 +56,17 @@ function createRangeRow(parent, id, curValue, minValue, maxValue, stepValue, isv
  * @param {function} callback A callback function if this gets clicked
  */
 function createButtonRow(parent, id, caption, callback) {
-    var lContent = "<div class='column left'><label for='" + id + "'>" + id + "<label></div>";
-    var rContent = "<div class='column right'>";
+    let lContent = "<div class='column left'><label for='" + id + "'>" + id + "<label></div>";
+    let rContent = "<div class='column right'>";
     rContent += "<button id='" + id + "'>" + caption + "</button>";
     rContent += "</div><div class='column left'>";
     rContent += "<label id='" + id + "_value'>0</label>";
     rContent += "</div>";
-    var row = createRow(lContent, rContent);
+    let row = createRow(lContent, rContent);
     row.id = "row" + id;
     row.className = "row";
     parent.appendChild(row);
-    var b = document.getElementById(id);
+    let b = document.getElementById(id);
     if (b) {
         b.onclick = callback;
     }
@@ -82,14 +78,14 @@ function createButtonRow(parent, id, caption, callback) {
  * @param {boolean} checked Is it checked or not
  */
 function createCheckRow(parent, id, checked) {
-    var lContent = "<div class='column left'><label for='" + id + "'>" + id + "<label></div>";
-    var rContent = "<div class='column right'>";
-    var c = checked ? " checked" : "";
+    let lContent = "<div class='column left'><label for='" + id + "'>" + id + "<label></div>";
+    let rContent = "<div class='column right'>";
+    let c = checked ? " checked" : "";
     rContent += "<input type='checkbox' id='" + id + "' " + c + "/>";
     rContent += "</div><div class='column left'>";
     rContent += "<label id='" + id + "_value'>0</label>";
     rContent += "</div>";
-    var row = createRow(lContent, rContent);
+    let row = createRow(lContent, rContent);
     row.id = "row" + id;
     row.className = "row";
     parent.appendChild(row);
@@ -101,13 +97,13 @@ function createCheckRow(parent, id, checked) {
  * @param {string} value The initial value of the string
  */
 function createTextRow(parent, id, value) {
-    var lContent = "<div class='column left'><label for='" + id + "'>" + id + "<label></div>";
-    var rContent = "<div class='column right'>";
+    let lContent = "<div class='column left'><label for='" + id + "'>" + id + "<label></div>";
+    let rContent = "<div class='column right'>";
     rContent += "<input type='text' style='width: 8em' id='" + id + " value='" + value + "' />";
     rContent += "</div><div class='column left'>";
     rContent += "<label id='" + id + "_value'>" + value + "</label>";
     rContent += "</div>";
-    var row = createRow(lContent, rContent);
+    let row = createRow(lContent, rContent);
     row.id = "row" + id;
     row.className = "row";
     parent.appendChild(row);
@@ -119,11 +115,11 @@ function createTextRow(parent, id, value) {
  * @param {string} value The initial value of the string
  */
 function createLabelRow(parent, id, value) {
-    var lContent = "<div class='column left'><label for='" + id + "'>" + id + "<label></div>";
-    var rContent = "<div class='column right'>";
+    let lContent = "<div class='column left'><label for='" + id + "'>" + id + "<label></div>";
+    let rContent = "<div class='column right'>";
     rContent += "<label id='" + id + "_value'>" + value + "</label>";
     rContent += "</div>";
-    var row = createRow(lContent, rContent);
+    let row = createRow(lContent, rContent);
     row.id = "row" + id;
     row.className = "row";
     parent.appendChild(row);
@@ -134,10 +130,10 @@ function createLabelRow(parent, id, value) {
  * @param {string} id The name of the row's id
  */
 function createDivRow(parent, id) {
-    var lContent = "<div class='column left'><label for='" + id + "'>" + id + "<label></div>";
-    var rContent = "<div class='column right' id='" + id + "'>";
+    let lContent = "<div class='column left'><label for='" + id + "'>" + id + "<label></div>";
+    let rContent = "<div class='column right' id='" + id + "'>";
     rContent += "</div>";
-    var row = createRow(lContent, rContent);
+    let row = createRow(lContent, rContent);
     row.id = "row" + id;
     row.className = "row";
     parent.appendChild(row);
@@ -148,13 +144,13 @@ function createDivRow(parent, id) {
  * @param {string} content
  */
 function setDivRowContents(id, content) {
-    var e = document.getElementById(id);
+    let e = document.getElementById(id);
     if (!e)
         return;
     e.innerHTML = content;
 }
 function setDivRowButtonCaption(id, caption) {
-    var e = document.getElementById(id);
+    let e = document.getElementById(id);
     if (!e)
         return;
     e.innerHTML = caption;
@@ -165,11 +161,11 @@ function setDivRowButtonCaption(id, caption) {
  * @param content the new value the control should have
  */
 function setDivRowValue(id, content) {
-    var e = document.getElementById(id);
+    let e = document.getElementById(id);
     if (!e)
         return;
     e.value = content;
-    var l = document.getElementById(id + "_value");
+    let l = document.getElementById(id + "_value");
     if (l)
         l.innerHTML = e.value.toString();
 }
@@ -179,7 +175,7 @@ function setDivRowValue(id, content) {
  * @param content the new value the control should have
  */
 function setDivLabelValue(id, content) {
-    var l = document.getElementById(id + "_value");
+    let l = document.getElementById(id + "_value");
     if (l)
         l.innerHTML = content;
 }
@@ -189,10 +185,10 @@ function setDivLabelValue(id, content) {
  * @returns the value of the range control or 0
  */
 function getRangeValue(id) {
-    var e = document.getElementById(id);
+    let e = document.getElementById(id);
     if (!e)
         return 0;
-    var l = document.getElementById(id + "_value");
+    let l = document.getElementById(id + "_value");
     if (l)
         l.innerHTML = e.value.toString();
     return parseFloat(e.value) * 1.0;
@@ -203,10 +199,10 @@ function getRangeValue(id) {
  * @returns {boolean}
  */
 function getCheckValue(id) {
-    var e = document.getElementById(id);
+    let e = document.getElementById(id);
     if (!e)
         return false;
-    var l = document.getElementById(id + "_value");
+    let l = document.getElementById(id + "_value");
     if (l)
         l.innerHTML = e.value.toString();
     return e.checked;
@@ -225,7 +221,7 @@ function getRangeVector3(id) {
  * @param {string} html
  */
 function setIdToHtml(id, html) {
-    var el = document.getElementById(id);
+    let el = document.getElementById(id);
     if (el) {
         el.innerHTML = html;
     }

@@ -27,6 +27,26 @@ namespace XOR {
         OneEighty = 3
     }
 
+    export const Colors = [
+        GTE.vec3(0.000, 0.000, 0.000), //Black
+        GTE.vec3(0.333, 0.333, 0.333), //Gray33
+        GTE.vec3(0.667, 0.667, 0.667), //Gray67
+        GTE.vec3(1.000, 1.000, 1.000), //White
+        GTE.vec3(1.000, 0.000, 0.000), //Red
+        GTE.vec3(0.894, 0.447, 0.000), //Orange
+        GTE.vec3(0.894, 0.894, 0.000), //Yellow
+        GTE.vec3(0.000, 1.000, 0.000), //Green
+        GTE.vec3(0.000, 0.707, 0.707), //Cyan
+        GTE.vec3(0.000, 0.447, 0.894), //Azure
+        GTE.vec3(0.000, 0.000, 1.000), //Blue
+        GTE.vec3(0.447, 0.000, 0.894), //Violet
+        GTE.vec3(0.894, 0.000, 0.447), //Rose
+        GTE.vec3(0.500, 0.250, 0.000), //Brown
+        GTE.vec3(0.830, 0.670, 0.220), //Gold
+        GTE.vec3(0.250, 0.500, 0.250), //ForestGreen
+        GTE.vec3(0.0, 0.0, 0.0), // Black        
+    ];
+
     export class PaletteSystem {
         readonly BLACK = 0;
         readonly GRAY33 = 1;
@@ -46,6 +66,31 @@ namespace XOR {
         readonly FORESTGREEN = 15;
 
         constructor(public xor: LibXOR) { }
+
+        /**
+         * 
+         * @param index (0 = BLACK, 1 = GRAY33, 2 = GRAY67, 3 = WHITE, 4 = RED, 5 = ORANGE, 6 = YELLOW, 7 = GREEN, 8 = CYAN, 9 = AZURE, 10 = BLUE, 11 = VIOLET, 12 = ROSE, 13 = BROWN, 14 = GOLD, 15 = FORESTGREEN)
+         * @returns Vector3 color with RGB values 0 to 1
+         */
+        static getColor(index: number): Vector3 {
+            if (index == 0) return GTE.vec3(0.000, 0.000, 0.000); //Black
+            if (index == 1) return GTE.vec3(0.333, 0.333, 0.333); //Gray33
+            if (index == 2) return GTE.vec3(0.667, 0.667, 0.667); //Gray67
+            if (index == 3) return GTE.vec3(1.000, 1.000, 1.000); //White
+            if (index == 4) return GTE.vec3(1.000, 0.000, 0.000); //Red
+            if (index == 5) return GTE.vec3(0.894, 0.447, 0.000); //Orange
+            if (index == 6) return GTE.vec3(0.894, 0.894, 0.000); //Yellow
+            if (index == 7) return GTE.vec3(0.000, 1.000, 0.000); //Green
+            if (index == 8) return GTE.vec3(0.000, 0.707, 0.707); //Cyan
+            if (index == 9) return GTE.vec3(0.000, 0.447, 0.894); //Azure
+            if (index == 10) return GTE.vec3(0.000, 0.000, 1.000); //Blue
+            if (index == 11) return GTE.vec3(0.447, 0.000, 0.894); //Violet
+            if (index == 12) return GTE.vec3(0.894, 0.000, 0.447); //Rose
+            if (index == 13) return GTE.vec3(0.500, 0.250, 0.000); //Brown
+            if (index == 14) return GTE.vec3(0.830, 0.670, 0.220); //Gold
+            if (index == 15) return GTE.vec3(0.250, 0.500, 0.250); //ForestGreen
+            return GTE.vec3(0.0, 0.0, 0.0); // Black
+        }
 
         /**
          * 

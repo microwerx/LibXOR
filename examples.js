@@ -48,7 +48,8 @@ class ExampleMetadata {
             "NPR",
             "Specular Bumpiness",
             "Noise",
-            "LibXOR Test"
+            "LibXOR Test",
+            "LibXOR ECS"
         ];
         this.numExamples = this.exampleDescs.length;
         this.courseNumber = "Graphics Rendering, Animation, and Simulation";

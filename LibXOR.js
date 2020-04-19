@@ -959,8 +959,14 @@ class Matrix4 {
     rotate(angleInDegrees, x, y, z) {
         return this.multMatrix(Matrix4.makeRotation(angleInDegrees, x, y, z));
     }
+    rotate3(angleInDegrees, v) {
+        return this.multMatrix(Matrix4.makeRotation(angleInDegrees, v.x, v.y, v.z));
+    }
     scale(sx, sy, sz) {
         return this.multMatrix(Matrix4.makeScale(sx, sy, sz));
+    }
+    scale3(s) {
+        return this.multMatrix(Matrix4.makeScale(s.x, s.y, s.z));
     }
     lookAt(eye, center, up) {
         return this.multMatrix(Matrix4.makeLookAt2(eye, center, up));
@@ -1274,9 +1280,9 @@ var GTE;
         /**
          * @constructor
          */
-        constructor() {
-            this.minBounds = Vector3.make(1e6, 1e6, 1e6);
-            this.maxBounds = Vector3.make(-1e6, -1e6, -1e6);
+        constructor(minBounds = Vector3.make(0, 0, 0), maxBounds = Vector3.make(0, 0, 0)) {
+            this.minBounds = minBounds;
+            this.maxBounds = maxBounds;
         }
         /**
          * Copy b into this
@@ -2768,6 +2774,7 @@ var TF;
             this.ss = ss;
             this.tracks = new Map();
             this.playTrack = -1;
+            this.volume = 1;
         }
         add(index, url, looping, logErrors = false) {
             if (index < 0)
@@ -2801,6 +2808,7 @@ var TF;
             if (!el)
                 return;
             el.currentTime = 0;
+            el.volume = this.volume;
             el.play();
             this.playTrack = index;
         }
@@ -3169,6 +3177,12 @@ var XOR;
             }
             return 0.0;
         }
+        resetKeys(keys) {
+            for (let key of keys) {
+                if (this.keys.has(key))
+                    this.keys.set(key, 0.0);
+            }
+        }
         get mousecurpos() { return this.mouse.position; }
         get mouseclick() { let b = this.mouseButtons.get(0); if (!b)
             return Vector2.make(0, 0); return b.position; }
@@ -3283,6 +3297,25 @@ var XOR;
         HueShift[HueShift["Fifteen"] = 2] = "Fifteen";
         HueShift[HueShift["OneEighty"] = 3] = "OneEighty";
     })(HueShift = XOR.HueShift || (XOR.HueShift = {}));
+    XOR.Colors = [
+        GTE.vec3(0.000, 0.000, 0.000),
+        GTE.vec3(0.333, 0.333, 0.333),
+        GTE.vec3(0.667, 0.667, 0.667),
+        GTE.vec3(1.000, 1.000, 1.000),
+        GTE.vec3(1.000, 0.000, 0.000),
+        GTE.vec3(0.894, 0.447, 0.000),
+        GTE.vec3(0.894, 0.894, 0.000),
+        GTE.vec3(0.000, 1.000, 0.000),
+        GTE.vec3(0.000, 0.707, 0.707),
+        GTE.vec3(0.000, 0.447, 0.894),
+        GTE.vec3(0.000, 0.000, 1.000),
+        GTE.vec3(0.447, 0.000, 0.894),
+        GTE.vec3(0.894, 0.000, 0.447),
+        GTE.vec3(0.500, 0.250, 0.000),
+        GTE.vec3(0.830, 0.670, 0.220),
+        GTE.vec3(0.250, 0.500, 0.250),
+        GTE.vec3(0.0, 0.0, 0.0),
+    ];
     class PaletteSystem {
         constructor(xor) {
             this.xor = xor;
@@ -3302,6 +3335,46 @@ var XOR;
             this.BROWN = 13;
             this.GOLD = 14;
             this.FORESTGREEN = 15;
+        }
+        /**
+         *
+         * @param index (0 = BLACK, 1 = GRAY33, 2 = GRAY67, 3 = WHITE, 4 = RED, 5 = ORANGE, 6 = YELLOW, 7 = GREEN, 8 = CYAN, 9 = AZURE, 10 = BLUE, 11 = VIOLET, 12 = ROSE, 13 = BROWN, 14 = GOLD, 15 = FORESTGREEN)
+         * @returns Vector3 color with RGB values 0 to 1
+         */
+        static getColor(index) {
+            if (index == 0)
+                return GTE.vec3(0.000, 0.000, 0.000); //Black
+            if (index == 1)
+                return GTE.vec3(0.333, 0.333, 0.333); //Gray33
+            if (index == 2)
+                return GTE.vec3(0.667, 0.667, 0.667); //Gray67
+            if (index == 3)
+                return GTE.vec3(1.000, 1.000, 1.000); //White
+            if (index == 4)
+                return GTE.vec3(1.000, 0.000, 0.000); //Red
+            if (index == 5)
+                return GTE.vec3(0.894, 0.447, 0.000); //Orange
+            if (index == 6)
+                return GTE.vec3(0.894, 0.894, 0.000); //Yellow
+            if (index == 7)
+                return GTE.vec3(0.000, 1.000, 0.000); //Green
+            if (index == 8)
+                return GTE.vec3(0.000, 0.707, 0.707); //Cyan
+            if (index == 9)
+                return GTE.vec3(0.000, 0.447, 0.894); //Azure
+            if (index == 10)
+                return GTE.vec3(0.000, 0.000, 1.000); //Blue
+            if (index == 11)
+                return GTE.vec3(0.447, 0.000, 0.894); //Violet
+            if (index == 12)
+                return GTE.vec3(0.894, 0.000, 0.447); //Rose
+            if (index == 13)
+                return GTE.vec3(0.500, 0.250, 0.000); //Brown
+            if (index == 14)
+                return GTE.vec3(0.830, 0.670, 0.220); //Gold
+            if (index == 15)
+                return GTE.vec3(0.250, 0.500, 0.250); //ForestGreen
+            return GTE.vec3(0.0, 0.0, 0.0); // Black
         }
         /**
          *
@@ -3681,6 +3754,10 @@ var Fluxions;
             this.fx = fx;
             this._textures = new Map();
             this.imagefiles = [];
+            this.defaultWrapS = WebGLRenderingContext.REPEAT;
+            this.defaultWrapT = WebGLRenderingContext.REPEAT;
+            this.defaultMinFilter = WebGLRenderingContext.NEAREST;
+            this.defaultMagFilter = WebGLRenderingContext.NEAREST;
             let GL = WebGL2RenderingContext;
             let gl = fx.gl;
             let tex2D = gl.createTexture();
@@ -3789,8 +3866,10 @@ var Fluxions;
         processTextureMap(image, name) {
             let GL = WebGL2RenderingContext;
             let gl = this.fx.gl;
-            let minFilter = gl.NEAREST;
-            let magFilter = gl.NEAREST;
+            let minFilter = this.defaultMinFilter;
+            let magFilter = this.defaultMagFilter;
+            let wrapS = this.defaultWrapS;
+            let wrapT = this.defaultWrapT;
             let maxAnisotropy = 1.0;
             let ext = this.fx.getExtension("EXT_texture_filter_anisotropic");
             if (ext) {
@@ -3826,6 +3905,8 @@ var Fluxions;
                     gl.texImage2D(gl.TEXTURE_2D, 0, GL.SRGB8_ALPHA8, gl.RGBA, gl.UNSIGNED_BYTE, image);
                     // gl.texImage2D(gl.TEXTURE_2D, 0, GL.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, image);
                     gl.generateMipmap(gl.TEXTURE_2D);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrapS);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrapT);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
                     if (ext) {

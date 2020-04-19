@@ -157,8 +157,16 @@ class Matrix4 {
 		return this.multMatrix(Matrix4.makeRotation(angleInDegrees, x, y, z));
 	}
 
+	rotate3(angleInDegrees: number, v: Vector3): Matrix4 {
+		return this.multMatrix(Matrix4.makeRotation(angleInDegrees, v.x, v.y, v.z));
+	}
+
 	scale(sx: number, sy: number, sz: number): Matrix4 {
 		return this.multMatrix(Matrix4.makeScale(sx, sy, sz));
+	}
+
+	scale3(s: Vector3): Matrix4 {
+		return this.multMatrix(Matrix4.makeScale(s.x, s.y, s.z));
 	}
 
 	lookAt(eye: Vector3, center: Vector3, up: Vector3): Matrix4 {

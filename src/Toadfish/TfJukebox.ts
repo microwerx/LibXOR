@@ -4,6 +4,7 @@ namespace TF {
     export class Jukebox {
         tracks = new Map<number, HTMLAudioElement>();
         playTrack = -1;
+        volume = 1;
 
         constructor(public ss: XOR.SoundSystem) {
 
@@ -39,6 +40,7 @@ namespace TF {
             let el = this.tracks.get(index);
             if (!el) return;
             el.currentTime = 0;
+            el.volume = this.volume;
             el.play();
             this.playTrack = index;
         }
