@@ -60,7 +60,7 @@ namespace TF {
             this.VCFenvelope.release = 1;
             this.VCFenvelope.sustainCV = 0.5;
         }
-
+        
         play(ss: XOR.SoundSystem, time: number = 0) {
             if (!ss.enabled) return;
             let ctx = ss.context;
@@ -166,8 +166,8 @@ namespace TF {
 
     export class Sampler {
         samples = new Map<number, Sample>();
-        private samplesRequested = 0;
-        private samplesLoaded = 0;
+        private samplesRequested = 1;
+        private samplesLoaded = 1;
 
         constructor(private ss: XOR.SoundSystem) {
 
@@ -175,6 +175,10 @@ namespace TF {
 
         get loaded(): boolean {
             return this.samplesRequested == this.samplesLoaded;
+        }
+
+        get percentLoaded(): number {
+            return this.samplesLoaded / this.samplesRequested;
         }
 
         isPlaying(id: number): boolean {

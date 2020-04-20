@@ -712,6 +712,7 @@ declare namespace TF {
         private samplesLoaded;
         constructor(ss: XOR.SoundSystem);
         get loaded(): boolean;
+        get percentLoaded(): number;
         isPlaying(id: number): boolean;
         isStopped(id: number): boolean;
         stopAll(): void;
@@ -727,7 +728,11 @@ declare namespace TF {
         tracks: Map<number, HTMLAudioElement>;
         playTrack: number;
         volume: number;
+        private requestedTracks;
+        private loadedTracks;
         constructor(ss: XOR.SoundSystem);
+        get loaded(): boolean;
+        get percentLoaded(): number;
         add(index: number, url: string, looping: boolean, logErrors?: boolean): boolean;
         stop(): void;
         play(index: number): void;
@@ -750,6 +755,7 @@ declare namespace XOR {
         get enabled(): boolean;
         get disabled(): boolean;
         get context(): AudioContext | null;
+        get loaded(): boolean;
         init(): void;
         get volume(): number;
         set volume(v: number);
@@ -1614,6 +1620,7 @@ declare class LibXOR {
     t1: number;
     t0: number;
     dt: number;
+    private baset;
     frameCount: number;
     parentElement: HTMLElement;
     graphics: XOR.GraphicsSystem;
@@ -1630,6 +1637,7 @@ declare class LibXOR {
     constructor(parentId: string);
     get renderconfigs(): Fluxions.FxRenderConfigSystem;
     get fx(): FxRenderingContext;
+    resetClock(): void;
     start(): void;
     startFrame(t: number): void;
     mainloop(): void;

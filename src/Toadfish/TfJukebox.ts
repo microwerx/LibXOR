@@ -4,10 +4,18 @@ namespace TF {
     export class Jukebox {
         tracks = new Map<number, HTMLAudioElement>();
         playTrack = -1;
-        volume = 1;
+        public volume = 1;
+        private requestedTracks=1
+        private loadedTracks=1
 
-        constructor(public ss: XOR.SoundSystem) {
+        constructor(public ss: XOR.SoundSystem) {}
 
+        get loaded(): boolean {
+            return this.loadedTracks == this.requestedTracks;
+        }
+
+        get percentLoaded(): number {
+            return this.loadedTracks / this.requestedTracks;
         }
 
         add(index: number, url: string, looping: boolean, logErrors = false): boolean {
@@ -18,6 +26,13 @@ namespace TF {
             if (logErrors) {
                 hflog.info("loading " + url);
             }
+            let reportUrl = url;
+            let self = this;
+            this.requestedTracks++;
+            el.onloadeddata = (ev) => {          
+                self.loadedTracks++;
+                hflog.info('loaded '+ reportUrl);
+            };
             el.loop = looping;
             this.tracks.set(index, el);
             return true;

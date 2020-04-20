@@ -2672,11 +2672,14 @@ var TF;
         constructor(ss) {
             this.ss = ss;
             this.samples = new Map();
-            this.samplesRequested = 0;
-            this.samplesLoaded = 0;
+            this.samplesRequested = 1;
+            this.samplesLoaded = 1;
         }
         get loaded() {
             return this.samplesRequested == this.samplesLoaded;
+        }
+        get percentLoaded() {
+            return this.samplesLoaded / this.samplesRequested;
         }
         isPlaying(id) {
             if (id < 0)
@@ -2775,6 +2778,14 @@ var TF;
             this.tracks = new Map();
             this.playTrack = -1;
             this.volume = 1;
+            this.requestedTracks = 1;
+            this.loadedTracks = 1;
+        }
+        get loaded() {
+            return this.loadedTracks == this.requestedTracks;
+        }
+        get percentLoaded() {
+            return this.loadedTracks / this.requestedTracks;
         }
         add(index, url, looping, logErrors = false) {
             if (index < 0)
@@ -2785,6 +2796,13 @@ var TF;
             if (logErrors) {
                 hflog.info("loading " + url);
             }
+            let reportUrl = url;
+            let self = this;
+            this.requestedTracks++;
+            el.onloadeddata = (ev) => {
+                self.loadedTracks++;
+                hflog.info('loaded ' + reportUrl);
+            };
             el.loop = looping;
             this.tracks.set(index, el);
             return true;
@@ -2840,6 +2858,7 @@ var XOR;
         get enabled() { return this.enabled_; }
         get disabled() { return !this.enabled_; }
         get context() { return this.context_; }
+        get loaded() { return this.jukebox.loaded && this.sampler.loaded; }
         init() {
             if (!this.enabled)
                 return;
@@ -6689,6 +6708,7 @@ class LibXOR {
         this.t1 = 0.0;
         this.t0 = 0.0;
         this.dt = 0.0;
+        this.baset = 0.0;
         this.frameCount = 0;
         this.memory = new XOR.MemorySystem(this);
         this.sound = new XOR.SoundSystem(this);
@@ -6708,6 +6728,12 @@ class LibXOR {
     }
     get renderconfigs() { return this.fluxions.renderconfigs; }
     get fx() { return this.fluxions; }
+    resetClock() {
+        this.baset = this.t1 * 1000;
+        this.t0 = 0;
+        this.t1 = 0;
+        this.dt = 0;
+    }
     start() {
         this.t0 = 0;
         this.t1 = 0;
@@ -6721,6 +6747,7 @@ class LibXOR {
         this.mainloop();
     }
     startFrame(t) {
+        t -= this.baset;
         this.t0 = this.t1;
         this.t1 = t / 1000.0;
         this.dt = this.t1 - this.t0;

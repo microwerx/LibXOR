@@ -30,6 +30,7 @@ namespace XOR {
         get enabled(): boolean { return this.enabled_; }
         get disabled(): boolean { return !this.enabled_; }
         get context(): AudioContext | null { return this.context_; }
+        get loaded(): boolean { return this.jukebox.loaded && this.sampler.loaded; }
 
         init() {
             if (!this.enabled) return;

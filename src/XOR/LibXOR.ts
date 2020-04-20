@@ -23,6 +23,7 @@ class LibXOR {
     public t1 = 0.0;
     public t0 = 0.0;
     public dt = 0.0;
+    private baset = 0.0;
     public frameCount = 0;
 
     public parentElement: HTMLElement;
@@ -51,6 +52,13 @@ class LibXOR {
     get renderconfigs(): Fluxions.FxRenderConfigSystem { return this.fluxions.renderconfigs; }
     get fx(): FxRenderingContext { return this.fluxions; }
 
+    resetClock() {
+        this.baset = this.t1 * 1000;
+        this.t0 = 0;
+        this.t1 = 0;
+        this.dt = 0;
+    }
+
     start() {
         this.t0 = 0;
         this.t1 = 0;
@@ -65,6 +73,7 @@ class LibXOR {
     }
 
     startFrame(t: number) {
+        t -= this.baset;
         this.t0 = this.t1;
         this.t1 = t / 1000.0;
         this.dt = this.t1 - this.t0;
