@@ -23,33 +23,65 @@ class ExampleMetadata {
             "example20.html",
             "example21.html",
             "example22.html",
-            "example23.html"
+            "example23.html",
+            "example24.html",
+            "example25.html",
+            "example26.html",
+            "example27.html"
         ];
         this.exampleDescs = [
+            // 1
             "WebGL Basic Code",
+            // 2
             "LibXOR Basic Code",
+            // 3
             "Popping Blocks",
+            // 4
             "Ray Tracer",
+            // 5
             "Windy Blocks",
+            // 6
             "Ray Tracing Miss Shader",
+            // 7
             "Windy Tumbleweeds",
+            // 8
             "Hello, Operators",
+            // 9
             "Oren-Nayer",
+            // 10
             "Lattice-Boltzmann",
+            // 11
             "Raymarching",
+            // 12
             "Gamepads",
+            // 13
             "Sampler",
+            // 14
             "Springs",
+            // 15
             "G-Buffer",
+            // 16
             "Broken SPH",
+            // 17
             "Textures",
+            // 18
             "SPH",
+            // 19
             "PBR",
+            // 20
             "NPR",
+            // 21
             "Specular Bumpiness",
+            // 22
             "Noise",
+            // 23
             "LibXOR Test",
-            "LibXOR ECS"
+            // 24
+            "LibXOR ECS",
+            // 25
+            "Mandelbrot Set",
+            "Example 26",
+            "Example 27"
         ];
         this.numExamples = this.exampleDescs.length;
         this.courseNumber = "Graphics Rendering, Animation, and Simulation";

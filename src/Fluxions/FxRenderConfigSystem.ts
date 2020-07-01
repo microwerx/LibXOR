@@ -70,5 +70,17 @@ namespace Fluxions {
             }
             return null;
         }
+
+        find(name: string | null): FxRenderConfig | null {
+            if (!this.fx) throw "Fluxions is not initialized";
+            if (!name) return null;
+            else if (this.renderconfigs.has(name)) {
+                let rc = this.renderconfigs.get(name);
+                if (rc && rc.usable) {
+                    return rc;
+                }
+            }
+            return null;
+        }
     }
 }

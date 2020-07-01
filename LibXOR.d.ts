@@ -1182,6 +1182,7 @@ declare namespace Fluxions {
         create(name: string): FxRenderConfig;
         load(name: string, vshaderUrl: string, fshaderUrl: string): FxRenderConfig;
         use(name: string | null): FxRenderConfig | null;
+        find(name: string | null): FxRenderConfig | null;
     }
 }
 declare namespace Fluxions {
