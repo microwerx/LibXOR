@@ -11,10 +11,10 @@
     },
     "dependencies": {
         "concurrently": "latest",
-        "lite-server": "^2.4.0",
-        "typescript": "^3.0.0"
+        "lite-server": "latest",
+        "typescript": "latest"
     },
     "devDependencies": {
-        "eslint": "^5.15.1"
+        "eslint": "latest"
     }
 }
