@@ -22,7 +22,7 @@ LibXOR is inspired by 6502 8-bit computers. The main idea is that we have a 64Ki
 
 * Install [Visual Studio Code](https://code.visualstudio.com/)
 * Install [Node.js](https://nodejs.org/)
-* Install Node packages (`npm install -g typescript eslint tslint lite-server concurrently`)
+* Install Node packages (`npm install -g typescript eslint lite-server concurrently`)
 * Run Visual Studio Code and clone repository
 * At the terminal run `npm start` to start the TypeScript compiler in watch mode and the HTTP server on port 3000
 
