@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "target": "es2015",
+        "noImplicitAny": true,
+        "removeComments": false,
+        "preserveConstEnums": true,
+        "strict": true,
+        "outDir": ".",
+        "declaration": true,
+        "sourceMap": true,
+        "lib": [
+            "es2015",
+            "dom"
+        ]
+    },
+    "include": [
+        "htmlutils.ts",
+    ],
+    "exclude": [
+        "node_modules",
+        "**/*.spec.ts",
+        "**/LibXOR.js"
+    ]
+}
