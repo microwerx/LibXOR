@@ -94,3 +94,4 @@ declare function getRangeVector3(id: string): Vector3;
  * @param {string} html
  */
 declare function setIdToHtml(id: string, html: string): void;
+declare function uiRangeValue(id: string, curValue: number, minValue: number, maxValue: number, stepValue?: number, isvector?: boolean, controlsElementName?: string): number;

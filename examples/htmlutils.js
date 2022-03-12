@@ -1,3 +1,4 @@
+"use strict";
 /* eslint-disable no-unused-vars */
 /// <reference path="../LibXOR.d.ts" />
 // START HELPFUL HTML5 FUNCTIONS
@@ -226,4 +227,21 @@ function setIdToHtml(id, html) {
         el.innerHTML = html;
     }
 }
+function uiRangeValue(id, curValue, minValue, maxValue, stepValue = 1, isvector = false, controlsElementName = 'controls') {
+    let c = document.getElementById(controlsElementName);
+    if (!c)
+        return curValue;
+    let e = document.getElementById(id);
+    if (!e) {
+        createRangeRow(c, id, curValue, minValue, maxValue, stepValue, isvector);
+        return curValue;
+    }
+    else {
+        let l = document.getElementById(id + "_value");
+        if (l)
+            l.innerHTML = e.value.toString();
+        return parseFloat(e.value) * 1.0;
+    }
+}
 // END HELPFUL HTML5 CODE
+//# sourceMappingURL=htmlutils.js.map

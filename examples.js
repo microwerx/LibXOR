@@ -80,7 +80,9 @@ class ExampleMetadata {
             "LibXOR ECS",
             // 25
             "Mandelbrot Set",
-            "Example 26",
+            // 26
+            "Cellular Automata",
+            // 27
             "Example 27"
         ];
         this.numExamples = this.exampleDescs.length;

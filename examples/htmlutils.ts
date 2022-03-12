@@ -5,8 +5,8 @@
 
 /**
  * Creates a row div with a left and right column. It expects CSS class row, column, left, and right.
- * @param {string} leftContent 
- * @param {string} rightContent 
+ * @param {string} leftContent
+ * @param {string} rightContent
  */
 function createRow(leftContent = "", rightContent = ""): HTMLDivElement {
     let row = document.createElement('div');
@@ -157,8 +157,8 @@ function createDivRow(parent: HTMLElement, id: string) {
 
 /**
  * setDivRowContents
- * @param {string} id 
- * @param {string} content 
+ * @param {string} id
+ * @param {string} content
  */
 function setDivRowContents(id: string, content: string) {
     let e = document.getElementById(id);
@@ -197,7 +197,7 @@ function setDivLabelValue(id: string, content: string) {
 
 /**
  * getRangeValue returns the number of a range control
- * @param {string} id 
+ * @param {string} id
  * @returns the value of the range control or 0
  */
 function getRangeValue(id: string): number {
@@ -210,7 +210,7 @@ function getRangeValue(id: string): number {
 
 /**
  * Returns if control is checked or not
- * @param {string} id 
+ * @param {string} id
  * @returns {boolean}
  */
 function getCheckValue(id: string): boolean {
@@ -237,13 +237,36 @@ function getRangeVector3(id: string): Vector3 {
 
 /**
  * setIdToHtml
- * @param {string} id 
+ * @param {string} id
  * @param {string} html
  */
 function setIdToHtml(id: string, html: string): void {
     let el = document.getElementById(id);
     if (el) {
         el.innerHTML = html;
+    }
+}
+
+function uiRangeValue(
+    id: string,
+    curValue: number,
+    minValue: number,
+    maxValue: number,
+    stepValue = 1,
+    isvector = false,
+    controlsElementName = 'controls')
+{
+    let c = document.getElementById(controlsElementName);
+    if (!c)
+        return curValue;
+    let e = <HTMLInputElement>document.getElementById(id);
+    if (!e) {
+        createRangeRow(c, id, curValue, minValue, maxValue, stepValue, isvector);
+        return curValue;
+    } else {
+        let l = document.getElementById(id + "_value");
+        if (l) l.innerHTML = e.value.toString();
+        return parseFloat(e.value) * 1.0;
     }
 }
 
