@@ -222,15 +222,10 @@ class ExampleMetadata {
     }
 
     writeHeadTitle() {
-        let optional = (this.pageAuthor.length) ? " (" + this.pageAuthor + ")" : "";
-        let title = "<title>" + this.pageTitle + optional + "</title>";
-        this.write(title);
-    }
-
-    writeHeader(pageTitle, pageAuthor) {
-        let optional = (this.pageAuthor.length) ? " (" + this.pageAuthor + ")" : "";
-        let link = (this.isMainIndex) ? "'../index.html'>" : "'index.html'>";
-        let a = "<a href=" + link + this.pageTitle + optional + "</a>";
-        this.write(a);
+        let optional = (this.exampleNum) ? " (" + this.getProjectName(this.exampleNum-1) + ")" : "";
+        document.title = this.pageTitle + optional;
     }
 }
+
+var coursemeta = new ExampleMetadata();
+coursemeta.writeHeadTitle();

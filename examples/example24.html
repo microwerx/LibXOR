@@ -7,68 +7,18 @@
     <meta name="robots" content="index/nofollow">
     <meta name="author" content="Jonathan B. Metzgar">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <title>LibXOR Example</title>
     <link rel="stylesheet" href="../styles.css">
-    <script type="text/javascript" async
-        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML">
-        </script>
-
-    <script>
-        function toggle(id) {
-            let e = document.getElementById(id);
-            if (e) {
-                e.style.display = e.style.display === 'none' ? '' : 'none';
-            }
-        }
-    </script>
-
+    <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
     <script src="../examples.js"></script>
-    <script>
-        var coursemeta = new ExampleMetadata();
-        coursemeta.writeHeadTitle();
-    </script>
+    <script src="common-head.js"></script>
 </head>
 
 <body>
-    <article>
-        <script>
-            coursemeta.writeArticleHeader()
-            coursemeta.writeDesc();
-        </script>
-    </article>
-    <article>
-        <div class="centered">
-            <div class="cell-block-clear">
-                <div id="project" class="centered"></div>
-            </div>
-            <div class="cell-block-light" style="width: 384px">
-                <h5 onclick='toggle(" controls")'>Controls</h5>
-                <div id="controls"></div>
-            </div>
-        </div>
-
-        <div class="cell-block-clear">
-            <!-- Write your main description here -->
-            <h5 onclick='toggle("desc")'>Description &amp; Notes</h5>
-            <p id="desc">This example shows basic usage of the LibXOR library.</p>
-        </div>
-
-        <h5 onclick='toggle("log")'>Log</h5>
-        <div id='log' class='log'>Log items here...</div>
-
-        <footer>
-            <hr class="goldhr" />
-        </footer>
-    </article>
-    <article>
-        <script>
-            coursemeta.writeArticleFooter();
-        </script>
-    </article>
-
+    <script src="common-body.js"></script>
     <script src="htmlutils.js"></script>
-    <script src="ecs.js"></script>
     <script src="../LibXOR.js"></script>
+    <script src="ecs.js"></script>
     <script src="example24-ecs.js"></script>
 </body>
 
