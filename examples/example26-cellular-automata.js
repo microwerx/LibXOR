@@ -7,19 +7,19 @@ class CellularAutomata {
         this.a = 1.0;
         this.b = 1.0;
         this.radius = 5;
-        this.width = 64;
-        this.height = 128;
+        this.width = 128;
+        this.height = 256;
         this.heat = 0.6;
         this.life = 0.5;
         this.turbulence = 0.5;
     }
 
     syncControls() {
-        this.a = uiRangeValue("fa", this.width/2, 0, this.width);
-        this.b = uiRangeValue("fb", this.height/8, 0, this.height);
+        this.a = uiRangeValue("fa", this.width/2, 0, this.width-1);
+        this.b = uiRangeValue("fb", this.height/8, 0, this.height-1);
         this.radius = uiRangeValue("fRadius", 5.0, 0.0, 25.0, 1.0);
-        this.heat = uiRangeValue("fHeat", 0.0, 0.0, 1.0, 0.05);
-        this.life = uiRangeValue("fLife", 0.5, 0.5, 1.0, 0.001);
+        this.heat = uiRangeValue("fHeat", 0.99, 0.0, 1.0, 0.01);
+        this.life = uiRangeValue("fLife", 0.5, 0.0, 1.0, 0.01);
         this.turbulence = uiRangeValue("fTurbulence", 3.0, 0.0, 5.0, 0.05);
         // this.width = getRangeValue("iWidth");
         // this.height = getRangeValue("iHeight");
@@ -41,14 +41,17 @@ class App {
 
     init() {
         hflog.logElement = "log";
-        this.xor.graphics.setVideoMode(512, 512);
+        this.xor.graphics.setVideoMode(1.5*384, 384);
         this.xor.input.init();
 
         let fx = this.xor.fluxions;
+        let gl = this.xor.fluxions.gl;
         let w = this.flame.width;
         let h = this.flame.height;
         fx.fbos.add("lb1", true, false, w, h);
         fx.fbos.add("lb2", true, false, w, h);
+        fx.fbos.get("lb1").setWrap(gl.REPEAT, gl.REPEAT);
+        fx.fbos.get("lb2").setWrap(gl.REPEAT, gl.REPEAT);
 
         // load some textures
         fx.textures.load("RadianceCLUT", "models/textures/flame_map.png");
@@ -82,12 +85,10 @@ class App {
     }
 
     syncControls() {
-        this.iFluidType = uiRangeValue('iFluidType', 0, 0, 1);
-        this.iCARule = uiRangeValue('iCARule', 30, 0, 127, 1);
-        this.fLgaTurb = uiRangeValue('fLgaUVTurb', 0.0, 0.0, 5.0, 0.05);
-        this.fLgaTurb = uiRangeValue('fLgaTurb', 0.0, 0.0, 0.1, 0.001);
-        this.fLgaDamp = uiRangeValue('fLgaDamp', 1.0, 0.9, 1.0, 0.001);
-        this.fLgaDiff = uiRangeValue('fLgaDiff', 1.0, 0.9, 1.0, 0.001);
+        this.iFluidType = uiRangeValue('iFluidType', 2, 0, 3);
+        this.iCARule = uiRangeValue('iCARule', 30, 0, 255, 1);
+        this.fRDFeedRate = uiRangeValue('fRDFeedRate', 0.0545, 0.03, 0.06, 0.001);
+        this.fRDKillRate = uiRangeValue('fRDKillRate', 0.0620, 0.03, 0.07, 0.001);
         this.flame.syncControls();
     }
 
@@ -103,8 +104,8 @@ class App {
             let Sy = ar * xor.graphics.height / this.flame.height;
             let x = Sx * this.xor.input.mouse.position.x / this.xor.graphics.width;
             let y = Sy * (this.xor.graphics.height - this.xor.input.mouse.position.y) / this.xor.graphics.height;
-            this.flame.a = 0.5 * x * this.flame.width;
-            this.flame.b = 0.5 * y * this.flame.height;
+            this.flame.a = x * this.flame.width;
+            this.flame.b = y * this.flame.height;
         }
     }
 
@@ -140,10 +141,8 @@ class App {
             rc.uniform1f('heat', this.flame.heat);
             rc.uniform1f('life', this.flame.life);
             rc.uniform1f('turbulence', this.flame.turbulence);
-            rc.uniform1f('fLgaUVTurbulence', this.fLgaUVTurb);
-            rc.uniform1f('fLgaTurbulence', this.fLgaTurb);
-            rc.uniform1f('fLgaDamping', this.fLgaDamp);
-            rc.uniform1f('fLgaDiffusion', this.fLgaDiff);
+            rc.uniform1f('fRDFeedRate', this.fRDFeedRate);
+            rc.uniform1f('fRDKillRate', this.fRDKillRate);
             rc.uniform1f('iTime', xor.t1);
             rc.uniform1i('iFluidType', this.iFluidType);
             rc.uniform1i('iSourceBuffer', this.curFluid);
