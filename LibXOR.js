@@ -4801,6 +4801,16 @@ class FxFBO {
         }
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
+    setWrap(wrapS, wrapT) {
+        let GL = WebGL2RenderingContext;
+        let gl = this._renderingContext.gl;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(GL.TEXTURE0, this._colorTexture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrapS);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrapT);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+    }
     use(clearScreen = true, disableColorWrites = false) {
         if (!this.complete)
             return;

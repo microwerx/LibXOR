@@ -1233,6 +1233,7 @@ declare class FxFBO {
     constructor(_renderingContext: FxRenderingContext, color: boolean, depth: boolean, width?: number, height?: number, _colorType?: number, _depthType?: number, colorUnit?: number, depthUnit?: number, shouldAutoResize?: boolean);
     autoResize(width: number, height: number): void;
     make(): void;
+    setWrap(wrapS: number, wrapT: number): void;
     use(clearScreen?: boolean, disableColorWrites?: boolean): void;
     restore(): void;
     bindTextures(colorUnit?: number, depthUnit?: number): void;
