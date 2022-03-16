@@ -34,6 +34,8 @@ uniform int   iCARule;
 uniform float heat;
 uniform float life;
 uniform float turbulence;
+uniform float fRDDA;
+uniform float fRDDB;
 uniform float fRDFeedRate;
 uniform float fRDKillRate;
 uniform float iTime;
@@ -45,6 +47,7 @@ const int CELLULAR_AUTOMATA = 0;
 const int GAME_OF_LIFE = 1;
 const int REACTION_DIFFUSION = 2;
 const int SQUARE_CELLULAR_AUTOMATA = 3;
+const int REACTION_DIFFUSION2 = 5;
 
 float rand(vec2 co) {
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
@@ -158,6 +161,44 @@ vec4 caEffect(vec2 uv, ivec2 xy) {
     return vec4(data, 0.0, data, 1.0);
 }
 
+float hasbit(int bit) {
+    int bitmask = 1 << (bit-1);
+    if ((iCARule & bitmask) != 0) return 1.0;
+    return 0.0;
+}
+
+vec4 caEffect2D(vec2 uv, ivec2 xy) {
+    vec4 outCell = vec4(0.0);
+    float data = 0.0;
+    if (inside(uv, padding0)) {
+        vec4 cells[NUM_DIRS];
+        getLatticeCells(xy, cells);
+
+        data = cells[C].x;
+
+        int count = 0;
+        // count += cells[NE].x != 0.0 ? 1 : 0;
+        count += cells[N].x != 0.0 ? 1 : 0;
+        // count += cells[NW].x != 0.0 ? 1 : 0;
+        count += cells[E].x != 0.0 ? 1 : 0;
+        count += cells[W].x != 0.0 ? 1 : 0;
+        // count += cells[SE].x != 0.0 ? 1 : 0;
+        count += cells[S].x != 0.0 ? 1 : 0;
+        // count += cells[SW].x != 0.0 ? 1 : 0;
+
+
+        float Avalues[5] = float[](hasbit(5), hasbit(4), hasbit(3), hasbit(2), hasbit(1));
+        float Bvalues[5] = float[](hasbit(10), hasbit(9), hasbit(8), hasbit(7), hasbit(6));
+        if (data == 0.0) {
+            data = Avalues[count];
+        }
+        else {
+            data = Bvalues[count];
+        }
+    }
+    return vec4(data, 0.0, data, 1.0);
+}
+
 vec4 gameOfLife(vec2 uv, ivec2 xy) {
     float data = 0.0;
     float alive = 0.0;
@@ -223,6 +264,7 @@ vec4 gameOfLife(vec2 uv, ivec2 xy) {
 
 float laplacian(mat3 X) {
     const mat3 laplacianKernel = mat3(0.05, 0.2, 0.05, 0.2, -1.0, 0.2, 0.05, 0.2, 0.05);
+    //const mat3 laplacianKernel = mat3(0.00, 0.25, 0.0, 0.25, -1.0, 0.25, 0.0, 0.25, 0.0);
     mat3 prodX = matrixCompMult(laplacianKernel, X);
     float sum = 0.0;
     for (int i = 0; i < 3; i++)
@@ -244,12 +286,12 @@ vec4 reactionDiffusion(vec2 uv, ivec2 xy) {
         // [ C[1] C[4] C[7] ] = [ C[W]  C[C] C[W]  ]
         // [ C[2] C[5] C[8] ]   [ C[SW] C[S] C[SW] ]
         mat3 pixelsA = mat3(cells[0].x, cells[1].x, cells[2].x, cells[3].x, cells[4].x, cells[5].x, cells[6].x, cells[7].x, cells[8].x);
-        mat3 pixelsB = mat3(cells[0].z, cells[1].z, cells[2].z, cells[3].z, cells[4].z, cells[5].z, cells[6].z, cells[7].z, cells[8].z);
+        mat3 pixelsB = mat3(cells[0].y, cells[1].y, cells[2].y, cells[3].y, cells[4].y, cells[5].y, cells[6].y, cells[7].y, cells[8].y);
 
         // A is the concentration of substance A.
         A = cells[4].x;
         // B is the concentration of substance B.
-        B = cells[4].z;
+        B = cells[4].y;
         // Gray-Scott method:
         // f = feed rate
         // k = kill rate
@@ -257,11 +299,9 @@ vec4 reactionDiffusion(vec2 uv, ivec2 xy) {
         // pB/pt = D_b laplacian(B) + AB^2 - (k + f) B
         float laplacianA = laplacian(pixelsA);
         float laplacianB = laplacian(pixelsB);
-        const float DA = 1.0;
-        const float DB = 0.5;
         // Calculate partial derivatives.
-        float pA_pt = DA * laplacianA - A*B*B + fRDFeedRate * (1.0 - A);
-        float pB_pt = DB * laplacianB + A*B*B - (fRDKillRate + fRDFeedRate) * B;
+        float pA_pt = fRDDA * laplacianA - A*B*B + fRDFeedRate * (1.0 - A);
+        float pB_pt = fRDDB * laplacianB + A*B*B - (fRDKillRate + fRDFeedRate) * B;
         // Update concentrations for A and B with a timestep of dt = 1.0.
         A += pA_pt;
         B += pB_pt;
@@ -288,7 +328,71 @@ vec4 reactionDiffusion(vec2 uv, ivec2 xy) {
             }
         }
     }
-    return vec4(A, 0.0, B, 1.0);
+    return vec4(A, B, C, 1.0);
+}
+
+vec4 reactionDiffusion2(vec2 uv, ivec2 xy) {
+    float alive = 0.0;
+    float A = 0.0;
+    float B = 0.0;
+    float C = 0.0;
+    if (inside(uv, padding0)) {
+        vec4 cells[NUM_DIRS];
+        getLatticeCells(xy, cells);
+
+        // Pixels are stored in the matrix as follows:
+        // [ C[0] C[3] C[6] ]   [ C[NW] C[N] C[NE] ]
+        // [ C[1] C[4] C[7] ] = [ C[W]  C[C] C[W]  ]
+        // [ C[2] C[5] C[8] ]   [ C[SW] C[S] C[SW] ]
+        mat3 pixelsA = mat3(cells[0].x, cells[1].x, cells[2].x, cells[3].x, cells[4].x, cells[5].x, cells[6].x, cells[7].x, cells[8].x);
+        mat3 pixelsB = mat3(cells[0].y, cells[1].y, cells[2].y, cells[3].y, cells[4].y, cells[5].y, cells[6].y, cells[7].y, cells[8].y);
+
+        vec3 ch = vec3(0.0);
+        ch.xy = vec2(cells[1].z, cells[3].z) - cells[4].z;
+        ch += (cells[1] + cells[3] + cells[5] + cells[7] - 4.0 * cells[4]).xyz * 0.01;
+
+        // A is the concentration of substance A.
+        A = cells[4].x;
+        // B is the concentration of substance B.
+        B = cells[4].y;
+        // Gray-Scott method:
+        // f = feed rate
+        // k = kill rate
+        // pA/pt = D_a laplacian(A) - AB^2 + f(1 - A)
+        // pB/pt = D_b laplacian(B) + AB^2 - (k + f) B
+        float laplacianA = laplacian(pixelsA);
+        float laplacianB = laplacian(pixelsB);
+        // Calculate partial derivatives.
+        float pA_pt = 0.01*fRDDA * laplacianA;// + fRDFeedRate * (1.0 - A);
+        float pB_pt = 0.01*fRDDB * laplacianB;// - (fRDKillRate + fRDFeedRate) * B;
+        // Update concentrations for A and B with a timestep of dt = 1.0.
+        A += pA_pt + ch.x;
+        B += pB_pt + ch.y;
+        C += ch.z;
+
+        A = clamp(A, 0.0, 1.0);
+        B = clamp(B, 0.0, 1.0);
+
+        if (iMouseButtons > 0)
+        {
+            float x = float(xy.x);
+            float y = float(xy.y);
+            if (floor(a) == x && floor(b) == y)
+            {
+                A = 0.0;
+                B = 1.0;
+            }
+
+            // Spark of life:
+            vec2 l = vec2(a-x, b-y);
+            if (length(l) < radius)
+            {
+                A = 0.0;
+                B = 1.0;
+            }
+        }
+    }
+    return vec4(A, B, C, 1.0);
 }
 
 void main() {
@@ -300,6 +404,8 @@ void main() {
     if (iFluidType == CELLULAR_AUTOMATA) oFragColor = caEffect(uv, xy);
     else if (iFluidType == GAME_OF_LIFE) oFragColor = gameOfLife(uv, xy);
     else if (iFluidType == REACTION_DIFFUSION) oFragColor = reactionDiffusion(uv, xy);
+    else if (iFluidType == REACTION_DIFFUSION2) oFragColor = reactionDiffusion2(uv, xy);
+    else if (iFluidType == SQUARE_CELLULAR_AUTOMATA) oFragColor = caEffect2D(uv, xy);
     else oFragColor = vec4(uv / vec2(width, height), turb2.x, 1.0);
 
     bool sameXY = xy == ab;
