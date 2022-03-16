@@ -36,6 +36,7 @@ class App {
         this.flame = new CellularAutomata();
         this.curFluid = 0;
         this.simSteps = 1;
+        this.touching = false;
 
         this.syncControls();
     }
@@ -105,13 +106,23 @@ class App {
             this.reset();
         }
 
+        this.touching = false;
+        let mouseX = 0;
+        let mouseY = 0;
         if (this.xor.input.mouse.buttons & 1) {
-            let swap = this.flame.width < this.flame.height;
-            let ar = this.flame.width / this.flame.height;
-            let Sx = 1.0;//swap ? ar : 1.0;// * xor.graphics.width / this.flame.width;
-            let Sy = 1.0;//swap ? 1.0 : ar;//ar * xor.graphics.height / this.flame.height;
-            let x = Sx * this.xor.input.mouse.position.x / this.xor.graphics.width;
-            let y = Sy * (this.xor.graphics.height - this.xor.input.mouse.position.y) / this.xor.graphics.height;
+            this.touching = true;
+            mouseX = this.xor.input.mouse.position.x;
+            mouseY = this.xor.input.mouse.position.y;
+        }
+        if (this.xor.input.touches.length > 0) {
+            this.touching = true;
+            mouseX = this.xor.input.touches[0].x;
+            mouseY = this.xor.input.touches[0].y;
+        }
+
+        if (this.touching) {
+            let x = mouseX / this.xor.graphics.width;
+            let y = (this.xor.graphics.height - mouseY) / this.xor.graphics.height;
             this.flame.a = x * this.flame.width;
             this.flame.b = y * this.flame.height;
         }
@@ -157,7 +168,7 @@ class App {
             rc.uniform1i('iFluidType', this.iFluidType);
             rc.uniform1i('iSourceBuffer', this.curFluid);
             if (this.iFluidType == 0 && this.xor.frameCount == 1) rc.uniform1i('iMouseButtons', 1);
-            else rc.uniform1i('iMouseButtons', this.xor.input.mouseButton1 ? 1 : 0);
+            else rc.uniform1i('iMouseButtons', this.touching ? 1 : 0);
             xor.meshes.render('fullscreenquad', rc);
             rc.restore();
         }
