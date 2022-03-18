@@ -82,7 +82,7 @@ h5 {
     margin-bottom: 0em;
     font-size: 1em;
     font-style: normal;
-    font-weight: bold;  
+    font-weight: bold;
 }
 
 em {
@@ -164,14 +164,33 @@ a:hover {
 .column {
     float: left;
     padding: 0em;
+    width: 50%;
 }
 
 .left {
-    width: 20%;
+    display: inline-block;
+    width: 96px;
 }
 
 .right {
-    width: 60%;
+    display: inline-block;
+    width: 192px;
+}
+
+.extra {
+    display: inline-block;
+    width: 96px;
+}
+
+.nudgebtn {
+    font-size: 0.5em;
+    width: 24px;
+    height: 24px;
+}
+
+.labels {
+    display: inline-block;
+    width: 4em;
 }
 
 .row:after {
@@ -204,7 +223,7 @@ a:hover {
     display: inline-block;
     background: #eeeeee;
     border-radius: 5px;
-    height: 100%;    
+    height: 100%;
 }
 
 /* #project {

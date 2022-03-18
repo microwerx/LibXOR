@@ -4,7 +4,8 @@
  * @param {string} leftContent
  * @param {string} rightContent
  */
-declare function createRow(leftContent?: string, rightContent?: string): HTMLDivElement;
+declare function createRow(leftContent?: string, rightContent?: string, extraContent?: string): HTMLDivElement;
+declare function adjustRangeValue(id: string, stepValue: number): void;
 /**
  * createRangeRow creates a row with a range control
  * @param {HTMLElement} parent The element that should be appended to

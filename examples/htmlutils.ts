@@ -8,7 +8,7 @@
  * @param {string} leftContent
  * @param {string} rightContent
  */
-function createRow(leftContent = "", rightContent = ""): HTMLDivElement {
+function createRow(leftContent = "", rightContent = "", extraContent = ""): HTMLDivElement {
     let row = document.createElement('div');
     row.className = 'row';
     let left = document.createElement('div');
@@ -17,9 +17,18 @@ function createRow(leftContent = "", rightContent = ""): HTMLDivElement {
     let right = document.createElement('div');
     right.className = 'column right';
     right.innerHTML = rightContent;
+    let extra = document.createElement('div');
+    extra.className = 'column extra';
+    extra.innerHTML = extraContent;
     row.appendChild(left);
     row.appendChild(right);
+    row.appendChild(extra);
     return row;
+}
+
+function adjustRangeValue(id: string, stepValue: number) {
+    const newValue = getRangeValue(id) + stepValue;
+    setDivRowValue(id, newValue.toString());
 }
 
 /**
@@ -40,19 +49,23 @@ function createRangeRow(
     maxValue: number,
     stepValue = 1,
     isvector = false) {
-    let lContent = "<div class='column left'><label for='" + id + "'>" + id + "<label></div>";
-    let rContent = "<div class='column'>";
+    let lContent = "<label for='" + id + "'>" + id + "<label>";
+    let rContent = "";
     if (!isvector) {
         rContent += "<input type='range' id='" + id + "' value='" + curValue + "' min='" + minValue + "' max='" + maxValue + "' step='" + stepValue + "' />";
-        rContent += "</div><div class='column left'>";
-        rContent += "<label id='" + id + "_value'>0</label>";
+        const dec = "adjustRangeValue('" + id + "', -" + stepValue.toString() + ")";
+        const inc = "adjustRangeValue('" + id + "', " + stepValue.toString() + ")";
+        rContent += "<button class='nudgebtn' onclick=\"" + dec + "\">-</button><button class='nudgebtn' onclick=\"" + inc + "\">+</button>";
     } else {
         rContent += "<input type='range' id='" + id + "1' value='" + curValue + "' min='" + minValue + "' max='" + maxValue + "' step='" + stepValue + "' />";
         rContent += "<input type='range' id='" + id + "2' value='" + curValue + "' min='" + minValue + "' max='" + maxValue + "' step='" + stepValue + "' />";
         rContent += "<input type='range' id='" + id + "3' value='" + curValue + "' min='" + minValue + "' max='" + maxValue + "' step='" + stepValue + "' />";
     }
-    rContent += "</div>";
-    let row = createRow(lContent, rContent);
+    let eContent = "";
+    if (!isvector) {
+        eContent += "<label class='labels' id='" + id + "_value'>0</label>";
+    }
+    let row = createRow(lContent, rContent, eContent);
     row.id = "row" + id;
     row.className = "row";
     parent.appendChild(row);
