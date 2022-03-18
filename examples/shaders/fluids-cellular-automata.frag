@@ -406,7 +406,7 @@ void main() {
     else if (iFluidType == REACTION_DIFFUSION) oFragColor = reactionDiffusion(uv, xy);
     else if (iFluidType == REACTION_DIFFUSION2) oFragColor = reactionDiffusion2(uv, xy);
     else if (iFluidType == SQUARE_CELLULAR_AUTOMATA) oFragColor = caEffect2D(uv, xy);
-    else oFragColor = vec4(uv / vec2(width, height), turb2.x, 1.0);
+    else oFragColor = vec4(turb2.x, uv / vec2(width, height), 1.0);
 
     bool sameXY = xy == ab;
     bool mousePressed = iMouseButtons > 0;
