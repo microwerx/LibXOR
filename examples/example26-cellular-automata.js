@@ -18,7 +18,7 @@ class CellularAutomata {
         this.a = uiRangeValue("fa", this.width/2, 0, this.width-1);
         this.b = uiRangeValue("fb", this.height/8, 0, this.height-1);
         this.radius = uiRangeValue("fRadius", 5.0, 0.0, 25.0, 1.0);
-        this.heat = uiRangeValue("fHeat", 0.99, 0.0, 1.0, 0.01);
+        this.heat = uiRangeValue("fHeat", 0.97, 0.0, 1.0, 0.01);
         this.life = uiRangeValue("fLife", 0.5, 0.0, 1.0, 0.01);
         this.turbulence = uiRangeValue("fTurbulence", 3.0, 0.0, 5.0, 0.05);
         // this.width = getRangeValue("iWidth");
