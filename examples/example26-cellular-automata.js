@@ -7,8 +7,8 @@ class CellularAutomata {
         this.a = 1.0;
         this.b = 1.0;
         this.radius = 5;
-        this.width = 512;
-        this.height = 512;
+        this.width = 512/2 | 0;
+        this.height = 384/2 | 0;
         this.heat = 0.6;
         this.life = 0.5;
         this.turbulence = 0.5;
@@ -54,7 +54,7 @@ class App {
 
     init() {
         hflog.logElement = "log";
-        this.xor.graphics.setVideoMode(1.5*384, 384);
+        this.xor.graphics.setVideoMode(512, 384);
         this.xor.input.init();
 
         let fx = this.xor.fluxions;
@@ -99,7 +99,7 @@ class App {
 
     syncControls() {
         let fluid = this.iFluidType;
-        this.iFluidType = uiRangeValue('iFluidType', 2, 0, 4);
+        this.iFluidType = uiRangeValue('iFluidType', 4, 0, 6);
         if (fluid != this.iFluidType)
             this.xor.frameCount = 0;
         this.simSteps = uiRangeValue("iSimSteps", 16, -16, 16);
@@ -209,6 +209,8 @@ class App {
         let pmatrix = Matrix4.makeOrtho2D(0, xor.graphics.width, 0, xor.graphics.height);
         let cmatrix = Matrix4.makeIdentity();
 
+        const oneImage = true;//(this.xor.graphics.width == this.flame.width && this.xor.graphics.height == this.flame.height);
+
         this.mainrc.readFromFBOs = swapSides ? [this.f2] : [this.f1];
         let rc = xor.renderconfigs.use('default');
         if (rc) {
@@ -223,12 +225,17 @@ class App {
 
             const aspectRatio = this.xor.graphics.width / this.xor.graphics.height;
             let M = Matrix4.makeIdentity();
-            let S = 0.5 * xor.graphics.width / this.flame.width;
-            if (aspectRatio < 1) S *= 1.0/aspectRatio;
-            let x = 0.5 * (xor.graphics.width/2 - S * this.flame.width);
-            let y = 0.5 * (xor.graphics.height - S * this.flame.height);
-            M.translate(x, y, 0);
-            M.scale(S, S, 1.0);
+            if (!oneImage) {
+                let S = 0.5 * xor.graphics.width / this.flame.width;
+                if (aspectRatio < 1) S *= 1.0/aspectRatio;
+                let x = 0.5 * (xor.graphics.width/2 - S * this.flame.width);
+                let y = 0.5 * (xor.graphics.height - S * this.flame.height);
+                M.translate(x, y, 0);
+                M.scale(S, S, 1.0);
+            } else {
+                const S = xor.graphics.width / this.flame.width;
+                M.scale(S, S, 1.0);
+            }
             rc.uniformMatrix4f('WorldMatrix', M);
             xor.meshes.render('fullscreenquad', rc);
             rc.restore();
@@ -236,7 +243,7 @@ class App {
 
         this.mainrc.readFromFBOs = swapSides ? [this.f1] : [this.f2];
         rc = xor.renderconfigs.use('default');
-        if (rc) {
+        if (!oneImage && rc) {
             rc.uniformMatrix4f('ProjectionMatrix', pmatrix);
             rc.uniformMatrix4f('CameraMatrix', cmatrix);
             rc.uniform3f('iResolution', GTE.vec3(xor.graphics.width, xor.graphics.height, 0));

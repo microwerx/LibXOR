@@ -47,7 +47,11 @@ const int CELLULAR_AUTOMATA = 0;
 const int GAME_OF_LIFE = 1;
 const int REACTION_DIFFUSION = 2;
 const int SQUARE_CELLULAR_AUTOMATA = 3;
+const int INTERGALACTIC_LIFE = 4;
 const int REACTION_DIFFUSION2 = 5;
+const int CLEAR_TO_ONE = 6;
+const int CLEAR_TO_ZERO = 7;
+const int CLEAR_TO_TURB = 8;
 
 float rand(vec2 co) {
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
@@ -82,6 +86,17 @@ vec4 fetch(in ivec2 st, ivec2 offset) {
         return texture(lb1Color, uv);
     } else if (lb2Enabled > 0.0) {
         return texture(lb2Color, uv);
+    }
+}
+
+vec4 fetch2(in ivec2 st, ivec2 offset, ivec2 origin, ivec2 size) {
+    ivec2 st2 = st + offset;
+    st2 %= size;
+    st2 += origin;
+    if (lb1Enabled > 0.0) {
+        return texelFetch(lb1Color, st2, 0);
+    } else if (lb2Enabled > 0.0) {
+        return texelFetch(lb2Color, st2, 0);
     }
 }
 
@@ -121,6 +136,18 @@ void getLatticeCells(in ivec2 st, out vec4 cells[9]) {
     cells[SE] = fetch(st, ivec2( 1, -1));
 }
 
+void getLatticeCells2(in ivec2 st, out vec4 cells[9], ivec2 origin, ivec2 size) {
+    cells[NW] = fetch2(st, ivec2(-1,  1), origin, size);
+    cells[W]  = fetch2(st, ivec2(-1,  0), origin, size);
+    cells[SW] = fetch2(st, ivec2(-1, -1), origin, size);
+    cells[N]  = fetch2(st, ivec2( 0,  1), origin, size);
+    cells[C]  = fetch2(st, ivec2( 0,  0), origin, size);
+    cells[S]  = fetch2(st, ivec2( 0, -1), origin, size);
+    cells[NE] = fetch2(st, ivec2( 1,  1), origin, size);
+    cells[E]  = fetch2(st, ivec2( 1,  0), origin, size);
+    cells[SE] = fetch2(st, ivec2( 1, -1), origin, size);
+}
+
 const vec2 padding0 = vec2(0.0, 0.0);
 const vec2 padding4 = vec2(4.0, 4.0);
 
@@ -148,12 +175,40 @@ vec4 caEffect(vec2 uv, ivec2 xy) {
         surround += cells[NE].x != 0.0 ? 1 : 0;
         surround += cells[N].x != 0.0 ? 2 : 0;
         surround += cells[NW].x != 0.0 ? 4 : 0;
-        surround += cells[E].x != 0.0 ? 8 : 0;
-        //surround += cCell.x != 0.0 ? 16 : 0;
-        surround += cells[W].x != 0.0 ? 16 : 0;
-        surround += cells[SE].x != 0.0 ? 32 : 0;
-        surround += cells[S].x != 0.0 ? 64 : 0;
-        surround += cells[SW].x != 0.0 ? 128 : 0;
+        // surround += cells[E].x != 0.0 ? 8 : 0;
+        // //surround += cCell.x != 0.0 ? 16 : 0;
+        // surround += cells[W].x != 0.0 ? 16 : 0;
+        // surround += cells[SE].x != 0.0 ? 32 : 0;
+        // surround += cells[S].x != 0.0 ? 64 : 0;
+        // surround += cells[SW].x != 0.0 ? 128 : 0;
+
+        int test = 1 << surround;
+        data = (test & iCARule) != 0 ? 1.0 : 0.0;
+    }
+    return vec4(data, 0.0, data, 1.0);
+}
+
+vec4 caEffectFlip(vec2 uv, ivec2 xy) {
+    vec4 outCell = vec4(0.0);
+    float data = 0.0;
+    int heightOverTwo = int(height)/2;
+    ivec2 size = ivec2(width, heightOverTwo);
+    ivec2 origin = ivec2(0, 0);
+    if (xy.y > 1) {
+        // Scroll
+        data = fetch2(xy, ivec2(0, -1), origin, size).r;
+    }
+    else
+    {
+        // Calc new numbers
+        float cell1 = fetch2(xy, ivec2(-1, 0), origin, size).x;
+        float cell2 = fetch2(xy, ivec2( 0, 0), origin, size).x;
+        float cell3 = fetch2(xy, ivec2( 1, 0), origin, size).x;
+
+        int surround = 0;
+        surround += cell1 != 0.0 ? 1 : 0;
+        surround += cell2 != 0.0 ? 2 : 0;
+        surround += cell3 != 0.0 ? 4 : 0;
 
         int test = 1 << surround;
         data = (test & iCARule) != 0 ? 1.0 : 0.0;
@@ -202,12 +257,14 @@ vec4 caEffect2D(vec2 uv, ivec2 xy) {
 vec4 gameOfLife(vec2 uv, ivec2 xy) {
     float data = 0.0;
     float alive = 0.0;
+    float blue = 0.0;
     if (inside(uv, padding0)) {
         vec4 cells[NUM_DIRS];
         getLatticeCells(xy, cells);
 
         data = cells[C].x;
         alive = cells[C].y;
+        blue = cells[C].z;
 
         int count = 0;
         count += (cells[NE].x >= life) ? 1 : 0;
@@ -259,7 +316,7 @@ vec4 gameOfLife(vec2 uv, ivec2 xy) {
             }
         }
     }
-    return vec4(data, 0.0, alive, 1.0);
+    return vec4(data, alive, blue, 1.0);
 }
 
 float laplacian(mat3 X) {
@@ -406,6 +463,22 @@ void main() {
     else if (iFluidType == REACTION_DIFFUSION) oFragColor = reactionDiffusion(uv, xy);
     else if (iFluidType == REACTION_DIFFUSION2) oFragColor = reactionDiffusion2(uv, xy);
     else if (iFluidType == SQUARE_CELLULAR_AUTOMATA) oFragColor = caEffect2D(uv, xy);
+    else if (iFluidType == INTERGALACTIC_LIFE) {
+        //uv = vec2(vTexcoord.s, 1.0 - vTexcoord.t) * vec2(width, height);
+        int heightOverTwo = int(height)/2;
+        if (xy.y < int(height-1.0) && xy.y > heightOverTwo) oFragColor = gameOfLife(uv, xy);
+        if (xy.y <= heightOverTwo) oFragColor = caEffectFlip(uv, xy);
+        //float oldcell = fetch(xy, ivec2(0, 0)).x;
+        //if (oldcell != oFragColor.x)
+        if (oFragColor.x == 1.0) {
+            oFragColor.z = 1.0;
+        } else {
+            oFragColor.z *= heat;
+        }
+    }
+    // else if (iFluidType == CLEAR_TO_ZERO) oFragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    // else if (iFluidType == CLEAR_TO_ONE) oFragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    // else if (iFluidType == CLEAR_TO_TURB) oFragColor = vec4(turb2.x, uv / vec2(width, height), 1.0);
     else oFragColor = vec4(turb2.x, uv / vec2(width, height), 1.0);
 
     bool sameXY = xy == ab;

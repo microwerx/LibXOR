@@ -51,12 +51,12 @@ void main() {
     vec2 uv = vTexcoord.st * iResolution.xy;
     ivec2 xy = ivec2(uv);
     ivec2 ab = ivec2(iMouseX, iMouseY);
-    bool sameXY = xy == ab;
+    bool sameXY = (xy == ab);
     bool mousePressed = iMouseButtons > 0;
     if (mousePressed && sameXY)
         color = vec3(1.0 - color.r, color.g, 1.0 - color.b);
     else if (!mousePressed && sameXY)
-        color = vec3(color.r, 1.0 - color.g, color.b);
+        color = 1. - color;
 
     oFragColor = vec4(color, 1.0);
 }
