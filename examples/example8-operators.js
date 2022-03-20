@@ -1,3 +1,4 @@
+/* global uiRangeRow createButtonRow createRow */
 /// <reference path="../src/LibXOR.ts" />
 /// <reference path="htmlutils.js" />
 
@@ -23,6 +24,15 @@ function clamp3(v, minValue, maxValue) {
 
 function randbetween(a, b) {
     return Math.random() * (b - a) + a;
+}
+
+/**
+ *
+ * @param {number} x
+ * @returns {number} the sign of x: 1 if x >= 0, or 0 otherwise.
+ */
+function sign(x) {
+    return x >= 0.0 ? 1.0 : -1.0
 }
 
 function S() {
@@ -93,10 +103,8 @@ class Simulation {
         const wtheta = uiRangeRow("fWindAngle", 0, -180, 180, 1);
         this.wind = GTE.vec3(Math.cos(wtheta), Math.sin(wtheta), 0.0);
         this.windspeed = uiRangeRow("fWindSpeed", 0, 0, 5, 0.1);
-        const G = uiRangeRow("G", G, -10.0, 10.0, 0.1);
-        const sign = G >= 0.0 ? 1.0 : -1.0;
-        const mag = Math.abs(G);
-        this.G = sign * Math.pow(10.0, mag - 5.0) * 6.6740831e-11;
+        const G = uiRangeRow("G", 0.0, -10.0, 10.0, 0.1);
+        this.G = sign(G) * Math.pow(10.0, Math.abs(G) - 5.0) * 6.6740831e-11;
         this.p = uiRangeRow("p", 2, -4, 4, 0.1);
         this.useCollisions = uiRangeRow("collisions", 0, 0, 1);
         this.numObjects = uiRangeRow("objects", 10, 1, 500);
@@ -180,7 +188,7 @@ class Simulation {
 
                 let r = o1.distanceTo(o2);
                 let x = o2.dirTo(o1);
-                let a = -G_a * o1.m * o2.m / Math.pow(Math.max(r, 1.0), p);
+                let a = -G_a * o2.m / Math.pow(Math.max(r, 1.0), p);
                 accum(o1.a, x, a);
             }
         }
@@ -269,11 +277,6 @@ class App {
         rc.useDepthTest = false;
 
         let pal = this.xor.palette;
-
-        let rect = this.xor.meshes.load('rect', 'rect.obj');
-        let spiral = this.xor.meshes.create('spiral');
-        spiral.color3(pal.calcColor(pal.BROWN, pal.BLACK, 2, 0, 0, 0));
-        spiral.spiral(1.0, 4.0, 64.0);
 
         let circle = this.xor.meshes.create('circle');
         circle.color3(pal.calcColor(pal.WHITE, pal.WHITE, 0, 0, 0, 0));
