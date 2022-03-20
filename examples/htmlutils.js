@@ -239,7 +239,7 @@ function setIdToHtml(id, html) {
         el.innerHTML = html;
     }
 }
-function uiRangeValue(id, curValue, minValue, maxValue, stepValue = 1, isvector = false, controlsElementName = 'controls') {
+function uiRangeRow(id, curValue, minValue, maxValue, stepValue = 1, isvector = false, controlsElementName = 'controls') {
     let c = document.getElementById(controlsElementName);
     if (!c)
         return curValue;

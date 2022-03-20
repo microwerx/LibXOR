@@ -260,7 +260,7 @@ function setIdToHtml(id: string, html: string): void {
     }
 }
 
-function uiRangeValue(
+function uiRangeRow(
     id: string,
     curValue: number,
     minValue: number,

@@ -1,4 +1,3 @@
-/* global Vector3 */
 /// <reference path="../src/LibXOR.ts" />
 /// <reference path="htmlutils.js" />
 
@@ -9,10 +8,10 @@ function accum(a, b, bscale) {
 }
 
 /**
- * 
- * @param {Vector3} v 
- * @param {number} minValue 
- * @param {number} maxValue 
+ *
+ * @param {Vector3} v
+ * @param {number} minValue
+ * @param {number} maxValue
  */
 function clamp3(v, minValue, maxValue) {
     return Vector3.make(
@@ -42,7 +41,7 @@ class StateVector {
 
     /**
      * Detects whether the otherSV intersects our object
-     * @param {StateVector} otherSV 
+     * @param {StateVector} otherSV
      */
     detectCollision(otherSV) {
         let totalRadius = this.radius + otherSV.radius;
@@ -54,8 +53,8 @@ class StateVector {
 
     /**
      * Moves this state vector object in a direction amount units.
-     * @param {Vector3} dir 
-     * @param {number} amount 
+     * @param {Vector3} dir
+     * @param {number} amount
      */
     moveBy(dir, amount) {
         accum(this.x, dir, amount);
@@ -63,7 +62,7 @@ class StateVector {
 
     /**
      * Returns the direction from this object to another object
-     * @param {StateVector} otherSV 
+     * @param {StateVector} otherSV
      * @returns {Vector3} returns the direction from this object
      */
     dirTo(otherSV) {
@@ -72,7 +71,7 @@ class StateVector {
 
     /**
      * distanceTo returns the signed distance from this object to the other objects center point.
-     * @param {StateVector} otherSV 
+     * @param {StateVector} otherSV
      * @returns {number} distance from the other objects center point
      */
     distanceTo(otherSV) {
@@ -87,31 +86,22 @@ class Simulation {
          * @type {StateVector[]} objects
          */
         this.objects = [];
-        this.drag = 0.0;
-        this.wind = Vector3.make();
-        this.numObjects = 100;
-        this.G = 0.0;
-        this.p = 2;
-        this.useCollisions = false;
-        this.randoma = 0.0;
-        this.randomP = 0.0;
-        this.windspeed = 0.0;
     }
 
     syncControls() {
-        let G = getRangeValue("G");
-        let sign = G >= 0.0 ? 1.0 : -1.0;
-        let mag = Math.abs(G);
-        this.G = sign * Math.pow(10.0, mag - 5.0) * 6.6740831e-11;
-        this.p = getRangeValue("p");
-        this.useCollisions = getRangeValue("collisions");
-        this.numObjects = getRangeValue("objects");
-        this.randoma = getRangeValue("randoma");
-        this.randomP = getRangeValue("randomP");
-        this.drag = getRangeValue("fAirDrag");
-        let wtheta = GTE.radians(getRangeValue("fWindAngle"));
+        this.drag = uiRangeRow("fAirDrag", 0.00, -0.99, 0.99, 0.01);
+        const wtheta = uiRangeRow("fWindAngle", 0, -180, 180, 1);
         this.wind = GTE.vec3(Math.cos(wtheta), Math.sin(wtheta), 0.0);
-        this.windspeed = getRangeValue("fWindSpeed");
+        this.windspeed = uiRangeRow("fWindSpeed", 0, 0, 5, 0.1);
+        const G = uiRangeRow("G", G, -10.0, 10.0, 0.1);
+        const sign = G >= 0.0 ? 1.0 : -1.0;
+        const mag = Math.abs(G);
+        this.G = sign * Math.pow(10.0, mag - 5.0) * 6.6740831e-11;
+        this.p = uiRangeRow("p", 2, -4, 4, 0.1);
+        this.useCollisions = uiRangeRow("collisions", 0, 0, 1);
+        this.numObjects = uiRangeRow("objects", 10, 1, 500);
+        this.randoma = uiRangeRow("randoma", 0.0, 0.0, 10.0, 0.1);
+        this.randomP = uiRangeRow("randomP", 0.0, 0.0, 1.0, 0.001);
     }
 
     reset() {
@@ -135,7 +125,7 @@ class Simulation {
             // if (i == 0) {
             //     sv.x = Vector3.make();
             //     sv.v = Vector3.make();
-            //     sv.m = 100000000;                
+            //     sv.m = 100000000;
             //     sv.radius = 1;
             // }
             sv.a = Vector3.make();
@@ -145,8 +135,8 @@ class Simulation {
     }
 
     /**
-     * 
-     * @param {number} dt 
+     *
+     * @param {number} dt
      */
     calcSystemDynamics(dt) {
         for (let sv of this.objects) {
@@ -176,7 +166,7 @@ class Simulation {
     }
 
     /**
-     * 
+     *
      * @param {number} G_a Gravitational constant = 6.6740831e-11
      * @param {number} p   Distance Falloff Exponent = 2
      */
@@ -263,15 +253,7 @@ class App {
 
         let self = this;
         let controls = document.getElementById('controls');
-        createRangeRow(controls, "fAirDrag", 0.00, -0.99, 0.99, 0.01);
-        createRangeRow(controls, "fWindAngle", 0, -180, 180, 1);
-        createRangeRow(controls, "fWindSpeed", 0, 0, 5, 0.1);
-        createRangeRow(controls, "G", 0.0, -10.0, 10.0, 0.1);
-        createRangeRow(controls, "p", 2, -4, 4, 0.1);
-        createRangeRow(controls, "collisions", 0, 0, 1);
-        createRangeRow(controls, "objects", 10, 1, 500);
-        createRangeRow(controls, "randoma", 0.0, 0.0, 10.0, 0.1);
-        createRangeRow(controls, "randomP", 0.0, 0.0, 1.0, 0.001);
+        this.sim.reset();
         createButtonRow(controls, "bResetSim", "Reset Sim", () => {
             self.sim.reset();
         });

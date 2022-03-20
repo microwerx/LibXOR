@@ -1,4 +1,4 @@
-/* global uiRangeValue */
+/* global uiRangeRow */
 /// <reference path="../src/LibXOR.ts" />
 /// <reference path="htmlutils.ts" />
 
@@ -15,12 +15,12 @@ class CellularAutomata {
     }
 
     syncControls() {
-        this.a = uiRangeValue("fa", this.width/2, 0, this.width-1);
-        this.b = uiRangeValue("fb", this.height/8, 0, this.height-1);
-        this.radius = uiRangeValue("fRadius", 5.0, 0.0, 25.0, 1.0);
-        this.heat = uiRangeValue("fHeat", 0.97, 0.0, 1.0, 0.01);
-        this.life = uiRangeValue("fLife", 0.5, 0.0, 1.0, 0.01);
-        this.turbulence = uiRangeValue("fTurbulence", 3.0, 0.0, 5.0, 0.05);
+        this.a = uiRangeRow("fa", this.width/2, 0, this.width-1);
+        this.b = uiRangeRow("fb", this.height/8, 0, this.height-1);
+        this.radius = uiRangeRow("fRadius", 5.0, 0.0, 25.0, 1.0);
+        this.heat = uiRangeRow("fHeat", 0.97, 0.0, 1.0, 0.01);
+        this.life = uiRangeRow("fLife", 0.5, 0.0, 1.0, 0.01);
+        this.turbulence = uiRangeRow("fTurbulence", 3.0, 0.0, 5.0, 0.05);
         // this.width = getRangeValue("iWidth");
         // this.height = getRangeValue("iHeight");
     }
@@ -99,15 +99,15 @@ class App {
 
     syncControls() {
         let fluid = this.iFluidType;
-        this.iFluidType = uiRangeValue('iFluidType', 4, 0, 6);
+        this.iFluidType = uiRangeRow('iFluidType', 4, 0, 6);
         if (fluid != this.iFluidType)
             this.xor.frameCount = 0;
-        this.simSteps = uiRangeValue("iSimSteps", 16, -16, 16);
-        this.iCARule = uiRangeValue('iCARule', 30, 0, 255, 1);
-        this.fRDDA = uiRangeValue('fRDDA', 1.0, 0.0, 1.0, 0.1);
-        this.fRDDB = uiRangeValue('fRDDB', 0.5, 0.0, 1.0, 0.1);
-        this.fRDFeedRate = uiRangeValue('fRDFeedRate', /*0.0545*/0.044, 0.03, 0.06, 0.001);
-        this.fRDKillRate = uiRangeValue('fRDKillRate', /*0.0620*/0.060, 0.03, 0.07, 0.001);
+        this.simSteps = uiRangeRow("iSimSteps", 16, -16, 16);
+        this.iCARule = uiRangeRow('iCARule', 30, 0, 255, 1);
+        this.fRDDA = uiRangeRow('fRDDA', 1.0, 0.0, 1.0, 0.1);
+        this.fRDDB = uiRangeRow('fRDDB', 0.5, 0.0, 1.0, 0.1);
+        this.fRDFeedRate = uiRangeRow('fRDFeedRate', /*0.0545*/0.044, 0.03, 0.06, 0.001);
+        this.fRDKillRate = uiRangeRow('fRDKillRate', /*0.0620*/0.060, 0.03, 0.07, 0.001);
         this.flame.syncControls();
     }
 
