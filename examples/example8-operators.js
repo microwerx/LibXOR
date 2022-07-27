@@ -103,8 +103,8 @@ class Simulation {
         const wtheta = uiRangeRow("fWindAngle", 0, -180, 180, 1);
         this.wind = GTE.vec3(Math.cos(wtheta), Math.sin(wtheta), 0.0);
         this.windspeed = uiRangeRow("fWindSpeed", 0, 0, 5, 0.1);
-        const G = uiRangeRow("G", 0.0, -10.0, 10.0, 0.1);
-        this.G = sign(G) * Math.pow(10.0, Math.abs(G) - 5.0) * 6.6740831e-11;
+        const G = uiRangeRow("G", 1.0, -10.0, 10.0, 0.1);
+        this.G = G * 6.6740831e-11;
         this.p = uiRangeRow("p", 2, -4, 4, 0.1);
         this.useCollisions = uiRangeRow("collisions", 0, 0, 1);
         this.numObjects = uiRangeRow("objects", 10, 1, 500);
@@ -128,14 +128,14 @@ class Simulation {
                 sv.v.y = sv.v.z;
                 sv.v.z = 0.0;
             }
-            sv.m = (Math.random() * 50) + 25;
-            sv.radius = sv.m / 1000.0;
-            // if (i == 0) {
-            //     sv.x = Vector3.make();
-            //     sv.v = Vector3.make();
-            //     sv.m = 100000000;
-            //     sv.radius = 1;
-            // }
+            sv.m = ((Math.random() * 50) + 25) * 1e6;
+            sv.radius = 0.5;//sv.m / 1e9;// / 1000.0;
+            if (i == 0) {
+                sv.x = Vector3.make();
+                sv.v = Vector3.make();
+                sv.m = 1e9;
+                sv.radius = 1;
+            }
             sv.a = Vector3.make();
             this.objects.push(sv);
         }
@@ -153,8 +153,7 @@ class Simulation {
             }
 
             // drag
-            if (this.drag != 0.0) {
-            }
+            // if (this.drag != 0.0) {}
 
             if (this.windspeed > 0.0) {
                 accum(sv.a, (this.wind.sub(sv.v)), this.windspeed * this.drag / sv.m);
@@ -246,7 +245,7 @@ class Simulation {
             this.acceleratorOperators(this.G, this.p);
         }
         this.calcSystemDynamics(dt);
-        this.boundParticles();
+        this.boundParticles(-100, 100);
         if (this.useCollisions > 0.5) this.detectCollisions();
     }
 }
@@ -273,7 +272,7 @@ class App {
         this.xor.input.init();
         let gl = this.xor.graphics.gl;
 
-        let rc = this.xor.renderconfigs.load('default', 'shaders/basic.vert', 'shaders/basic.frag');
+        let rc = this.xor.renderconfigs.load('default', 'shaders/basic.vert', 'shaders/basic-color.frag');
         rc.useDepthTest = false;
 
         let pal = this.xor.palette;
@@ -320,11 +319,24 @@ class App {
             rc.uniformMatrix4f('WorldMatrix', Matrix4.makeIdentity());
             xor.meshes.render('bg', rc);
 
+            let i = 0;
+            const White = new Vector3(1, 1, 1);
+            const Yellow = new Vector3(1, 1, 0);
             for (let sv of this.sim.objects) {
-                let m = Matrix4.makeTranslation3(sv.x);
-                m.multMatrix(Matrix4.makeScale(2 * sv.radius, 2 * sv.radius, 2 * sv.radius));
+                let m = Matrix4.makeScale(0.1, 0.1, 0.1);
+                let T = sv.x.sub(this.sim.objects[0].x);
+                m.multMatrix(Matrix4.makeTranslation3(T));
+                //let S = 0.05;
+                let R = this.sim.objects[0].m / (1.0 + this.sim.objects[0].m);
+                m.multMatrix(Matrix4.makeScale(R, R, R));
                 rc.uniformMatrix4f('WorldMatrix', m);
+                if (i == 0) {
+                    rc.uniform3f('Kd', Yellow);
+                } else {
+                    rc.uniform3f('Kd', White);
+                }
                 xor.meshes.render('circle', rc);
+                i++;
             }
         }
         xor.renderconfigs.use(null);
