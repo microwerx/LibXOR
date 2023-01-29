@@ -83,7 +83,7 @@ class ExampleMetadata {
             // 26
             "Cellular Automata",
             // 27
-            "Example 27"
+            "SDF Collisions"
         ];
         this.numExamples = this.exampleDescs.length;
         this.courseNumber = "Graphics Rendering, Animation, and Simulation";
