@@ -216,6 +216,12 @@ class Vector2 {
  * @class Vector3
  */
 class Vector3 {
+    get r() { return this.x; }
+    get g() { return this.y; }
+    get b() { return this.z; }
+    set r(r) { this.x = r; }
+    set g(g) { this.g = g; }
+    set b(b) { this.z = b; }
     /**
      *
      * @param {number} x
@@ -227,12 +233,6 @@ class Vector3 {
         this.y = y;
         this.z = z;
     }
-    get r() { return this.x; }
-    get g() { return this.y; }
-    get b() { return this.z; }
-    set r(r) { this.x = r; }
-    set g(g) { this.g = g; }
-    set b(b) { this.z = b; }
     /**
      *
      * @param {Vector3} v Copies the components of v into this vector
@@ -1695,6 +1695,8 @@ var XOR;
     }
     XOR.GetExtension = GetExtension;
     class ShaderLoader {
+        get failed() { return this.vertFailed || this.fragFailed; }
+        get loaded() { return this.vertLoaded && this.fragLoaded; }
         constructor(vertShaderUrl, fragShaderUrl, callbackfn) {
             this.vertShaderUrl = vertShaderUrl;
             this.fragShaderUrl = fragShaderUrl;
@@ -1743,11 +1745,11 @@ var XOR;
             fragXHR.open("GET", fragShaderUrl);
             fragXHR.send();
         }
-        get failed() { return this.vertFailed || this.fragFailed; }
-        get loaded() { return this.vertLoaded && this.fragLoaded; }
     }
     XOR.ShaderLoader = ShaderLoader;
     class TextFileLoader {
+        get loaded() { return this._loaded; }
+        get failed() { return this._failed; }
         constructor(url, callbackfn, parameter = 0) {
             this.callbackfn = callbackfn;
             this._loaded = false;
@@ -1779,11 +1781,11 @@ var XOR;
             xhr.open("GET", url);
             xhr.send();
         }
-        get loaded() { return this._loaded; }
-        get failed() { return this._failed; }
     }
     XOR.TextFileLoader = TextFileLoader;
     class ImageFileLoader {
+        get loaded() { return this._loaded; }
+        get failed() { return this._failed; }
         constructor(url, callbackfn, parameter = 0) {
             this.callbackfn = callbackfn;
             this._loaded = false;
@@ -1805,8 +1807,6 @@ var XOR;
             });
             this.image.src = url;
         }
-        get loaded() { return this._loaded; }
-        get failed() { return this._failed; }
     }
     XOR.ImageFileLoader = ImageFileLoader;
     function SeparateCubeMapImages(image, images) {
@@ -2131,6 +2131,8 @@ var XOR;
 var XOR;
 (function (XOR) {
     class GraphicsSystem {
+        get width() { return this.canvas ? this.canvas.width : 0; }
+        get height() { return this.canvas ? this.canvas.height : 0; }
         constructor(xor) {
             this.xor = xor;
             this.gl = null;
@@ -2187,8 +2189,6 @@ var XOR;
             this.uWorldMatrix = null;
             this.setVideoMode(320, 200);
         }
-        get width() { return this.canvas ? this.canvas.width : 0; }
-        get height() { return this.canvas ? this.canvas.height : 0; }
         init() {
             this.sprites = [];
             for (let i = 0; i < this.MaxSprites; i++) {
@@ -4503,6 +4503,9 @@ var Fluxions;
 var Fluxions;
 (function (Fluxions) {
     class FxRenderingContext {
+        get width() { return this.xor.graphics.width; }
+        get height() { return this.xor.graphics.height; }
+        get aspectRatio() { return this.width / this.height; }
         constructor(xor) {
             this.xor = xor;
             this.enabledExtensions = new Map();
@@ -4556,9 +4559,6 @@ var Fluxions;
             this.scenegraph = new Fluxions.FxScenegraph(this);
             this.renderconfigs = new Fluxions.FxRenderConfigSystem(this);
         }
-        get width() { return this.xor.graphics.width; }
-        get height() { return this.xor.graphics.height; }
-        get aspectRatio() { return this.width / this.height; }
         // get visible(): boolean {
         //     return this._visible;
         // }
@@ -4622,6 +4622,22 @@ var Fluxions;
 /// <reference path="../GTE/GTE.ts" />
 /// <reference path="FxRenderingContext.ts" />
 class FxFBO {
+    // private _powerOfTwoDimensions: Vector2;
+    get complete() { return this._complete; }
+    get dimensions() { return Vector2.make(this.width, this.height); }
+    fboStatusString(fboStatus) {
+        switch (fboStatus) {
+            case WebGL2RenderingContext.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+                return "Incomplete Multisample";
+            case WebGL2RenderingContext.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+                return "Incomplete Dimensions";
+            case WebGL2RenderingContext.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+                return "Incomplete Missing Attachment";
+            case WebGL2RenderingContext.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+                return "Incomplete Attachment";
+        }
+        return "Complete";
+    }
     constructor(_renderingContext, color, depth, width = 512, height = 512, _colorType = 0, _depthType = 0, colorUnit = 11, depthUnit = 12, shouldAutoResize = false) {
         this._renderingContext = _renderingContext;
         this.color = color;
@@ -4650,22 +4666,6 @@ class FxFBO {
             throw "Unable to create FBO";
         }
         this.make();
-    }
-    // private _powerOfTwoDimensions: Vector2;
-    get complete() { return this._complete; }
-    get dimensions() { return Vector2.make(this.width, this.height); }
-    fboStatusString(fboStatus) {
-        switch (fboStatus) {
-            case WebGL2RenderingContext.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-                return "Incomplete Multisample";
-            case WebGL2RenderingContext.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
-                return "Incomplete Dimensions";
-            case WebGL2RenderingContext.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-                return "Incomplete Missing Attachment";
-            case WebGL2RenderingContext.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-                return "Incomplete Attachment";
-        }
-        return "Complete";
     }
     autoResize(width, height) {
         if (!this.shouldAutoResize)
@@ -5278,15 +5278,6 @@ class FxTextParser {
 var Fluxions;
 (function (Fluxions) {
     class FxScenegraphNode {
-        constructor(name = "unknown", sceneName = "default", parent = "") {
-            this.name = name;
-            this.sceneName = sceneName;
-            this.parent = parent;
-            this.geometryGroup = "";
-            this.transform_ = Matrix4.makeIdentity();
-            this.pretransform_ = Matrix4.makeIdentity();
-            this.posttransform_ = Matrix4.makeIdentity();
-        }
         set worldMatrix(m) {
             this.pretransform_.loadIdentity();
             this.transform_.copy(m);
@@ -5296,6 +5287,15 @@ var Fluxions;
         get pretransform() { return this.pretransform_; }
         get posttransform() { return this.posttransform_; }
         get transform() { return this.transform_; }
+        constructor(name = "unknown", sceneName = "default", parent = "") {
+            this.name = name;
+            this.sceneName = sceneName;
+            this.parent = parent;
+            this.geometryGroup = "";
+            this.transform_ = Matrix4.makeIdentity();
+            this.pretransform_ = Matrix4.makeIdentity();
+            this.posttransform_ = Matrix4.makeIdentity();
+        }
     }
     Fluxions.FxScenegraphNode = FxScenegraphNode;
 })(Fluxions || (Fluxions = {}));
@@ -5322,6 +5322,12 @@ var Fluxions;
     })(FxSGAssetType = Fluxions.FxSGAssetType || (Fluxions.FxSGAssetType = {}));
     ;
     class FxScenegraph {
+        // get shadowFBO(): FBO { return this.getFBO("sunshadow"); }
+        // get gbufferFBO(): FBO { return this.getFBO("gbuffer") }
+        // get imageFBO(): FBO { return this.getFBO("image"); }
+        get width() { return this.fx.width; }
+        get height() { return this.fx.height; }
+        get aspectRatio() { return this.width / this.height; }
         constructor(fx) {
             this.fx = fx;
             // private shaderSrcFiles: XOR.ShaderLoader[] = [];
@@ -5374,12 +5380,6 @@ var Fluxions;
             this._deferredMesh.addIndex(2);
             this._deferredMesh.addIndex(3);
         }
-        // get shadowFBO(): FBO { return this.getFBO("sunshadow"); }
-        // get gbufferFBO(): FBO { return this.getFBO("gbuffer") }
-        // get imageFBO(): FBO { return this.getFBO("image"); }
-        get width() { return this.fx.width; }
-        get height() { return this.fx.height; }
-        get aspectRatio() { return this.width / this.height; }
         get loaded() {
             if (!this.fx.xor.textfiles.loaded) {
                 return false;
@@ -6184,6 +6184,22 @@ var Fluxions;
             this.position(x1, y2, 0);
             this.addIndex(-1);
         }
+        strokeRect(x1, y1, x2, y2) {
+            this.begin(WebGLRenderingContext.LINE_LOOP);
+            this.normal(0, 0, 1);
+            this.texcoord(0, 0, 0);
+            this.position(x1, y1, 0);
+            this.addIndex(-1);
+            this.texcoord(1, 0, 0);
+            this.position(x2, y1, 0);
+            this.addIndex(-1);
+            this.texcoord(1, 1, 0);
+            this.position(x2, y2, 0);
+            this.addIndex(-1);
+            this.texcoord(0, 1, 0);
+            this.position(x1, y2, 0);
+            this.addIndex(-1);
+        }
         circle(ox, oy, radius = 0.5, segments = 32) {
             this.begin(WebGLRenderingContext.TRIANGLE_FAN);
             this.normal(0, 0, 1);
@@ -6238,6 +6254,16 @@ var Fluxions;
                 this.addIndex(-1);
                 theta += dtheta;
             }
+        }
+        line(startX, startY, endX, endY) {
+            this.begin(WebGLRenderingContext.LINES);
+            this.normal(0, 0, 1);
+            this.texcoord(0, 0, 0);
+            this.position(startX, startY, 0);
+            this.addIndex(-1);
+            this.texcoord(1, 0, 0);
+            this.position(endX, endY, 0);
+            this.addIndex(-1);
         }
         begin(mode) {
             if (this.surfaces.length == 0) {

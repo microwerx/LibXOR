@@ -85,6 +85,23 @@ namespace Fluxions {
             this.addIndex(-1);
         }
 
+        strokeRect(x1: number, y1: number, x2: number, y2: number) {
+            this.begin(WebGLRenderingContext.LINE_LOOP);
+            this.normal(0, 0, 1);
+            this.texcoord(0, 0, 0);
+            this.position(x1, y1, 0);
+            this.addIndex(-1);
+            this.texcoord(1, 0, 0);
+            this.position(x2, y1, 0);
+            this.addIndex(-1);
+            this.texcoord(1, 1, 0);
+            this.position(x2, y2, 0);
+            this.addIndex(-1);
+            this.texcoord(0, 1, 0);
+            this.position(x1, y2, 0);
+            this.addIndex(-1);
+        }
+
         circle(ox: number, oy: number, radius: number = 0.5, segments: number = 32) {
             this.begin(WebGLRenderingContext.TRIANGLE_FAN);
             this.normal(0, 0, 1);
@@ -141,6 +158,17 @@ namespace Fluxions {
                 this.addIndex(-1);
                 theta += dtheta;
             }
+        }
+
+        line(startX: number, startY: number, endX: number, endY: number) {
+            this.begin(WebGLRenderingContext.LINES);
+            this.normal(0, 0, 1);
+            this.texcoord(0, 0, 0);
+            this.position(startX, startY, 0);
+            this.addIndex(-1);
+            this.texcoord(1, 0, 0);
+            this.position(endX, endY, 0);
+            this.addIndex(-1);
         }
 
         begin(mode: number) {

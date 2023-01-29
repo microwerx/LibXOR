@@ -1511,9 +1511,11 @@ declare namespace Fluxions {
         mtllib(mtllib: string): void;
         usemtl(mtl: string): void;
         rect(x1: number, y1: number, x2: number, y2: number): void;
+        strokeRect(x1: number, y1: number, x2: number, y2: number): void;
         circle(ox: number, oy: number, radius?: number, segments?: number): void;
         strokeCircle(ox: number, oy: number, radius?: number, segments?: number): void;
         spiral(radius: number, spirality?: number, segments?: number): void;
+        line(startX: number, startY: number, endX: number, endY: number): void;
         begin(mode: number): void;
         addIndex(i: number): void;
         get currentIndexCount(): number;
@@ -1610,9 +1612,9 @@ declare namespace XOR {
         get(name: string): Trigger;
     }
 }
-declare type FxIndexedGeometryMesh = Fluxions.FxIndexedGeometryMesh;
-declare type FxRenderConfig = Fluxions.FxRenderConfig;
-declare type FxRenderingContext = Fluxions.FxRenderingContext;
+type FxIndexedGeometryMesh = Fluxions.FxIndexedGeometryMesh;
+type FxRenderConfig = Fluxions.FxRenderConfig;
+type FxRenderingContext = Fluxions.FxRenderingContext;
 /**
  * @class LibXOR
  * @member {FxRenderingContext} fluxions
