@@ -283,4 +283,24 @@ function uiRangeRow(
     }
 }
 
+function uiCheckRow(
+    id: string,
+    curValue: boolean,
+    controlsElementName = 'controls')
+{
+    let c = document.getElementById(controlsElementName);
+    if (!c)
+        return curValue;
+    let e = <HTMLInputElement>document.getElementById(id);
+    if (!e) {
+        createCheckRow(c, id, curValue);
+        return curValue;
+    } else {
+        const pressed : number = e.checked ? 1 : 0;
+        let l = document.getElementById(id + "_value");
+        if (l) l.innerHTML = pressed.toString();
+        return pressed;
+    }
+}
+
 // END HELPFUL HTML5 CODE

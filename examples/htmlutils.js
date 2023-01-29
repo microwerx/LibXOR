@@ -255,5 +255,22 @@ function uiRangeRow(id, curValue, minValue, maxValue, stepValue = 1, isvector = 
         return parseFloat(e.value) * 1.0;
     }
 }
+function uiCheckRow(id, curValue, controlsElementName = 'controls') {
+    let c = document.getElementById(controlsElementName);
+    if (!c)
+        return curValue;
+    let e = document.getElementById(id);
+    if (!e) {
+        createCheckRow(c, id, curValue);
+        return curValue;
+    }
+    else {
+        const pressed = e.checked ? 1 : 0;
+        let l = document.getElementById(id + "_value");
+        if (l)
+            l.innerHTML = pressed.toString();
+        return pressed;
+    }
+}
 // END HELPFUL HTML5 CODE
 //# sourceMappingURL=htmlutils.js.map
