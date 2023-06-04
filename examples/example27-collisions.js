@@ -5,7 +5,7 @@
 const SHAPE_BOX = 0;
 const SHAPE_CIRCLE = 1;
 const SHAPE_CONCAVE = 2;
-const NUM_SHAPE_TYPES = 3;
+const NUM_SHAPE_TYPES = 2;
 
 const MAX_MARCH_STEPS = 64;
 

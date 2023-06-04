@@ -15,6 +15,7 @@
     },
     "include": [
         "htmlutils.ts",
+        "mathutils.ts",
     ],
     "exclude": [
         "node_modules",

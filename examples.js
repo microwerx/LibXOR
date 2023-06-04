@@ -27,7 +27,10 @@ class ExampleMetadata {
             "example24.html",
             "example25.html",
             "example26.html",
-            "example27.html"
+            "example27.html",
+            "example28.html",
+            "example29.html",
+            "example30.html",
         ];
         this.exampleDescs = [
             // 1
@@ -83,7 +86,13 @@ class ExampleMetadata {
             // 26
             "Cellular Automata",
             // 27
-            "SDF Collisions"
+            "SDF Collisions",
+            // 28
+            "BASIC Shapes",
+            // 29
+            "Symplectic Integrators",
+            // 30
+            "Flight Simulator",
         ];
         this.numExamples = this.exampleDescs.length;
         this.courseNumber = "Graphics Rendering, Animation, and Simulation";
