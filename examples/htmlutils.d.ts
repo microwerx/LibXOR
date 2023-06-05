@@ -97,3 +97,4 @@ declare function getRangeVector3(id: string): Vector3;
 declare function setIdToHtml(id: string, html: string): void;
 declare function uiRangeRow(id: string, curValue: number, minValue: number, maxValue: number, stepValue?: number, isvector?: boolean, controlsElementName?: string): number;
 declare function uiCheckRow(id: string, curValue: boolean, controlsElementName?: string): number | boolean;
+declare function uiLabelRow(id: string, label: string, controlsElementName?: string): void;

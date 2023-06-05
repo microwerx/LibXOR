@@ -143,7 +143,7 @@ function createTextRow(parent: HTMLElement, id: string, value: string) {
  * @param {string} value The initial value of the string
  */
 function createLabelRow(parent: HTMLElement, id: string, value: string) {
-    let lContent = "<div class='column left'><label for='" + id + "'>" + id + "<label></div>";
+    let lContent = "<div class='column left'><label id='" + id + "'>" + id + "<label></div>";
     let rContent = "<div class='column right'>";
     rContent += "<label id='" + id + "_value'>" + value + "</label>";
     rContent += "</div>";
@@ -267,8 +267,7 @@ function uiRangeRow(
     maxValue: number,
     stepValue = 1,
     isvector = false,
-    controlsElementName = 'controls')
-{
+    controlsElementName = 'controls') {
     let c = document.getElementById(controlsElementName);
     if (!c)
         return curValue;
@@ -286,8 +285,7 @@ function uiRangeRow(
 function uiCheckRow(
     id: string,
     curValue: boolean,
-    controlsElementName = 'controls')
-{
+    controlsElementName = 'controls') {
     let c = document.getElementById(controlsElementName);
     if (!c)
         return curValue;
@@ -296,10 +294,26 @@ function uiCheckRow(
         createCheckRow(c, id, curValue);
         return curValue;
     } else {
-        const pressed : number = e.checked ? 1 : 0;
+        const pressed: number = e.checked ? 1 : 0;
         let l = document.getElementById(id + "_value");
         if (l) l.innerHTML = pressed.toString();
         return pressed;
+    }
+}
+
+function uiLabelRow(
+    id: string,
+    label: string,
+    controlsElementName = 'controls') {
+    let c = document.getElementById(controlsElementName);
+    if (!c)
+        return;
+    let e = document.getElementById(id);
+    if (!e) {
+        createLabelRow(c, id, label);
+    } else {
+        let l = document.getElementById(id + "_value");
+        if (l) l.innerHTML = label;
     }
 }
 

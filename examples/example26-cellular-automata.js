@@ -7,16 +7,16 @@ class CellularAutomata {
         this.a = 1.0;
         this.b = 1.0;
         this.radius = 5;
-        this.width = 512/2 | 0;
-        this.height = 384/2 | 0;
+        this.width = 512 / 2 | 0;
+        this.height = 384 / 2 | 0;
         this.heat = 0.6;
         this.life = 0.5;
         this.turbulence = 0.5;
     }
 
     syncControls() {
-        this.a = uiRangeRow("fa", this.width/2, 0, this.width-1);
-        this.b = uiRangeRow("fb", this.height/8, 0, this.height-1);
+        this.a = uiRangeRow("fa", this.width / 2, 0, this.width - 1);
+        this.b = uiRangeRow("fb", this.height / 8, 0, this.height - 1);
         this.radius = uiRangeRow("fRadius", 5.0, 0.0, 25.0, 1.0);
         this.heat = uiRangeRow("fHeat", 0.97, 0.0, 1.0, 0.01);
         this.life = uiRangeRow("fLife", 0.5, 0.0, 1.0, 0.01);
@@ -48,6 +48,40 @@ class App {
         this.touching = false;
         this.mouseX = 0;
         this.mouseY = 0;
+        this.bClearToZero = true;
+
+        this.fluidNames = [
+            'Cellular Automata',
+            'Conway\'s Game of Life',
+            'Reaction Diffusion',
+            'Cellular Automata (Von Neumann)',
+            'Cellular Automata (Moore)',
+            'Intergalactic Life',
+            'Clear to Zero',
+            'Clear to Random',
+            'Clear to One',
+            'Reactive diffusion 2',
+        ];
+
+        this.fluidDescs = [
+            'Try rules 30, 90, 110 (universal), and 184.',
+            'Would you like to play a game?',
+            `<p>Try (DA=, DB=, Feed=, Kill=):</p>
+            <ul style='text-align:left; font-size:0.75em;'>
+            <li>Giraffe (0.7, 0.5, 0.044, 0.059)</li>
+            <li>Leopard (0.7, 0.5, 0.04, 0.059)</li>
+            <li>Splitting (1.0, 0.5, 0.031, 0.063)</li>
+            <li>Strands (1.0, 0.5, 0.04, 0.063)</li>
+            <li>Folds (0.5, 0.2, 0.031, 0.058)</li>
+            </ul>`,
+            'Try 151. Try 184 and then 183. Try 200 and step down to 197 (boxes). Try random to 226.',
+            'TBD',
+            'Try rule 30.',
+            'Clears to zero',
+            'Clears to random',
+            'Clears to one',
+            'TBD',
+        ];
 
         this.syncControls();
     }
@@ -94,21 +128,29 @@ class App {
     }
 
     reset() {
-
+        this.bClearToZero = true;
     }
 
     syncControls() {
         let fluid = this.iFluidType;
-        this.iFluidType = uiRangeRow('iFluidType', 4, 0, 6);
+        this.iFluidType = uiRangeRow('iFluidType', 4, 0, 8);
         if (fluid != this.iFluidType)
             this.xor.frameCount = 0;
+
+        let i = this.iFluidType;
+        if (i >= 0 && i < this.fluidNames.length) {
+            let fluidName = 'Fluid Type';
+            uiLabelRow('lFluidType', this.fluidNames[i]);
+            uiLabelRow('tFluidType', this.fluidDescs[i]);
+        }
+
         this.simSteps = uiRangeRow("iSimSteps", 16, -16, 16);
         this.iCARule = uiRangeRow('iCARule', 30, 0, 255, 1);
         this.fRDDA = uiRangeRow('fRDDA', 1.0, 0.0, 1.0, 0.1);
         this.fRDDB = uiRangeRow('fRDDB', 0.5, 0.0, 1.0, 0.1);
         this.fRDFeedRate = uiRangeRow('fRDFeedRate', /*0.0545*/0.044, 0.03, 0.06, 0.001);
         this.fRDKillRate = uiRangeRow('fRDKillRate', /*0.0620*/0.060, 0.03, 0.07, 0.001);
-        this.flame.syncControls();
+        // this.flame.syncControls();
     }
 
     update() {
@@ -177,7 +219,12 @@ class App {
             rc.uniform1f('fRDFeedRate', this.fRDFeedRate);
             rc.uniform1f('fRDKillRate', this.fRDKillRate);
             rc.uniform1f('iTime', xor.t1);
-            rc.uniform1i('iFluidType', this.iFluidType);
+            if (this.bClearToZero) {
+                rc.uniform1i('iFluidType', 8);
+                this.bClearToZero = false;
+            } else {
+                rc.uniform1i('iFluidType', this.iFluidType);
+            }
             rc.uniform1i('iSourceBuffer', this.curFluid);
             rc.uniform1i('iMouseButtons', this.touching ? 1 : 0);
             xor.meshes.render('fullscreenquad', rc);
@@ -195,7 +242,7 @@ class App {
             const curTime = this.xor.t1;
             if (this.lastSimStepSeconds < curTime) {
                 this.simFluid();
-                this.lastSimStepSeconds = curTime - 1.0/this.simSteps;
+                this.lastSimStepSeconds = curTime - 1.0 / this.simSteps;
             }
             if (this.simSteps & 1 == 1) {
                 swapSides = this.curFluid == 0;
@@ -227,8 +274,8 @@ class App {
             let M = Matrix4.makeIdentity();
             if (!oneImage) {
                 let S = 0.5 * xor.graphics.width / this.flame.width;
-                if (aspectRatio < 1) S *= 1.0/aspectRatio;
-                let x = 0.5 * (xor.graphics.width/2 - S * this.flame.width);
+                if (aspectRatio < 1) S *= 1.0 / aspectRatio;
+                let x = 0.5 * (xor.graphics.width / 2 - S * this.flame.width);
                 let y = 0.5 * (xor.graphics.height - S * this.flame.height);
                 M.translate(x, y, 0);
                 M.scale(S, S, 1.0);
@@ -256,8 +303,8 @@ class App {
             const aspectRatio = this.xor.graphics.width / this.xor.graphics.height;
             let M = Matrix4.makeIdentity();
             let S = 0.5 * xor.graphics.width / this.flame.width;
-            if (aspectRatio < 1) S *= 1.0/aspectRatio;
-            let x = 0.5 * (xor.graphics.width/2 - S * this.flame.width);
+            if (aspectRatio < 1) S *= 1.0 / aspectRatio;
+            let x = 0.5 * (xor.graphics.width / 2 - S * this.flame.width);
             let y = 0.5 * (xor.graphics.height - S * this.flame.height);
             M.translate(x + xor.graphics.width / 2, y, 0.0);
             M.scale(S, S, 1.0);

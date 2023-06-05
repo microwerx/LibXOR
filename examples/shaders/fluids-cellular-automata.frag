@@ -46,15 +46,21 @@ uniform int iMouseButtons;
 const int CELLULAR_AUTOMATA = 0;
 const int GAME_OF_LIFE = 1;
 const int REACTION_DIFFUSION = 2;
-const int SQUARE_CELLULAR_AUTOMATA = 3;
-const int INTERGALACTIC_LIFE = 4;
-const int REACTION_DIFFUSION2 = 5;
-const int CLEAR_TO_ONE = 6;
-const int CLEAR_TO_ZERO = 7;
-const int CLEAR_TO_TURB = 8;
+const int CELLULAR_AUTOMATA_VON_NEUMANN = 3;
+const int CELLULAR_AUTOMATA_MOORE = 4;
+const int INTERGALACTIC_LIFE = 5;
+const int CLEAR_TO_ZERO = 6;
+const int CLEAR_TO_RAND = 7;
+const int CLEAR_TO_ONE = 8;
+const int REACTION_DIFFUSION2 = 9;
 
 float rand(vec2 co) {
-    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+    return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453);
+}
+
+float randi(vec2 co) {
+    float x = rand(4.0 * co + iTime);
+    return x < 0.5 ? 0.0 : 1.0;
 }
 
 vec4 getLattice(vec2 st) {
@@ -222,25 +228,31 @@ float hasbit(int bit) {
     return 0.0;
 }
 
-vec4 caEffect2D(vec2 uv, ivec2 xy) {
+int on(vec4 cells[NUM_DIRS], int dir)
+{
+    if (cells[dir].x != 0.0) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+vec4 caEffect2DVonNeumann(vec2 uv, ivec2 xy) {
     vec4 outCell = vec4(0.0);
     float data = 0.0;
+    float avg = 0.0;
     if (inside(uv, padding0)) {
         vec4 cells[NUM_DIRS];
         getLatticeCells(xy, cells);
 
         data = cells[C].x;
+        avg = mix(cells[C].x, cells[C].z, 0.1);
 
         int count = 0;
-        // count += cells[NE].x != 0.0 ? 1 : 0;
-        count += cells[N].x != 0.0 ? 1 : 0;
-        // count += cells[NW].x != 0.0 ? 1 : 0;
-        count += cells[E].x != 0.0 ? 1 : 0;
-        count += cells[W].x != 0.0 ? 1 : 0;
-        // count += cells[SE].x != 0.0 ? 1 : 0;
-        count += cells[S].x != 0.0 ? 1 : 0;
-        // count += cells[SW].x != 0.0 ? 1 : 0;
-
+        count += on(cells, N);
+        count += on(cells, E);
+        count += on(cells, W);
+        count += on(cells, S);
 
         float Avalues[5] = float[](hasbit(5), hasbit(4), hasbit(3), hasbit(2), hasbit(1));
         float Bvalues[5] = float[](hasbit(10), hasbit(9), hasbit(8), hasbit(7), hasbit(6));
@@ -251,7 +263,40 @@ vec4 caEffect2D(vec2 uv, ivec2 xy) {
             data = Bvalues[count];
         }
     }
-    return vec4(data, 0.0, data, 1.0);
+    return vec4(data, 0.0, avg, 1.0);
+}
+
+vec4 caEffect2DMoore(vec2 uv, ivec2 xy) {
+    vec4 outCell = vec4(0.0);
+    float data = 0.0;
+    float avg = 0.0;
+    if (inside(uv, padding0)) {
+        vec4 cells[NUM_DIRS];
+        getLatticeCells(xy, cells);
+
+        data = cells[C].x;
+        avg = (cells[C].z + data) / 2.0;
+
+        int count = 0;
+        count += on(cells, NE);
+        count += on(cells, N);
+        count += on(cells, NW);
+        count += on(cells, E);
+        count += on(cells, W);
+        count += on(cells, SE);
+        count += on(cells, S);
+        count += on(cells, NE);
+
+        float Avalues[5] = float[](hasbit(5), hasbit(4), hasbit(3), hasbit(2), hasbit(1));
+        float Bvalues[5] = float[](hasbit(10), hasbit(9), hasbit(8), hasbit(7), hasbit(6));
+        if (data == 0.0) {
+            data = Avalues[count];
+        }
+        else {
+            data = Bvalues[count];
+        }
+    }
+    return vec4(data, 0.0, avg, 1.0);
 }
 
 vec4 gameOfLife(vec2 uv, ivec2 xy) {
@@ -452,6 +497,24 @@ vec4 reactionDiffusion2(vec2 uv, ivec2 xy) {
     return vec4(A, B, C, 1.0);
 }
 
+vec4 caIntergalacticLife(vec2 uv, ivec2 xy)
+{
+    vec4 result;
+    int heightOverTwo = int(height)/2;
+    if (xy.y < int(height-1.0) && xy.y > heightOverTwo) {
+        result = gameOfLife(uv, xy);
+    }
+    if (xy.y <= heightOverTwo) {
+        result = caEffectFlip(uv, xy);
+    }
+    if (result.x == 1.0) {
+        result.z = 1.0;
+    } else {
+        result.z *= heat;
+    }
+    return result;
+}
+
 void main() {
     vec2 uv = vTexcoord.st * vec2(width, height);//floor(vTexcoord.st * vec2(width+1.0, height+1.0));
     vec2 turb2 = turbulence * 0.5 * (vec2(rand(uv + vec2(iTime, 0.0)), rand(uv + vec2(iTime, 0.0))) - 0.5);
@@ -461,24 +524,13 @@ void main() {
     if (iFluidType == CELLULAR_AUTOMATA) oFragColor = caEffect(uv, xy);
     else if (iFluidType == GAME_OF_LIFE) oFragColor = gameOfLife(uv, xy);
     else if (iFluidType == REACTION_DIFFUSION) oFragColor = reactionDiffusion(uv, xy);
+    else if (iFluidType == CELLULAR_AUTOMATA_VON_NEUMANN) oFragColor = caEffect2DVonNeumann(uv, xy);
+    else if (iFluidType == CELLULAR_AUTOMATA_MOORE) oFragColor = caEffect2DMoore(uv, xy);
+    else if (iFluidType == INTERGALACTIC_LIFE) { oFragColor = caIntergalacticLife(uv, xy); }
+    else if (iFluidType == CLEAR_TO_ZERO) oFragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    else if (iFluidType == CLEAR_TO_ONE) oFragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    else if (iFluidType == CLEAR_TO_RAND) oFragColor = vec4(10.0*randi(uv), 0.0, 10.0 * randi(uv), 1.0);
     else if (iFluidType == REACTION_DIFFUSION2) oFragColor = reactionDiffusion2(uv, xy);
-    else if (iFluidType == SQUARE_CELLULAR_AUTOMATA) oFragColor = caEffect2D(uv, xy);
-    else if (iFluidType == INTERGALACTIC_LIFE) {
-        //uv = vec2(vTexcoord.s, 1.0 - vTexcoord.t) * vec2(width, height);
-        int heightOverTwo = int(height)/2;
-        if (xy.y < int(height-1.0) && xy.y > heightOverTwo) oFragColor = gameOfLife(uv, xy);
-        if (xy.y <= heightOverTwo) oFragColor = caEffectFlip(uv, xy);
-        //float oldcell = fetch(xy, ivec2(0, 0)).x;
-        //if (oldcell != oFragColor.x)
-        if (oFragColor.x == 1.0) {
-            oFragColor.z = 1.0;
-        } else {
-            oFragColor.z *= heat;
-        }
-    }
-    // else if (iFluidType == CLEAR_TO_ZERO) oFragColor = vec4(0.0, 0.0, 0.0, 1.0);
-    // else if (iFluidType == CLEAR_TO_ONE) oFragColor = vec4(1.0, 0.0, 0.0, 1.0);
-    // else if (iFluidType == CLEAR_TO_TURB) oFragColor = vec4(turb2.x, uv / vec2(width, height), 1.0);
     else oFragColor = vec4(turb2.x, uv / vec2(width, height), 1.0);
 
     bool sameXY = xy == ab;

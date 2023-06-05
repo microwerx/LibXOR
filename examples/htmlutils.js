@@ -128,7 +128,7 @@ function createTextRow(parent, id, value) {
  * @param {string} value The initial value of the string
  */
 function createLabelRow(parent, id, value) {
-    let lContent = "<div class='column left'><label for='" + id + "'>" + id + "<label></div>";
+    let lContent = "<div class='column left'><label id='" + id + "'>" + id + "<label></div>";
     let rContent = "<div class='column right'>";
     rContent += "<label id='" + id + "_value'>" + value + "</label>";
     rContent += "</div>";
@@ -270,6 +270,20 @@ function uiCheckRow(id, curValue, controlsElementName = 'controls') {
         if (l)
             l.innerHTML = pressed.toString();
         return pressed;
+    }
+}
+function uiLabelRow(id, label, controlsElementName = 'controls') {
+    let c = document.getElementById(controlsElementName);
+    if (!c)
+        return;
+    let e = document.getElementById(id);
+    if (!e) {
+        createLabelRow(c, id, label);
+    }
+    else {
+        let l = document.getElementById(id + "_value");
+        if (l)
+            l.innerHTML = label;
     }
 }
 // END HELPFUL HTML5 CODE
