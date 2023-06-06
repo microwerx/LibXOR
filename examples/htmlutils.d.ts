@@ -17,6 +17,15 @@ declare function adjustRangeValue(id: string, stepValue: number): void;
  * @returns {HTMLElement} The created HTMLElement div
  */
 declare function createRangeRow(parent: HTMLElement, id: string, curValue: number, minValue: number, maxValue: number, stepValue?: number, isvector?: boolean): void;
+declare function updateRuleRow(id: string, offset: number): void;
+/**
+ * createRuleRow adds a row that uses a text box to enter a number and displays it as a binary number.
+ * @param parent
+ * @param id
+ * @param caption
+ * @param callback
+ */
+declare function createRuleRow(parent: HTMLElement, id: string, caption: string, callback: () => void): void;
 /**
  * createRowButton adds a button to the control list
  * @param {HTMLElement} parent The parent HTMLElement
@@ -98,3 +107,11 @@ declare function setIdToHtml(id: string, html: string): void;
 declare function uiRangeRow(id: string, curValue: number, minValue: number, maxValue: number, stepValue?: number, isvector?: boolean, controlsElementName?: string): number;
 declare function uiCheckRow(id: string, curValue: boolean, controlsElementName?: string): number | boolean;
 declare function uiLabelRow(id: string, label: string, controlsElementName?: string): void;
+/**
+ * Creates a row with an integer rule.
+ * @param id The id of the control that stores the text value.
+ * @param curValue An integer that represents the initial rule.
+ * @param controlsElementName The id of the container that contains all the UI elements.
+ * @returns The integer value of the current rule.
+ */
+declare function uiRuleRow(id: string, curValue: number, controlsElementName?: string): number;

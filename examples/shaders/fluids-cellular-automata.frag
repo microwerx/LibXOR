@@ -30,7 +30,8 @@ uniform float lb2Enabled;
 uniform sampler2D RadianceCLUT;
 uniform float a, b, radius;
 uniform float width, height;
-uniform int   iCARule;
+uniform int   iCARule1D;
+uniform int   iCARule2D;
 uniform float heat;
 uniform float life;
 uniform float turbulence;
@@ -189,7 +190,7 @@ vec4 caEffect(vec2 uv, ivec2 xy) {
         // surround += cells[SW].x != 0.0 ? 128 : 0;
 
         int test = 1 << surround;
-        data = (test & iCARule) != 0 ? 1.0 : 0.0;
+        data = (test & iCARule1D) != 0 ? 1.0 : 0.0;
     }
     return vec4(data, 0.0, data, 1.0);
 }
@@ -217,14 +218,20 @@ vec4 caEffectFlip(vec2 uv, ivec2 xy) {
         surround += cell3 != 0.0 ? 4 : 0;
 
         int test = 1 << surround;
-        data = (test & iCARule) != 0 ? 1.0 : 0.0;
+        data = (test & iCARule1D) != 0 ? 1.0 : 0.0;
     }
     return vec4(data, 0.0, data, 1.0);
 }
 
 float hasbit(int bit) {
     int bitmask = 1 << (bit-1);
-    if ((iCARule & bitmask) != 0) return 1.0;
+    if ((iCARule1D & bitmask) != 0) return 1.0;
+    return 0.0;
+}
+
+float hasbit2d(int bit) {
+    int bitmask = 1 << (bit-1);
+    if ((iCARule2D & bitmask) != 0) return 1.0;
     return 0.0;
 }
 
@@ -246,7 +253,6 @@ vec4 caEffect2DVonNeumann(vec2 uv, ivec2 xy) {
         getLatticeCells(xy, cells);
 
         data = cells[C].x;
-        avg = mix(cells[C].x, cells[C].z, 0.1);
 
         int count = 0;
         count += on(cells, N);
@@ -254,14 +260,18 @@ vec4 caEffect2DVonNeumann(vec2 uv, ivec2 xy) {
         count += on(cells, W);
         count += on(cells, S);
 
-        float Avalues[5] = float[](hasbit(5), hasbit(4), hasbit(3), hasbit(2), hasbit(1));
-        float Bvalues[5] = float[](hasbit(10), hasbit(9), hasbit(8), hasbit(7), hasbit(6));
-        if (data == 0.0) {
+        // The count if the alive values have 0 neighbors, 1 neighbors, ..., 4 neighbors.
+        float Avalues[5] = float[](hasbit2d(2), hasbit2d(4), hasbit2d(6), hasbit2d(8), hasbit2d(10));
+        // The count if the black values have 0 neighbors, 1 neighbors, ..., 4 neighbors.
+        float Bvalues[5] = float[](hasbit2d(1), hasbit2d(3), hasbit2d(5), hasbit2d(7), hasbit2d(9));
+        // If the last cell was alive, then use the A list.
+        if (data == 1.0) {
             data = Avalues[count];
         }
         else {
             data = Bvalues[count];
         }
+        avg = (data > 0.0) ? 1.0 : cells[C].z * 0.9;
     }
     return vec4(data, 0.0, avg, 1.0);
 }
@@ -275,7 +285,7 @@ vec4 caEffect2DMoore(vec2 uv, ivec2 xy) {
         getLatticeCells(xy, cells);
 
         data = cells[C].x;
-        avg = (cells[C].z + data) / 2.0;
+        avg = mix(cells[C].z, cells[C].x, 1.0/60.0);
 
         int count = 0;
         count += on(cells, NE);
@@ -285,11 +295,14 @@ vec4 caEffect2DMoore(vec2 uv, ivec2 xy) {
         count += on(cells, W);
         count += on(cells, SE);
         count += on(cells, S);
-        count += on(cells, NE);
+        count += on(cells, SE);
 
-        float Avalues[5] = float[](hasbit(5), hasbit(4), hasbit(3), hasbit(2), hasbit(1));
-        float Bvalues[5] = float[](hasbit(10), hasbit(9), hasbit(8), hasbit(7), hasbit(6));
-        if (data == 0.0) {
+        // The count if the alive values have 0 neighbors, 1 neighbors, ..., 8 neighbors.
+        float Avalues[9] = float[](hasbit(2), hasbit2d(4), hasbit2d(6), hasbit2d(8), hasbit2d(10), hasbit2d(12), hasbit2d(14), hasbit2d(16), hasbit2d(18));
+        // The count if the black values have 0 neighbors, 1 neighbors, ..., 8 neighbors.
+        float Bvalues[9] = float[](hasbit(1), hasbit2d(3), hasbit2d(5), hasbit2d(7), hasbit2d(9), hasbit2d(11), hasbit2d(13), hasbit2d(15), hasbit2d(17));
+        // If the last cell was alive, then use the A list.
+        if (data == 1.0) {
             data = Avalues[count];
         }
         else {

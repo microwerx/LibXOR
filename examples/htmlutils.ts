@@ -71,6 +71,43 @@ function createRangeRow(
     parent.appendChild(row);
 }
 
+function updateRuleRow(id: string, offset: number) {
+    let text = <HTMLInputElement>document.getElementById(id + '_text')
+    let t: number = parseInt(text?.value) | 0
+    t += offset
+    t = t & 262143
+    text.value = t.toString()
+    let l = <HTMLLabelElement>document.getElementById(id)
+    l.innerText = t.toString()
+}
+
+/**
+ * createRuleRow adds a row that uses a text box to enter a number and displays it as a binary number.
+ * @param parent 
+ * @param id 
+ * @param caption 
+ * @param callback 
+ */
+function createRuleRow(parent: HTMLElement,
+    id: string,
+    caption: string,
+    callback: () => void) {
+    let lContent = "<label for='" + id + "'>" + id + "<label>";
+    let rContent = "";
+    rContent += "<input style='width:8em;' type='text' id='" + id + "_text' value='" + caption + "'></input>";
+    const same = "updateRuleRow('" + id + "', 0)";
+    const dec = "updateRuleRow('" + id + "', -1)";
+    const inc = "updateRuleRow('" + id + "', 1)";
+    rContent += "<button class='nudgebtn' onclick=\"" + same + "\">Set</button>"
+    rContent += "<button class='nudgebtn' onclick=\"" + dec + "\">-</button>"
+    rContent += "<button class='nudgebtn' onclick=\"" + inc + "\">+</button>";
+    let eContent = "<label id='" + id + "'>0</label>";
+    let row = createRow(lContent, rContent, eContent);
+    row.id = "row" + id;
+    row.className = "row";
+    parent.appendChild(row);
+}
+
 /**
  * createRowButton adds a button to the control list
  * @param {HTMLElement} parent The parent HTMLElement
@@ -314,6 +351,44 @@ function uiLabelRow(
     } else {
         let l = document.getElementById(id + "_value");
         if (l) l.innerHTML = label;
+    }
+}
+
+/**
+ * Creates a row with an integer rule.
+ * @param id The id of the control that stores the text value.
+ * @param curValue An integer that represents the initial rule.
+ * @param controlsElementName The id of the container that contains all the UI elements.
+ * @returns The integer value of the current rule.
+ */
+function uiRuleRow(
+    id: string,
+    curValue: number,
+    controlsElementName = 'controls') {
+    curValue = curValue | 0;
+    let c = document.getElementById(controlsElementName);
+    if (!c) {
+        return curValue;
+    }
+    let e = <HTMLLabelElement>document.getElementById(id);
+    if (!e) {
+        createRuleRow(c, id, curValue.toString(), () => {
+            let text = <HTMLInputElement>document.getElementById(id)
+            let t: number = parseInt(text?.value) | 0
+            t = t & 262143
+            text.value = t.toString()
+            // let label = <HTMLLabelElement>document.getElementById(id)
+            // label.innerText = t.toString()
+        })
+        return curValue;
+    } else {
+        let value: number = parseInt(e.textContent || "");
+        // Set the label value.
+        let l = document.getElementById(id + "_value");
+        if (l) {
+            l.innerHTML = value.toString(2);
+        }
+        return value;
     }
 }
 

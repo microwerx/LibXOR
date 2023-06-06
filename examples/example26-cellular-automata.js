@@ -74,7 +74,14 @@ class App {
             <li>Strands (1.0, 0.5, 0.04, 0.063)</li>
             <li>Folds (0.5, 0.2, 0.031, 0.058)</li>
             </ul>`,
-            'Try 151. Try 184 and then 183. Try 200 and step down to 197 (boxes). Try random to 226.',
+            `<ul style='text-align:left; font-size:0.75em'>
+            <li>Try some ranges: ~325. ~357.</li>
+            <li>Try around the 'box' range: ~370.</li>
+            <li>Try 151.</li>
+            <li>Try 184 and then 183.
+            <li>Try 432 (original boxes).
+            <li>Try random to 226.
+            </ul>`,
             'TBD',
             'Try rule 30.',
             'Clears to zero',
@@ -145,7 +152,8 @@ class App {
         }
 
         this.simSteps = uiRangeRow("iSimSteps", 16, -16, 16);
-        this.iCARule = uiRangeRow('iCARule', 30, 0, 255, 1);
+        this.iCARule1D = uiRangeRow('iCARule1D', 30, 0, 255, 1);
+        this.iCARule2D = uiRuleRow('iCARule2D', 4575);
         this.fRDDA = uiRangeRow('fRDDA', 1.0, 0.0, 1.0, 0.1);
         this.fRDDB = uiRangeRow('fRDDB', 0.5, 0.0, 1.0, 0.1);
         this.fRDFeedRate = uiRangeRow('fRDFeedRate', /*0.0545*/0.044, 0.03, 0.06, 0.001);
@@ -153,10 +161,34 @@ class App {
         // this.flame.syncControls();
     }
 
+    updateNum() {
+        let xor = this.xor;
+        /** @type HTMLInputElement */
+        let e = document.getElementById('iCARule2D_text')
+        if (!e)
+            return;
+        for (let key of ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]) {
+            if (xor.input.checkKeys([key])) {
+                xor.input.resetKeys([key])
+                e.value += key;
+                e.dispatchEvent(new Event('input'));
+            }
+        }
+        for (let key of ['Backspace', 'Delete']) {
+            if (xor.input.checkKeys([key])) {
+                xor.input.resetKeys([key])
+                e.value = e.value.substring(0, e.value.length - 1);
+            }
+        }
+    }
+
     update() {
         let xor = this.xor;
         if (xor.input.checkKeys([" ", "Space"])) {
             this.reset();
+        } else {
+            this.updateNum();
+            xor.input.resetKeys(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"])
         }
 
         this.touching = false;
@@ -210,7 +242,8 @@ class App {
             rc.uniform1f('radius', this.flame.radius);
             rc.uniform1f('width', this.flame.width);
             rc.uniform1f('height', this.flame.height);
-            rc.uniform1i('iCARule', this.iCARule);
+            rc.uniform1i('iCARule1D', this.iCARule1D);
+            rc.uniform1i('iCARule2D', this.iCARule2D);
             rc.uniform1f('heat', this.flame.heat);
             rc.uniform1f('life', this.flame.life);
             rc.uniform1f('turbulence', this.flame.turbulence);
@@ -220,7 +253,7 @@ class App {
             rc.uniform1f('fRDKillRate', this.fRDKillRate);
             rc.uniform1f('iTime', xor.t1);
             if (this.bClearToZero) {
-                rc.uniform1i('iFluidType', 8);
+                rc.uniform1i('iFluidType', 6);
                 this.bClearToZero = false;
             } else {
                 rc.uniform1i('iFluidType', this.iFluidType);
