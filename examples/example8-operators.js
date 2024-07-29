@@ -1,42 +1,27 @@
-/* global uiRangeRow createButtonRow createRow */
+/* global uiRangeRow createButtonRow createComboRow */
 /// <reference path="../src/LibXOR.ts" />
-/// <reference path="htmlutils.js" />
+/// <reference path="htmlutils.ts" />
+/// <reference path="mathutils.ts" />
 
-function accum(a, b, bscale) {
-    a.x += b.x * bscale;
-    a.y += b.y * bscale;
-    a.z += b.z * bscale;
-}
+const INIT_AIR_DRAG = 0.0;
+const INIT_G = 1.0;
+const INIT_P = 2.0;
+const INIT_OBJECTS = 50;
+const INIT_CAMERA_DISTANCE = 0.14;
+const MAXM_CAMERA_DISTANCE = 1.0;
+const NUM_ITERATIONS_PER_FRAME = 1000;
+const SPREAD = 0.0;
+const GALAXY_RADIUS = 1.0;
 
-/**
- *
- * @param {Vector3} v
- * @param {number} minValue
- * @param {number} maxValue
- */
-function clamp3(v, minValue, maxValue) {
-    return Vector3.make(
-        GTE.clamp(v.x, minValue, maxValue),
-        GTE.clamp(v.y, minValue, maxValue),
-        GTE.clamp(v.z, minValue, maxValue)
-    );
-}
-
-function randbetween(a, b) {
-    return Math.random() * (b - a) + a;
-}
-
-/**
- *
- * @param {number} x
- * @returns {number} the sign of x: 1 if x >= 0, or 0 otherwise.
- */
-function sign(x) {
-    return x >= 0.0 ? 1.0 : -1.0
-}
+const PRESET_GRAVITY = 0
+const PRESET_MEDIUM_GRAVITY = 1
+const PRESET_HEAVY_GRAVITY = 2
+const PRESET_HEAVY_DRAG = 3
+const PRESET_REPULSION = 4
 
 function S() {
-    return Vector3.makeUnit(Math.random() - 0.5, Math.random() - 0.5, 0); //Math.random() - 0.5);
+    // return Vector3.makeUnit(2.0 * Math.random() - 1.0, 2.0 * Math.random() - 1.0, 0.0);
+    return Vector3.makeUnit(Math.random() - 0.5, Math.random() - 0.5, 0.0);
 }
 
 class StateVector {
@@ -47,6 +32,7 @@ class StateVector {
         this.density = 5;
         this.radius = randbetween(0.15, 0.35);
         this.m = 0.5 * this.radius * this.radius * this.density;
+        this.color = Vector3.make(Math.random(), Math.random(), Math.random());
     }
 
     /**
@@ -96,48 +82,63 @@ class Simulation {
          * @type {StateVector[]} objects
          */
         this.objects = [];
+        this.centerOfMass = Vector3.make();
     }
 
     syncControls() {
-        this.drag = uiRangeRow("fAirDrag", 0.00, -0.99, 0.99, 0.01);
+        this.drag = uiRangeRow("fAirDrag", INIT_AIR_DRAG, -0.99, 0.99, 0.01);
         const wtheta = uiRangeRow("fWindAngle", 0, -180, 180, 1);
         this.wind = GTE.vec3(Math.cos(wtheta), Math.sin(wtheta), 0.0);
         this.windspeed = uiRangeRow("fWindSpeed", 0, 0, 5, 0.1);
-        const G = uiRangeRow("G", 1.0, -10.0, 10.0, 0.1);
+        const G = uiRangeRow("G", INIT_G, -10.0, 10.0, 0.1);
         this.G = G * 6.6740831e-11;
-        this.p = uiRangeRow("p", 2, -4, 4, 0.1);
+        this.p = uiRangeRow("p", INIT_P, -4, 4, 0.1);
         this.useCollisions = uiRangeRow("collisions", 0, 0, 1);
-        this.numObjects = uiRangeRow("objects", 10, 1, 500);
+        this.numObjects = uiRangeRow("objects", INIT_OBJECTS, 1, 500);
         this.randoma = uiRangeRow("randoma", 0.0, 0.0, 10.0, 0.1);
         this.randomP = uiRangeRow("randomP", 0.0, 0.0, 1.0, 0.001);
+        this.cameraDistance = uiRangeRow("cameraDistance", INIT_CAMERA_DISTANCE, 0.01, MAXM_CAMERA_DISTANCE, 0.01);
     }
 
     reset() {
         this.syncControls();
 
+        let halfCount = this.numObjects / 2;
+
         this.objects = [];
         for (let i = 0; i < this.numObjects; i++) {
             let sv = new StateVector();
             let dice = Math.random();
-            sv.x = S().scale(dice);
-            sv.v = Vector3.make();//S().scale(Math.random());//Vector3.make(); //S();
-            if (dice > 0.75) {
-                sv.v = S().scale(0.5 + Math.random());
-                sv.v.z = sv.v.x;
-                sv.v.x = sv.v.y;
-                sv.v.y = sv.v.z;
-                sv.v.z = 0.0;
+            let dir = S();
+            sv.x = dir.scale(GALAXY_RADIUS);
+            if (i >= halfCount) {
+                sv.x.x -= SPREAD;
+            } else {
+                sv.x.x += SPREAD;
             }
-            sv.m = ((Math.random() * 50) + 25) * 1e6;
-            sv.radius = 0.5;//sv.m / 1e9;// / 1000.0;
-            if (i == 0) {
-                sv.x = Vector3.make();
-                sv.v = Vector3.make();
-                sv.m = 1e9;
-                sv.radius = 1;
+
+            sv.v = Vector3.make();
+            let randomVelocities = true;
+            if (randomVelocities) {
+                // Add velocity to some of the objects.
+                if (dice > 0.75) {
+                    sv.v = S().scale(0.5 + Math.random());
+                    sv.v.z = 0.0;
+                }
+            } else {
+                let angle = Math.atan2(dir.y, dir.x);
+                let distance = dir.length();
+                let c = Math.cos(angle);
+                let s = Math.sin(angle);
+                sv.v = Vector3.make(c, s).scale(10.0);
             }
-            sv.a = Vector3.make();
+            let size = 0.5 + 0.5 * Math.random();
+            sv.m = 4.0 / 3.0 * size * size * size * 1e9;
+            sv.radius = 1.0;
+            sv.a = Vector3.makeZero();
+            sv.color = Vector3.make(Math.random(), Math.random(), Math.random());
             this.objects.push(sv);
+            // hflog.info("SV: " + sv.x.x + " " + sv.x.y);
         }
         this.detectCollisions();
     }
@@ -159,15 +160,17 @@ class Simulation {
                 accum(sv.a, (this.wind.sub(sv.v)), this.windspeed * this.drag / sv.m);
             }
 
-            accum(sv.a, sv.v, -this.drag);
+            accum(sv.a, sv.v, -this.drag / dt);
 
             let v_before = sv.v.clone();
             accum(sv.v, sv.a, dt);
             let v_after = sv.v.clone();
             let v = (v_after.add(v_before)).scale(0.5);
-            v.x = GTE.clamp(v.x, -10, 10);
-            v.y = GTE.clamp(v.y, -10, 10);
-            v.z = GTE.clamp(v.z, -10, 10);
+            const MaxSpeed = 0.005;
+            let vlen = v.length();
+            if (vlen > MaxSpeed) {
+                v = v.normalize().scale(MaxSpeed);
+            }
             accum(sv.x, v, dt);
         }
     }
@@ -217,6 +220,9 @@ class Simulation {
 
             if (sv.x.x < minValue || sv.x.x > maxValue) sv.v.x = -sv.v.x;
             if (sv.x.y < minValue || sv.x.y > maxValue) sv.v.y = -sv.v.y;
+            // Set Z = 0 to limit to plane physics.
+            sv.x.z = 0;
+            sv.v.z = 0;
 
             sv.x = clamp3(sv.x, minValue, maxValue);
             // if (old.distance(sv.x) > 0) {
@@ -244,9 +250,12 @@ class Simulation {
         if (this.G != 0.0) {
             this.acceleratorOperators(this.G, this.p);
         }
-        this.calcSystemDynamics(dt);
-        this.boundParticles(-100, 100);
-        if (this.useCollisions > 0.5) this.detectCollisions();
+        for (let i = 0; i < NUM_ITERATIONS_PER_FRAME; i++) {
+            dt = 0.01666;//Math.min(dt, 0.1);
+            this.calcSystemDynamics(dt);
+            this.boundParticles(-100, 100);
+            if (this.useCollisions > 0.5) this.detectCollisions();
+        }
     }
 }
 
@@ -254,6 +263,8 @@ class App {
     constructor() {
         this.xor = new LibXOR("project");
         this.sim = new Simulation();
+
+        this.cameraDistance = 0.0;
 
         let p = document.getElementById('desc');
         p.innerHTML = `This app demonstrates the use of acceleration operators.`;
@@ -264,6 +275,39 @@ class App {
         createButtonRow(controls, "bResetSim", "Reset Sim", () => {
             self.sim.reset();
         });
+
+        createComboRow(controls, 'presets', ["Gravity", "Medium Gravity", "Heavy Gravity", "Heavy Drag", "Repulsion"], (index) => {
+            self.loadPreset(index)
+        })
+    }
+
+    /**
+     * 
+     * @param {number} index The index of the preset being loaded.
+     */
+    loadPreset(index) {
+        setDivRowValue('fAirDrag', INIT_AIR_DRAG.toString());
+        setDivRowValue('G', INIT_G);
+        setDivRowValue('p', INIT_P);
+        switch (index) {
+            case PRESET_GRAVITY:
+                break;
+            case PRESET_MEDIUM_GRAVITY:
+                setDivRowValue('G', 5.0);
+                break;
+            case PRESET_HEAVY_GRAVITY:
+                setDivRowValue('p', 1.5);
+                break;
+            case PRESET_HEAVY_DRAG:
+                setDivRowValue('fAirDrag', '0.99')
+                setDivRowValue('G', 0.0);
+                break;
+            case PRESET_REPULSION:
+                setDivRowValue('G', -INIT_G);
+                break;
+            default: break;
+        }
+        this.sim.syncControls();
     }
 
     init() {
@@ -283,7 +327,7 @@ class App {
 
         let bg = this.xor.meshes.create('bg');
         bg.color3(pal.getColor(pal.BLACK));
-        bg.rect(-5, -5, 5, 5);
+        bg.rect(-250, -250, 250, 250);
         this.sim.reset();
     }
 
@@ -310,33 +354,29 @@ class App {
         xor.graphics.clear(xor.palette.AZURE);
 
         let pmatrix = Matrix4.makePerspectiveY(45.0, 1.5, 1.0, 100.0);
-        let cmatrix = Matrix4.makeOrbit(-90, 0, 5.0);
+        let cmatrix = Matrix4.makeOrbit(-90, 0, 1.0);
+        const S = 0.1 * this.sim.cameraDistance;
+        cmatrix.scale(S, S, S);
         let rc = xor.renderconfigs.use('default');
         if (rc) {
+            // Calculate the center position of all the objects.
+            this.centerOfMass = Vector3.makeZero();
+            for (let i = 0; i < this.sim.objects.length; i++) {
+                this.centerOfMass = Vector3.add(this.centerOfMass, this.sim.objects[i].x);
+            }
+            this.centerOfMass = this.centerOfMass.scale(1.0 / this.sim.objects.length);
+
             rc.uniformMatrix4f('ProjectionMatrix', pmatrix);
             rc.uniformMatrix4f('CameraMatrix', cmatrix);
 
-            rc.uniformMatrix4f('WorldMatrix', Matrix4.makeIdentity());
+            rc.uniformMatrix4f('WorldMatrix', Matrix4.makeTranslation3(this.centerOfMass.scale(-1.0)));
             xor.meshes.render('bg', rc);
 
-            let i = 0;
-            const White = new Vector3(1, 1, 1);
-            const Yellow = new Vector3(1, 1, 0);
             for (let sv of this.sim.objects) {
-                let m = Matrix4.makeScale(0.1, 0.1, 0.1);
-                let T = sv.x.sub(this.sim.objects[0].x);
-                m.multMatrix(Matrix4.makeTranslation3(T));
-                //let S = 0.05;
-                let R = this.sim.objects[0].m / (1.0 + this.sim.objects[0].m);
-                m.multMatrix(Matrix4.makeScale(R, R, R));
-                rc.uniformMatrix4f('WorldMatrix', m);
-                if (i == 0) {
-                    rc.uniform3f('Kd', Yellow);
-                } else {
-                    rc.uniform3f('Kd', White);
-                }
+                let P = sv.x.sub(this.centerOfMass)
+                rc.uniformMatrix4f('WorldMatrix', Matrix4.makeTranslation3(P));
+                rc.uniform3f('Kd', sv.color);
                 xor.meshes.render('circle', rc);
-                i++;
             }
         }
         xor.renderconfigs.use(null);
