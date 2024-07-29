@@ -93,6 +93,31 @@ function createRuleRow(parent, id, caption, callback) {
     row.className = "row";
     parent.appendChild(row);
 }
+function updateLifeRow(id, num) {
+}
+/**
+ * createRuleRow adds a row that uses a text box to enter a number and displays it as a binary number.
+ * @param parent
+ * @param id
+ * @param caption
+ * @param callback
+ */
+function createLifeRow(parent, id, caption, callback) {
+    let lContent = "<label for='" + id + "'>" + id + "<label>";
+    let rContent = "";
+    rContent += "<input style='width:8em;' type='text' id='" + id + "_text' value='" + caption + "'></input>";
+    const same = "updateLifeRow('" + id + "', 1)";
+    const dec = "updateRuleRow('" + id + "', 2)";
+    const inc = "updateRuleRow('" + id + "', 3)";
+    rContent += "<button class='nudgebtn' onclick=\"" + same + "\">0</button>";
+    rContent += "<button class='nudgebtn' onclick=\"" + dec + "\">1</button>";
+    rContent += "<button class='nudgebtn' onclick=\"" + inc + "\">2</button>";
+    let eContent = "<label id='" + id + "'>0</label>";
+    let row = createRow(lContent, rContent, eContent);
+    row.id = "row" + id;
+    row.className = "row";
+    parent.appendChild(row);
+}
 /**
  * createRowButton adds a button to the control list
  * @param {HTMLElement} parent The parent HTMLElement
@@ -351,6 +376,28 @@ function uiRuleRow(id, curValue, controlsElementName = 'controls') {
             l.innerHTML = value.toString(2);
         }
         return value;
+    }
+}
+function createComboRow(parent, id, values, presetCallback) {
+    let e = document.getElementById(id);
+    if (e) {
+        return;
+    }
+    let lContent = "<label for='" + id + "'>" + id + "<label>";
+    let rContent = "<select id='" + id + "'>";
+    for (let i = 0; i < values.length; i++) {
+        rContent += "<option value='" + i + "'>" + values[i] + "</option>";
+    }
+    rContent += "</select>";
+    let row = createRow(lContent, rContent);
+    row.id = "row" + id;
+    row.className = "row";
+    parent.appendChild(row);
+    e = document.getElementById(id);
+    if (e) {
+        e.onchange = (ev) => {
+            presetCallback(e.selectedIndex);
+        };
     }
 }
 // END HELPFUL HTML5 CODE

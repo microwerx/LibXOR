@@ -26,6 +26,15 @@ declare function updateRuleRow(id: string, offset: number): void;
  * @param callback
  */
 declare function createRuleRow(parent: HTMLElement, id: string, caption: string, callback: () => void): void;
+declare function updateLifeRow(id: string, num: number): void;
+/**
+ * createRuleRow adds a row that uses a text box to enter a number and displays it as a binary number.
+ * @param parent
+ * @param id
+ * @param caption
+ * @param callback
+ */
+declare function createLifeRow(parent: HTMLElement, id: string, caption: string, callback: () => void): void;
 /**
  * createRowButton adds a button to the control list
  * @param {HTMLElement} parent The parent HTMLElement
@@ -115,3 +124,4 @@ declare function uiLabelRow(id: string, label: string, controlsElementName?: str
  * @returns The integer value of the current rule.
  */
 declare function uiRuleRow(id: string, curValue: number, controlsElementName?: string): number;
+declare function createComboRow(parent: HTMLElement, id: string, values: string[], presetCallback: (index: number) => void): void;
