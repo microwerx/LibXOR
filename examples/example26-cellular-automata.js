@@ -76,13 +76,17 @@ class App {
             </ul>`,
             `<ul style='text-align:left; font-size:0.75em'>
             <li>Try some ranges: ~325. ~357.</li>
+            <li>Try 434 (draw boxes), 432 (large boxes), and 176 (smaller).
             <li>Try around the 'box' range: ~370.</li>
             <li>Try 151.</li>
             <li>Try 184 and then 183.
-            <li>Try 432 (original boxes).
             <li>Try random to 226.
             </ul>`,
-            'TBD',
+            `<ul>
+            <li>96, 227, 320, 353, 448 (life-like or fires)
+            <li>104, 328, 360 (growing)
+            <li>
+            </ul>`,
             'Try rule 30.',
             'Clears to zero',
             'Clears to random',
@@ -140,7 +144,7 @@ class App {
 
     syncControls() {
         let fluid = this.iFluidType;
-        this.iFluidType = uiRangeRow('iFluidType', 4, 0, 8);
+        this.iFluidType = uiRangeRow('iFluidType', 3, 0, 8);
         if (fluid != this.iFluidType)
             this.xor.frameCount = 0;
 
@@ -151,9 +155,9 @@ class App {
             uiLabelRow('tFluidType', this.fluidDescs[i]);
         }
 
-        this.simSteps = uiRangeRow("iSimSteps", 16, -16, 16);
+        this.simSteps = uiRangeRow("iSimSteps", 1, -16, 16);
         this.iCARule1D = uiRangeRow('iCARule1D', 30, 0, 255, 1);
-        this.iCARule2D = uiRuleRow('iCARule2D', 4575);
+        this.iCARule2D = uiRuleRow('iCARule2D', 434);
         this.fRDDA = uiRangeRow('fRDDA', 1.0, 0.0, 1.0, 0.1);
         this.fRDDB = uiRangeRow('fRDDB', 0.5, 0.0, 1.0, 0.1);
         this.fRDFeedRate = uiRangeRow('fRDFeedRate', /*0.0545*/0.044, 0.03, 0.06, 0.001);

@@ -285,7 +285,6 @@ vec4 caEffect2DMoore(vec2 uv, ivec2 xy) {
         getLatticeCells(xy, cells);
 
         data = cells[C].x;
-        avg = mix(cells[C].z, cells[C].x, 1.0/60.0);
 
         int count = 0;
         count += on(cells, NE);
@@ -308,6 +307,7 @@ vec4 caEffect2DMoore(vec2 uv, ivec2 xy) {
         else {
             data = Bvalues[count];
         }
+        avg = (data > 0.0) ? 1.0 : cells[C].z * 0.9;
     }
     return vec4(data, 0.0, avg, 1.0);
 }
