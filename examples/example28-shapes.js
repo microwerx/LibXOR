@@ -23,7 +23,7 @@ class Mega65 {
      */
     constructor(xor) {
         this.xor = xor
-        this.rc = xor.renderconfigs.load('mega65', 'shaders/basic.vert', 'shaders/basic-color.frag');
+        this.rc = xor.renderconfigs.load('gpu6502', 'shaders/basic.vert', 'shaders/basic-color.frag');
 
         this.penColor = xor.palette.BLACK;
         this.backgroundColor = xor.palette.WHITE;
@@ -55,7 +55,7 @@ class Mega65 {
     begin() {
         this.rc.use();
 
-        this.mesh = this.xor.meshes.create('mega65');
+        this.mesh = this.xor.meshes.create('gpu6502');
         let pmatrix = Matrix4.makePerspectiveY(45.0, 1.5, 1.0, 100.0);
         let cmatrix = Matrix4.makeOrbit(-90, 0, 5.0);
         this.rc.uniformMatrix4f('ProjectionMatrix', pmatrix);
