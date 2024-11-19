@@ -3,20 +3,20 @@
 /// <reference path="htmlutils.js" />
 /// <reference path="mathutils.js" />
 
-const M65_DOT = 0;
-const M65_CIRCLE = 1;
-const M65_LINE = 2;
-const M65_MAX_SHAPES = 3;
+const G65_DOT = 0;
+const G65_CIRCLE = 1;
+const G65_LINE = 2;
+const G65_MAX_SHAPES = 3;
 
 const BG_SIZE = 5.0;
 
-const M65_COMMANDS = [
-    { index: M65_DOT,    name: "DOT", params: 1 },
-    { index: M65_CIRCLE, name: "CIRCLE", params: 3 },
-    { index: M65_LINE,   name: "LINE", params: 4 },
+const G65_COMMANDS = [
+    { index: G65_DOT,    name: "DOT", params: 1 },
+    { index: G65_CIRCLE, name: "CIRCLE", params: 3 },
+    { index: G65_LINE,   name: "LINE", params: 4 },
 ];
 
-class Mega65 {
+class Gpu6502 {
     /**
      * 
      * @param {LibXOR} xor
@@ -151,9 +151,9 @@ class Mega65 {
         }
 
         if (filled)
-            this.mesh.circle(ox, oy, radius, 16);
+            this.mesh.circle(ox, oy, radius, 32);
         else
-            this.mesh.strokeCircle(ox, oy, radius, 16);
+            this.mesh.strokeCircle(ox, oy, radius, 32);
     }
 
     /** */
@@ -262,7 +262,7 @@ class App {
         let rc = this.xor.renderconfigs.load('default', 'shaders/basic.vert', 'shaders/basic-color.frag');
         rc.useDepthTest = false;
 
-        this.m65 = new Mega65(this.xor);
+        this.m65 = new Gpu6502(this.xor);
 
         let pal = this.xor.palette;
 
