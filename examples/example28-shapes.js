@@ -130,6 +130,15 @@ class Mega65 {
     //     }
     // }
 
+    /**
+     * 
+     * @param {number} ox The x-coordinate of the center of the circle.
+     * @param {number} oy The y-coordinate of the center of the circle.
+     * @param {number} radius The radius of the circle.
+     * @param {number} flags An integer with flags determining if the circle is filled, the number of legs, and the starting angle.
+     * @param {number} start The starting angle of the circle in degrees.
+     * @param {number} stop The stopping angle of the circle in degrees.
+     */
     CIRCLE(ox, oy, radius, flags, start, stop) {
         let filled = (flags & 1) || 1;
         let nolegs = (flags & 2);
