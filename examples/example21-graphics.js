@@ -29,6 +29,11 @@ class App {
         createRangeRow(controls, "LightAngle", 0.0, 0.0, 180.0);
         createRangeRow(controls, "MeshObject", 0, 0, 1);
 
+        // The controls to rotate the camera.
+        this.azimuth = -90;
+        this.inclination = 0;
+        this.distance = 5;
+
         this.BumpMix = 0;
         this.theta = 0;
         this.KsmMix = 0;
@@ -117,6 +122,17 @@ class App {
             let y = xor.input.mouse.position.y;
         }
 
+        if (xor.input.mouse.buttons & 1) {
+            this.azimuth -= xor.input.mouse.delta.x;
+            this.inclination += xor.input.mouse.delta.y;
+            this.azimuth = GTE.wrap(this.azimuth, -180, 180);
+            this.inclination = GTE.clamp(this.inclination, -90, 90);
+        }
+        if (xor.input.mouse.buttons & 2) {
+            this.distance += xor.input.mouse.delta.y * xor.dt;
+            this.distance = GTE.clamp(this.distance, 2, 10);
+        }
+
         this.theta += dt;
     }
 
@@ -135,7 +151,7 @@ class App {
         xor.graphics.clear(XOR.Color.BLUE, XOR.Color.WHITE, 5);
 
         let pmatrix = Matrix4.makePerspectiveY(45.0, 1.5, 1.0, 100.0);
-        let cmatrix = Matrix4.makeOrbit(-90, 0, 5.0 + this.Zoom);
+        let cmatrix = Matrix4.makeOrbit(this.azimuth, this.inclination, this.distance);
         let rc = xor.renderconfigs.use('default');
 
         if (rc) {
