@@ -103,9 +103,9 @@ class Mega65 {
      * @param {number} y1 
      * @param {number} x2 
      * @param {number} y2 
-     * @param {number} solid 
+     * @param {boolean} solid 
      */
-    BOX(x1, y1, x2, y2, solid = 0) {
+    BOX(x1, y1, x2, y2, solid = false) {
         this.mesh.color3(this.getColor(this.penColor));
         if (solid) {
             this.mesh.rect(x1, y1, x2, y2);
