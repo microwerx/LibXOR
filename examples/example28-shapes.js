@@ -63,8 +63,12 @@ class Gpu6502 {
         this.rc.uniformMatrix4f('WorldMatrix', Matrix4.makeIdentity());
 
         let pal = this.xor.palette;
-        this.mesh.color3(this.getColor(this.penColor));
         this.mesh.normal3(Vector3.make(0, 0, 1));
+        this.mesh.color3(this.getColor(this.backgroundColor));
+        this.mesh.rect(this.viewportOrigin.x, this.viewportOrigin.y,
+            this.viewportExtent.x, this.viewportExtent.y);
+
+        this.mesh.color3(this.getColor(this.penColor));
     }
 
     /**
@@ -181,6 +185,27 @@ class Gpu6502 {
     }
     
     end() {
+        let gl = this.xor.graphics.gl
+        let pal = this.xor.palette;
+        let x1 = this.viewportOrigin.x;
+        let y1 = this.viewportOrigin.y;
+        let x2 = this.viewportExtent.x;
+        let y2 = this.viewportExtent.y;
+
+        this.mesh.normal3(Vector3.make(0, 0, 1));
+        this.mesh.color3(this.getColor(this.backgroundColor));
+        this.mesh.rect(x1, y1, x2, y2);
+
+        this.mesh.color3(this.getColor(this.borderColor));
+        this.mesh.rect(0, 0, x1, y2);
+        this.mesh.rect(x2, 0, this.viewportSize.x, y2);
+
+        this.mesh.color3(this.getColor(this.penColor));
+        this.mesh.begin(gl.TRIANGLES);
+        this.mesh.vertex3(1, 2, 0);
+        this.mesh.vertex3(3, 4, 0);
+        this.mesh.vertex3(13, 16, 0);
+
         this.mesh.renderplain(this.rc);
     }
 
@@ -244,7 +269,27 @@ class App {
         this.clearScreen = true;
 
         let p = document.getElementById('desc');
-        p.innerHTML = `This app demonstrates the LibXOR 6502-inspired drawing primitives.`;
+        p.innerHTML = `This app demonstrates the LibXOR 6502-inspired drawing primitives. Use the controls below to send commands.
+        <ul>
+        <li>setPenColor</li>
+        <li>clearScreen</li>
+        <li>setShapePosition <i>x</i> <i>y</i></li>
+        <li>setShapeDimensions <i>width</i> <i>height</i></li>
+        <li>setShapeParameters <i>eastWestRoundness</i> <i>northSouthRoundness</i></li>
+        <li>setShapeHorizontalAlignment (<i>left</i> | <i>center</i> | <i>right</i>)</li>
+        <li>setShapeVerticalAlignment (<i>top</i> | <i>middle</i> | <i>bottom</i>)</li>
+        <li>drawLine <i>x1</i> <i>y1</i> <i>x2</i> <i>y2</i></li>
+        <li>drawPoint <i>x</i> <i>y</i></li>
+        <li>drawBox</li>
+        <li>drawEllipsoid</li>
+        <li>drawToroid</li>
+        <li>penDown</li>
+        <li>penUp</li>
+        <li>turnPen <i>degrees</i></li>
+        <li>movePen <i>distance</i></li>        
+        <li>setPenAngle <i>degrees</i></li>
+        <li>setPenState (<i>up</i> | <i>down</i>)</li>
+        </ul>`;
 
         let self = this;
         let controls = document.getElementById('controls');
