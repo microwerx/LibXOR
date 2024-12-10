@@ -1076,6 +1076,7 @@ declare namespace Fluxions {
          */
         load(name: string, url: string): void;
         wasRequested(name: string): boolean;
+        createFromImageData(name: string, imageData: ImageData, width: number, height: number): void;
         private processTextureMap;
     }
 }

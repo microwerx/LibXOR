@@ -130,6 +130,30 @@ namespace Fluxions {
             return false;
         }
 
+        // Creates a texture from an ImageData object
+        createFromImageData(name: string, imageData: ImageData, width: number, height: number) {
+            let canvas = document.createElement('canvas');
+            if (!canvas) {
+                hflog.error("createFromImageData: Cannot create a canvas");
+                return;
+            }
+            let ctx = canvas.getContext('2d');
+            if (!ctx) {
+                hflog.error("createFromImageData: Cannot get a 2d context");
+                return;
+            }
+            canvas.width = width;
+            canvas.height = height;
+            ctx.putImageData(imageData, 0, 0);
+            let dataURL = canvas.toDataURL();
+            let newImage = document.createElement('img');
+            let self = this
+            newImage.onload = () => {
+                self.processTextureMap(newImage, name);
+            }
+            newImage.src = dataURL;
+        }
+
         private processTextureMap(image: HTMLImageElement, name: string): void {
             let GL = WebGL2RenderingContext;
             let gl = this.fx.gl;
