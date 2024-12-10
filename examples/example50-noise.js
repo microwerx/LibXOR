@@ -10,6 +10,79 @@ function sind(thetaInDegrees) {
     return Math.sin(thetaInDegrees * 3.1415926/180.0);
 }
 
+function fract(x) {
+    return x - Math.floor(x);
+}
+
+/**
+ * Calculates a noise value based on the x- and y-coordinates.
+ * @param {number} x The x-coordinate of the noise function.
+ * @param {number} y The y-coordinate of the noise function.
+ * @returns {number} A value between 0 and 1.
+ */
+function sin_noise(x, y) {
+    // Based on: fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+    let dot_product = x * 12.9898 + y * 78.233;
+    return fract(Math.sin(dot_product) * 43758.5453);
+}
+
+/**
+ * Calculates noise based on the x- and y-coordinates.
+ * @param {number} x The x-coordinate of the noise function.
+ * @param {number} y The y-coordinate of the noise function.
+ * @param {number} nv The noise value scale.
+ * @returns {number} A value between 0 and 255.
+ */
+function noiseFunction(x, y, nv) {
+    let offset = sin_noise(x, y) * nv * 1000.0;
+    let value = Math.sin(offset + x * y) * 0.5 + 0.5;
+    return (255.99 * value) || 0;
+}
+
+class ObservableNumber {
+    /**
+     * Creates a new observable number.
+     * @param {number} initialValue The initial value of the observable number.
+     */
+    constructor(initialValue) {
+        /** @type {number} */
+        this.value = initialValue;
+        /** @type {number} */
+        this.newValue = this.value + 1;
+    }
+
+    /**
+     * Returns whether there's a new number to consume.
+     * @returns {boolean} True if the value has changed.
+     */
+    valueDidChange() {
+        return this.value != this.newValue;
+    }    
+
+    /**
+     * Use the new value so that valueDidChange() returns false.
+     */
+    consume() {
+        this.value = this.newValue;
+    }
+
+    /**
+     * Sets a new value for the number. Call consume() to use the new value.
+     * @param {number} newValue The new value for the observable number.
+     */
+    setNewValue(newValue) {
+        this.newValue = newValue;
+    }
+
+    /**
+     * Gets the current value of the observable number.
+     * @returns {number} The current value of the observable number.
+     */
+    getValue() {
+        return this.value;
+    }
+}
+
 class App {
     constructor() {
         this.xor = new LibXOR("project");
@@ -21,13 +94,14 @@ class App {
         createButtonRow(controls, "bReset", "Reset", () => {
             self.reset();
         });
-        createRangeRow(controls, "BumpMix", 0, 0.0, 1.0, 0.05);
+        createRangeRow(controls, "BumpMix", 0.35, 0.0, 1.0, 0.05);
         createRangeRow(controls, "KsmMix", 0, 0.0, 1.0, 0.05);
-        createRangeRow(controls, "Ksm", 0, 0.0, 1.0, 0.05);
-        createRangeRow(controls, "theta", 0, -90, 90);
-        createRangeRow(controls, "Zoom", 0.0, -4.0, 4.0, 0.1);
-        createRangeRow(controls, "LightAngle", 0.0, 0.0, 180.0);
+        createRangeRow(controls, "Ksm", 0.1, 0.0, 1.0, 0.05);
+        createRangeRow(controls, "theta", 0.0, -90, 90);
+        createRangeRow(controls, "Zoom", -2.0, -4.0, 4.0, 0.1);
+        createRangeRow(controls, "LightAngle", 130.0, 0.0, 180.0);
         createRangeRow(controls, "MeshObject", 0, 0, 1);
+        createRangeRow(controls, "Noisiness", 0.5, 0.0, 1.0, 0.05);
 
         this.BumpMix = 0;
         this.theta = 0;
@@ -36,9 +110,12 @@ class App {
         this.Zoom = 0;
         this.LightAngle = 0;
         this.MeshObject = 0;
+        this.Noisiness = new ObservableNumber(0.0);
 
         this.xor.triggers.set("ESC", 60.0 / 120.0);
         this.xor.triggers.set("SPC", 0.033);
+
+        this.updateNoiseTexture();
     }
 
     init() {
@@ -54,6 +131,7 @@ class App {
 
         let rc = this.xor.renderconfigs.load('default', 'shaders/basic.vert', 'shaders/textures.frag');
         rc.addTexture("chiptil-diffuse", "MapKd");
+        rc.addTexture("noiseTexture", "MapKd");
         rc.addTexture("chiptil-normal", "MapNormal");
         rc.addTexture("chiptil-roughness", "MapKsRoughness");
         rc.addTexture("charlesXII", "MapEnvironment");
@@ -118,6 +196,8 @@ class App {
         }
 
         this.theta += dt;
+
+        this.updateNoiseTexture();
     }
 
     updateControls() {
@@ -128,6 +208,43 @@ class App {
         this.Zoom = getRangeValue("Zoom");
         this.LightAngle = getRangeValue("LightAngle");
         this.MeshObject = getRangeValue("MeshObject");
+        this.Noisiness.setNewValue(getRangeValue("Noisiness"));
+    }
+
+    updateNoiseTexture() {
+        if (!this.Noisiness.valueDidChange()) {
+            return;
+        }
+        this.Noisiness.consume();
+        let noiseValue = this.Noisiness.getValue();
+
+        // // Declare a function that uses the noiseValue to create a value.
+        // let noiseFunction = (x, y, nv) => {
+        //     let offset = Math.random();
+        //     let value = Math.sin(offset + nv * x + y) * 0.5 + 0.5;
+        //     return (255.99 * value) || 0;
+        // }
+
+        // Create a new texture with random noise.
+        let width = 32
+        let height = 32
+        let stride = 4;
+        let imageData = new ImageData(width, height)
+        let i = 0;
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                imageData.data[i+0] = noiseFunction(x, y, noiseValue);
+                imageData.data[i+1] = noiseFunction(x, y, noiseValue);
+                imageData.data[i+2] = noiseFunction(x, y, noiseValue);
+                imageData.data[i+3] = 255;
+                i += stride;
+            }
+        }
+
+        let fx = this.xor.fluxions;
+        fx.textures.defaultMagFilter = fx.gl.LINEAR;
+        fx.textures.defaultMinFilter = fx.gl.LINEAR_MIPMAP_LINEAR;
+        fx.textures.createFromImageData('noiseTexture', imageData, width, height);
     }
 
     render() {
