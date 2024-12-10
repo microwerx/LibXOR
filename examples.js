@@ -173,8 +173,8 @@ class ExampleMetadata {
             new Metadata(41, "Ray Tracing Miss Shader", "rt-miss-shader"),
             new Metadata(42, "Oren-Nayer", "rt-oren-nayer"),
             new Metadata(43, "Raymarching", "rt-raymarching"),
-            new Metadata(44, "G-Buffer", "gbuffer"),
-            new Metadata(45, "Textures", "textures"),
+            new Metadata(44, "Textures", "textures"),
+            new Metadata(45, "G-Buffer", "gbuffer"),
             new Metadata(46, "PBR", "pbr"),
             new Metadata(47, "NPR", "npr"),
             new Metadata(48, "Specular Bumpiness", "specular-bumpiness"),
@@ -379,7 +379,7 @@ class ExampleMetadata {
 
     /** Set's the title of the page with the example project's name in parentheses. */
     writeHeadTitle() {
-        let optional = (this.exampleIndex) ? " (" + this.getProjectName(this.exampleIndex - 1) + ")" : "";
+        let optional = (this.exampleIndex) ? " (" + this.getProjectName(this.exampleIndex) + ")" : "";
         document.title = this.pageTitle + optional;
     }
 }

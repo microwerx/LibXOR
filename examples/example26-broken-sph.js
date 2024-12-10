@@ -463,6 +463,7 @@ class Simulation {
         if (this.G != 0.0) {
             this.acceleratorOperators(this.G, this.p);
         }
+        let fixedTimeStep = 0.01;
         this.calcSystemDynamics(dt);
         this.boundParticles();
         if (this.useCollisions > 0.5) this.detectCollisions();
