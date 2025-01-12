@@ -70,10 +70,17 @@
 
         #color1-controls,
         #color2-controls,
+        #color3-controls,
         #mixer-controls {
             margin: 5px;
             padding: 5px;
             border: 1px solid black;
+            vertical-align: top;
+        }
+
+        h3 {
+            margin: 0px;
+            padding: 0px;
         }
     </style>
 </head>
@@ -111,6 +118,30 @@
             <!-- Slider for values 0 to 3 for the hue shift for color 1's index -->
             <input type="range" id="color1-hue" min="0" max="3" value="0" step="1" />
             <label for="color1-hue">Color 1 Hue</label>
+            <br />
+            <h3>Color Information</h3>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <td id="color1-name"></td>
+                </tr>
+                <tr>
+                    <th>hex</th>
+                    <td id="color1-hex"></td>
+                </tr>
+                <tr>
+                    <th>hsl</th>
+                    <td id="color1-hsl"></td>
+                </tr>
+                <tr>
+                    <th>rgb8</th>
+                    <td id="color1-rgb8"></td>
+                </tr>
+                <tr>
+                    <th>vec3</th>
+                    <td id="color1-vec3"></td>
+                </tr>
+            </table>
         </div>
         <div id="color2-controls">
             <h3>Color 2</h3>
@@ -121,46 +152,35 @@
             <!-- Slider for values 0 to 3 for the hue shift for color 2's index -->
             <input type="range" id="color2-hue" min="0" max="3" value="0" step="1" />
             <label for="color2-hue">Color 2 Hue</label>
-        </div>
-        <div id="mixer-controls">
-            <h3>Color RGB</h3>
+            <br />
+
+            <h3>Color Information</h3>
+            <!-- A Table with rows for hex, hsl, rgb8, and vec3. -->
             <table>
                 <tr>
-                    <th>R</th>
-                    <th>G</th>
-                    <th>B</th>
-                    <th>R8</th>
-                    <th>G8</th>
-                    <th>B8</th>
+                    <th>Name</th>
+                    <td id="color2-name"></td>
                 </tr>
                 <tr>
-                    <td id="color1-r"></td>
-                    <td id="color1-g"></td>
-                    <td id="color1-b"></td>
-                    <td id="color1-r8"></td>
-                    <td id="color1-g8"></td>
-                    <td id="color1-b8"></td>
+                    <th>hex</th>
+                    <td id="color2-hex"></td>
                 </tr>
-                <!-- Color 2-->
                 <tr>
-                    <td id="color2-r"></td>
-                    <td id="color2-g"></td>
-                    <td id="color2-b"></td>
-                    <td id="color2-r8"></td>
-                    <td id="color2-g8"></td>
-                    <td id="color2-b8"></td>
+                    <th>hsl</th>
+                    <td id="color2-hsl"></td>
                 </tr>
-                <!-- Final Color -->
                 <tr>
-                    <td id="color3-r"></td>
-                    <td id="color3-g"></td>
-                    <td id="color3-b"></td>
-                    <td id="color3-r8"></td>
-                    <td id="color3-g8"></td>
-                    <td id="color3-b8"></td>
+                    <th>rgb8</th>
+                    <td id="color2-rgb8"></td>
+                </tr>
+                <tr>
+                    <th>vec3</th>
+                    <td id="color2-vec3"></td>
                 </tr>
             </table>
-
+        </div>
+        <div id="mixer-controls">
+            <h3>Mixed Color</h3>
             <!-- Slider for values 0 to 7 for the mix index -->
             <input type="range" id="color3-mix-amount" min="0" max="7" value="0" step="1" />
             <label for="color3-mix-amount">Mix Amount</label>
@@ -168,7 +188,30 @@
             <!-- check box to invert the color -->
             <input type="checkbox" id="color3-invert-color" />
             <label for="color3-invert-color">Invert Color</label>
-
+            <br />
+            <h3>Color Information</h3>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <td id="color3-name"></td>
+                </tr>
+                <tr>
+                    <th>hex</th>
+                    <td id="color3-hex"></td>
+                </tr>
+                <tr>
+                    <th>hsl</th>
+                    <td id="color3-hsl"></td>
+                </tr>
+                <tr>
+                    <th>rgb8</th>
+                    <td id="color3-rgb8"></td>
+                </tr>
+                <tr>
+                    <th>vec3</th>
+                    <td id="color3-vec3"></td>
+                </tr>
+            </table>
         </div>
     </div>
 

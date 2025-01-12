@@ -6,6 +6,53 @@
 // https://opensource.org/licenses/MIT
 
 /**
+ * 
+ * @param {GTE.Vector3} v The vector to format as a string.
+ * @param {boolean} isHex If true, the vector is formatted as a hex string.
+ * @param {precision} precision The number of decimal places to round to.
+ * @returns A formatted vector with the appropriate rounding and base.
+ */
+function rgb8ToString(v, isHex, precision) {
+    if (isHex) {
+        return RGB8ToHex(v);
+    } else {
+        let r = v.x.toFixed(precision);
+        let g = v.y.toFixed(precision);
+        let b = v.z.toFixed(precision);
+        return "(" + r + ", " + g + ", " + b + ")";
+    }
+}
+
+/**
+ * 
+ * @param {GTE.Vector3} v The RGB triplet to convert to HSL and format as a string.
+ * @returns {string}
+ */
+function hslToString(v) {
+    let hsl = RGBToHSL(v);
+    if (hsl.x < 0) hsl.x += 360;
+    while (hsl.x >= 360) {
+        hsl.x -= 360
+    }
+    let h = hsl.x.toFixed(0);
+    let s = (hsl.y * 100).toFixed(0);
+    let l = (hsl.z * 100).toFixed(0);
+    return "(" + h + " deg, " + s + "%, " + l + "%)";
+}
+
+/**
+ * 
+ * @param {GTE.Vector3} v The RGB triplet to format as a string.
+ * @returns {string}
+ */
+function vec3ToString(v) {
+    let r = v.x.toFixed(3);
+    let g = v.y.toFixed(3);
+    let b = v.z.toFixed(3);
+    return "(" + r + ", " + g + ", " + b + ")";
+}
+
+/**
  * Saturates a Vector3 to the range [0, 1].
  * @param {GTE.Vector3} rgb 
  * @returns {GTE.Vector3}
@@ -378,6 +425,41 @@ class LibXORColor {
             GTE.vec3(0.250 * 255.0, 0.500 * 255.0, 0.250 * 255.0),
         ]
 
+        // // Add the following colors into the second set of 16:
+        // //Color Value	Color Name	RGB Approximation
+        // // 0	Black	#000000
+        // // 1	White	#FFFFFF
+        // // 2	Red	#880000
+        // // 3	Cyan	#AAFFEE
+        // // 4	Purple	#CC44CC
+        // // 5	Green	#00CC55
+        // // 6	Blue	#0000AA
+        // // 7	Yellow	#EEEE77
+        // // 8	Orange	#DD8855
+        // // 9	Light Orange	#FF77AA
+        // // 10	Pink	#DD88DD
+        // // 11	Light Cyan	#88FFFF
+        // // 12	Light Purple	#8888FF
+        // // 13	Light Green	#AAFF66
+        // // 14	Light Blue	#0077DD
+        // // 15	Light Yellow	#FFFFBB
+        // this.tableSRGB.push(GTE.vec3(0.000 * 255.0, 0.000 * 255.0, 0.000 * 255.0));
+        // this.tableSRGB.push(GTE.vec3(1.000 * 255.0, 1.000 * 255.0, 1.000 * 255.0));
+        // this.tableSRGB.push(GTE.vec3(0.533 * 255.0, 0.000 * 255.0, 0.000 * 255.0));
+        // this.tableSRGB.push(GTE.vec3(0.667 * 255.0, 1.000 * 255.0, 0.933 * 255.0));
+        // this.tableSRGB.push(GTE.vec3(0.800 * 255.0, 0.267 * 255.0, 0.800 * 255.0));
+        // this.tableSRGB.push(GTE.vec3(0.000 * 255.0, 0.800 * 255.0, 0.333 * 255.0));
+        // this.tableSRGB.push(GTE.vec3(0.000 * 255.0, 0.000 * 255.0, 0.667 * 255.0));
+        // this.tableSRGB.push(GTE.vec3(0.933 * 255.0, 0.933 * 255.0, 0.467 * 255.0));
+        // this.tableSRGB.push(GTE.vec3(0.867 * 255.0, 0.533 * 255.0, 0.333 * 255.0));
+        // this.tableSRGB.push(GTE.vec3(1.000 * 255.0, 0.467 * 255.0, 0.667 * 255.0));
+        // this.tableSRGB.push(GTE.vec3(0.867 * 255.0, 0.533 * 255.0, 0.867 * 255.0));
+        // this.tableSRGB.push(GTE.vec3(0.533 * 255.0, 1.000 * 255.0, 1.000 * 255.0));
+        // this.tableSRGB.push(GTE.vec3(0.533 * 255.0, 0.533 * 255.0, 1.000 * 255.0));
+        // this.tableSRGB.push(GTE.vec3(0.667 * 255.0, 1.000 * 255.0, 0.400 * 255.0));
+        // this.tableSRGB.push(GTE.vec3(0.000 * 255.0, 0.467 * 255.0, 0.867 * 255.0));
+        // this.tableSRGB.push(GTE.vec3(1.000 * 255.0, 1.000 * 255.0, 0.733 * 255.0));
+
         for (let hueIndex = 1; hueIndex < 4; hueIndex++) {
             for (let i = 0; i < 12; i += 1) {
                 this.tableSRGB.push(hsl(i * 30, hueIndex));
@@ -402,7 +484,7 @@ class LibXORColor {
             } else {
                 let hue = Math.round(RGBToHSL(color).x);
                 if (hue < 0) hue += 360;
-                this.hueList.push(hue);    
+                this.hueList.push(hue);
             }
             i += 1;
         }
@@ -469,7 +551,28 @@ class LibXORColor {
                 case 14: return "Gold";
                 case 15: return "ForestGreen";
             }
-        } else if (hueShift == 1) {
+        }
+        // else if (hueShift == 1) {
+        //     switch (index) {
+        //         case 0: return "VIC-Black";
+        //         case 1: return "VIC-White";
+        //         case 2: return "VIC-Red";
+        //         case 3: return "VIC-Cyan";
+        //         case 4: return "VIC-Purple";
+        //         case 5: return "VIC-Green";
+        //         case 6: return "VIC-Blue";
+        //         case 7: return "VIC-Yellow";
+        //         case 8: return "VIC-Orange";
+        //         case 9: return "VIC-LightOrange";
+        //         case 10: return "VIC-Pink";
+        //         case 11: return "VIC-LightCyan";
+        //         case 12: return "VIC-LightPurple";
+        //         case 13: return "VIC-LightGreen";
+        //         case 14: return "VIC-LightBlue";
+        //         case 15: return "VIC-LightYellow";
+        //     }
+        // } 
+        else if (hueShift == 1) {
             let hue = this.hueList[index + 16];
             switch (index) {
                 case 12: return "RealSilver";
@@ -638,6 +741,42 @@ class LibXORColorsV2 {
         this.color2Box.style.backgroundColor = this.color2.asHex();
         // Update the third color background.
         this.color3Box.style.backgroundColor = this.color3.asHex();
+
+        // Update the numbers in the tables.
+        let names = [document.getElementById("color1-name"), document.getElementById("color2-name"), document.getElementById("color3-name")];
+        let hexes = [document.getElementById("color1-hex"), document.getElementById("color2-hex"), document.getElementById("color3-hex")];
+        let hsls = [document.getElementById("color1-hsl"), document.getElementById("color2-hsl"), document.getElementById("color3-hsl")];
+        let rgb8s = [document.getElementById("color1-rgb8"), document.getElementById("color2-rgb8"), document.getElementById("color3-rgb8")];
+        let vec3s = [document.getElementById("color1-vec3"), document.getElementById("color2-vec3"), document.getElementById("color3-vec3")];
+
+        for (let i = 0; i < 3; i++) {
+            let index = 0
+            let hueShift = 0
+            let color = null;
+            switch (i) {
+                case 0:
+                    index = this.color1.color1Index;
+                    hueShift = this.color1.color1HueShift;
+                    color = this.color1;
+                    break;
+                case 1:
+                    index = this.color2.color2Index;
+                    hueShift = this.color2.color2HueShift;
+                    color = this.color2;
+                    break;
+                case 2:
+                    index = this.color3.color1Index;
+                    hueShift = this.color3.color1HueShift;
+                    color = this.color3;
+                    break;
+            }
+
+            names[i].innerHTML = color.getColorIndexAndHueName(index, hueShift);
+            hexes[i].innerHTML = color.asHex();
+            hsls[i].innerHTML = hslToString(color.asFloat3());
+            rgb8s[i].innerHTML = rgb8ToString(color.asUint8(), false, 3);
+            vec3s[i].innerHTML = vec3ToString(color.asFloat3());
+        }
     }
 }
 
