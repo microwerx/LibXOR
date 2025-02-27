@@ -1,4 +1,4 @@
-///* global XOR Vector3 Matrix4 BoundingBox createButtonRow createRangeRow setIdToHtml createCheckRow createDivRow setDivRowContents getCheckValue */
+///* global XOR Vector3 Matrix4 BoundingBox createButtonRow createRangeRow setIdToHtml createCheckRow createDivRow setDivRowContents getCheckValue collremoveControls */
 /// <reference path="../LibXOR.d.ts" />
 /// <reference path="htmlutils.js" />
 
@@ -10,7 +10,8 @@ class App {
         let p = document.getElementById('desc');
         p.innerHTML = `This is a graphics demonstration of zooming into the Mandelbrot set.`;
         
-        let c = document.getElementById('controls');
+        removeControls();
+        collapseLog();
 
         this.resetSim=false;
         this.iResolution = Vector3.make(1.5 * 384, 384);

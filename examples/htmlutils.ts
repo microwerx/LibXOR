@@ -450,4 +450,20 @@ function createComboRow(
     }
 }
 
+function removeControls()
+{
+    let c = document.getElementById('controls-container');
+    if (c && c.parentElement) {
+        c.parentElement.removeChild(c);
+    }
+}
+
+function collapseLog()
+{
+    let c = document.getElementById('log');
+    if (c) {
+        c.style.display = 'none';
+    }
+}
+
 // END HELPFUL HTML5 CODE

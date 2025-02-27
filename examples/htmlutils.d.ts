@@ -125,3 +125,5 @@ declare function uiLabelRow(id: string, label: string, controlsElementName?: str
  */
 declare function uiRuleRow(id: string, curValue: number, controlsElementName?: string): number;
 declare function createComboRow(parent: HTMLElement, id: string, values: string[], presetCallback: (index: number) => void): void;
+declare function removeControls(): void;
+declare function collapseLog(): void;

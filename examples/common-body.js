@@ -11,7 +11,7 @@ document.write(`
     <div class="cell-block-clear">
         <div id="project" class="centered"></div>
     </div>
-    <div class="cell-block-light" style="width: 384px">
+    <div class="cell-block-light" style="width: 384px" id="controls-container">
         <h5 onclick='toggle(" controls")'>Controls</h5>
         <div id="controls"></div>
     </div>
