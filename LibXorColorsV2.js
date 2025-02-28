@@ -1,9 +1,9 @@
 /// <reference path="src/LibXOR.ts" />
 
 // Copyright (c) 2025 Jonathan Metzgar
-// 
-// This software is released under the MIT License.
-// https://opensource.org/licenses/MIT
+//
+// See LICENSE for details.
+//
 
 /**
  * 

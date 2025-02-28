@@ -1,8 +1,9 @@
 <!--
  Copyright (c) 2024 Jonathan Metzgar
  
- This software is released under the MIT License.
- https://opensource.org/licenses/MIT
+//
+// See LICENSE for details.
+//
 -->
 
 The API for LibXOR is summarized below:
